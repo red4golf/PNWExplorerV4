@@ -137,13 +137,11 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
     );
   };
 
-  // State to track if we should center on user location
-  const [shouldCenterOnUser, setShouldCenterOnUser] = useState(false);
-
   // Auto-get location on component mount
   useEffect(() => {
     const getUserLocation = async () => {
       if (!navigator.geolocation) {
+        console.log("Geolocation not supported");
         return;
       }
 
@@ -158,15 +156,9 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
 
         const { latitude, longitude } = position.coords;
         const userLoc = { lat: latitude, lng: longitude };
+        console.log("User location detected:", userLoc);
+        console.log("Is within PNW?", isWithinPNW(latitude, longitude));
         setUserLocation(userLoc);
-        
-        // Only center on user if they're within PNW boundaries
-        if (isWithinPNW(latitude, longitude)) {
-          setShouldCenterOnUser(true);
-        } else {
-          // User is outside PNW - show full PNW view
-          setShouldCenterOnUser(false);
-        }
       } catch (error) {
         console.log("Geolocation failed:", error);
         setLocationError("Unable to get your location. Showing full Pacific Northwest view.");
@@ -185,9 +177,12 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
       let initialZoom = PNW_ZOOM;
       
       // If user location is available and within PNW, center on it
-      if (shouldCenterOnUser && userLocation) {
+      if (userLocation && isWithinPNW(userLocation.lat, userLocation.lng)) {
         initialView = [userLocation.lat, userLocation.lng];
         initialZoom = 12;
+        console.log("Centering map on user location:", initialView);
+      } else {
+        console.log("Showing PNW view - user location:", userLocation);
       }
       
       mapInstanceRef.current = L.map(mapRef.current).setView(initialView, initialZoom);
@@ -195,12 +190,6 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       }).addTo(mapInstanceRef.current);
-    }
-    
-    // Update map view if user location becomes available and they're in PNW
-    else if (shouldCenterOnUser && userLocation && mapInstanceRef.current) {
-      mapInstanceRef.current.setView([userLocation.lat, userLocation.lng], 12);
-      setShouldCenterOnUser(false); // Prevent re-centering
     }
 
     // Clear existing markers (except user location marker)
@@ -287,7 +276,7 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
         userMarkerRef.current = null;
       }
     };
-  }, [L, locations, onLocationSelect, userLocation, shouldCenterOnUser]);
+  }, [L, locations, onLocationSelect, userLocation]);
 
   if (isLoading) {
     return (
