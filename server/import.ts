@@ -142,7 +142,8 @@ export async function importAll() {
   return await importAllFiles();
 }
 
-if (require.main === module) {
+// For ES modules, check if this file is being run directly
+if (import.meta.url === `file://${process.argv[1]}`) {
   importAllFiles().then(() => {
     console.log('Import process completed');
     process.exit(0);
