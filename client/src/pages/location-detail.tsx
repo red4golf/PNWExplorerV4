@@ -12,39 +12,7 @@ import { useState, useEffect } from "react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-// Location Map Component
-const LocationMap = ({ latitude, longitude, name }: { latitude: number; longitude: number; name: string }) => {
-  const mapId = `location-map-${Date.now()}`;
-  
-  useEffect(() => {
-    const loadMap = async () => {
-      const L = await import('leaflet');
-      
-      // Remove existing map if it exists
-      const existing = document.getElementById(mapId);
-      if (existing && (existing as any)._leaflet_id) {
-        (existing as any)._leaflet_id = undefined;
-        existing.innerHTML = '';
-      }
 
-      const map = L.map(mapId).setView([latitude, longitude], 15);
-      
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-      }).addTo(map);
-
-      // Add marker for the location
-      L.marker([latitude, longitude])
-        .addTo(map)
-        .bindPopup(name)
-        .openPopup();
-    };
-
-    loadMap();
-  }, [latitude, longitude, name, mapId]);
-
-  return <div id={mapId} className="h-48 rounded-lg border" />;
-};
 
 export default function LocationDetail() {
   const [, params] = useRoute("/location/:id");
