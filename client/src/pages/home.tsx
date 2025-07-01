@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,13 @@ export default function Home() {
   const { data: locations, isLoading } = useQuery<Location[]>({
     queryKey: ["/api/locations"],
   });
+
+  // Check for hash to show map directly
+  useEffect(() => {
+    if (window.location.hash === '#map') {
+      setShowMap(true);
+    }
+  }, []);
 
   const handleLocationSelect = (location: Location) => {
     // Navigate to location detail page

@@ -12,6 +12,40 @@ import { useState, useEffect } from "react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
+// Location Map Component
+const LocationMap = ({ latitude, longitude, name }: { latitude: number; longitude: number; name: string }) => {
+  const mapId = `location-map-${Date.now()}`;
+  
+  useEffect(() => {
+    const loadMap = async () => {
+      const L = await import('leaflet');
+      
+      // Remove existing map if it exists
+      const existing = document.getElementById(mapId);
+      if (existing && (existing as any)._leaflet_id) {
+        (existing as any)._leaflet_id = undefined;
+        existing.innerHTML = '';
+      }
+
+      const map = L.map(mapId).setView([latitude, longitude], 15);
+      
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+
+      // Add marker for the location
+      L.marker([latitude, longitude])
+        .addTo(map)
+        .bindPopup(name)
+        .openPopup();
+    };
+
+    loadMap();
+  }, [latitude, longitude, name, mapId]);
+
+  return <div id={mapId} className="h-48 rounded-lg border" />;
+};
+
 export default function LocationDetail() {
   const [, params] = useRoute("/location/:id");
   const locationId = params?.id ? parseInt(params.id) : 0;
@@ -93,10 +127,10 @@ export default function LocationDetail() {
     <div className="min-h-screen bg-heritage-cream py-8">
       <div className="container mx-auto px-4">
         {/* Back Button */}
-        <Link href="/">
+        <Link href="/#map">
           <Button variant="ghost" className="mb-6 text-heritage-brown hover:text-heritage-gold">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Locations
+            Back to Map
           </Button>
         </Link>
 
@@ -119,14 +153,29 @@ export default function LocationDetail() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-48 bg-gray-200 rounded-lg flex items-center justify-center">
-                    <p className="text-gray-600">
-                      Interactive map showing location at {location.latitude}, {location.longitude}
-                    </p>
+                  <div className="h-48 bg-gray-100 rounded-lg border relative overflow-hidden">
+                    <iframe
+                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${location.longitude-0.01},${location.latitude-0.01},${location.longitude+0.01},${location.latitude+0.01}&layer=mapnik&marker=${location.latitude},${location.longitude}`}
+                      width="100%"
+                      height="100%"
+                      style={{ border: 0 }}
+                      loading="lazy"
+                      title={`Map showing ${location.name}`}
+                    />
                   </div>
                   {location.address && (
                     <p className="mt-4 text-sm text-gray-600">{location.address}</p>
                   )}
+                  <div className="mt-4 flex space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(`https://www.openstreetmap.org/?mlat=${location.latitude}&mlon=${location.longitude}&zoom=15`, '_blank')}
+                    >
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      View on OpenStreetMap
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             )}
