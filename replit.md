@@ -105,3 +105,5 @@ Changelog:
 - July 01, 2025. Added comprehensive location management system - created "Manage Locations" admin tab with search functionality, edit forms for all location data including extended story content, and database cleanup to remove duplicate entries
 - July 01, 2025. Added markdown rendering to location detail pages - extended story content now displays with proper formatting including headings, paragraphs, bold text, and other markdown features
 - July 01, 2025. Created Fort Casey location with rich historical narrative - added detailed story about the coastal fortification on Whidbey Island with markdown formatting
+- July 01, 2025. Fixed location detail page navigation and maps - "Back to Map" button now properly returns to map view, added embedded OpenStreetMap displays for each location
+- July 01, 2025. Added Pia the Peacekeeper location - created entry for Thomas Dambo's troll sculpture in Sakai Park with full community creation story and environmental stewardship narrative
