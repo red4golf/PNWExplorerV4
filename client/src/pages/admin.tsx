@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Lock, Clock, MapPin, Users, CheckCircle, XCircle, LogIn, Upload, FileText, Database, Edit3, Search, Save } from "lucide-react";
@@ -582,6 +582,9 @@ export default function Admin() {
                                 <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
                                   <DialogHeader>
                                     <DialogTitle>Edit Location: {location.name}</DialogTitle>
+                                    <DialogDescription>
+                                      Update location details, description, and extended story content.
+                                    </DialogDescription>
                                   </DialogHeader>
                                   {editingLocation && <LocationEditForm location={editingLocation} onSave={(data) => {
                                     updateLocationMutation.mutate({ id: editingLocation.id, data });

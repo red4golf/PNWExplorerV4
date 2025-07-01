@@ -102,3 +102,4 @@ Changelog:
 - July 01, 2025. Fixed location detection boundaries - corrected longitude coordinate logic for proper PNW boundary detection, map now centers correctly on user location within region
 - July 01, 2025. Added 10 additional historical locations - expanded database with diverse sites including Fort Clatsop, Columbia River Gorge, Bonneville Dam, Celilo Falls, Snoqualmie Falls, Oregon State Capitol, Hanford Site, Coeur d'Alene Mission, Glacier National Park, and Skagit Valley Tulip Fields
 - July 01, 2025. Updated all page headers and branding - changed references from "Bainbridge Island" to "Pacific Northwest" across submit location page, admin page, and main header component
+- July 01, 2025. Added comprehensive location management system - created "Manage Locations" admin tab with search functionality, edit forms for all location data including extended story content, and database cleanup to remove duplicate entries
