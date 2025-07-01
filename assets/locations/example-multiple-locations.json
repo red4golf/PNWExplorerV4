@@ -1,0 +1,31 @@
+[
+  {
+    "name": "Your First Historic Location",
+    "description": "Detailed historical description with all the context about this location's significance.",
+    "address": "123 First St, City, State",
+    "latitude": 47.6000,
+    "longitude": -122.3000,
+    "category": "Historic Landmark",
+    "period": "1850s-1900s",
+    "submitterName": "Your Name",
+    "submitterEmail": "your.email@example.com",
+    "images": [
+      "assets/images/location1-photo1.jpg",
+      "assets/images/location1-photo2.jpg"
+    ]
+  },
+  {
+    "name": "Your Second Historic Location", 
+    "description": "Another detailed description with historical context and significance.",
+    "address": "456 Second Ave, City, State",
+    "latitude": 47.6100,
+    "longitude": -122.3100,
+    "category": "Cultural Site",
+    "period": "1900s-1950s",
+    "submitterName": "Your Name",
+    "submitterEmail": "your.email@example.com",
+    "images": [
+      "assets/images/location2-photo1.jpg"
+    ]
+  }
+]

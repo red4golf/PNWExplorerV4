@@ -1,0 +1,17 @@
+{
+  "name": "Example Historic Site",
+  "description": "A detailed description of the historical significance of this location. This can be as long as you want and include all the context and historical details.",
+  "address": "123 Historic Ave, City, State",
+  "latitude": 47.6062,
+  "longitude": -122.3321,
+  "category": "Historic Landmark",
+  "period": "1800s-1900s",
+  "submitterName": "Your Name",
+  "submitterEmail": "your.email@example.com",
+  "status": "approved",
+  "images": [
+    "https://example.com/image1.jpg",
+    "assets/images/historic-site-1.jpg"
+  ],
+  "content": "Extended historical content, stories, or additional details that don't fit in the description."
+}
