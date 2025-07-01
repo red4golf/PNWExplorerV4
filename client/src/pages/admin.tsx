@@ -246,8 +246,9 @@ export default function Admin() {
 
         {/* Main Content */}
         <Tabs defaultValue="pending" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsList className="grid w-full grid-cols-3 max-w-lg">
             <TabsTrigger value="pending">Pending Locations</TabsTrigger>
+            <TabsTrigger value="import">Import Data</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 

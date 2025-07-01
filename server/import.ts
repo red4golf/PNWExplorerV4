@@ -137,6 +137,11 @@ async function importAllFiles() {
 export { importFromJSON, importFromCSV, importSingleLocation, importAllFiles };
 
 // If run directly, import all files
+// Export the main import function for API use  
+export async function importAll() {
+  return await importAllFiles();
+}
+
 if (require.main === module) {
   importAllFiles().then(() => {
     console.log('Import process completed');

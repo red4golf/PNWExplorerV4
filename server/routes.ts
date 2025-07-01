@@ -120,6 +120,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Import locations from files
+  app.post("/api/admin/import", async (req, res) => {
+    try {
+      const { importAllFiles } = await import("./import");
+      await importAllFiles();
+      res.json({ 
+        message: "Import completed successfully"
+      });
+    } catch (error) {
+      console.error("Import error:", error);
+      res.status(500).json({ 
+        message: "Import failed", 
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
