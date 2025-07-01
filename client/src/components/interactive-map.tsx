@@ -43,7 +43,6 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
   const isWithinPNW = (lat: number, lng: number): boolean => {
     const inLatBounds = lat >= PNW_BOUNDS.south && lat <= PNW_BOUNDS.north;
     const inLngBounds = lng >= PNW_BOUNDS.west && lng <= PNW_BOUNDS.east; // west (-125) to east (-110)
-    console.log(`Checking bounds for ${lat}, ${lng}: lat OK: ${inLatBounds}, lng OK: ${inLngBounds}`);
     return inLatBounds && inLngBounds;
   };
   
@@ -141,7 +140,7 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
   useEffect(() => {
     const getUserLocation = async () => {
       if (!navigator.geolocation) {
-        console.log("Geolocation not supported");
+
         return;
       }
 
@@ -156,8 +155,6 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
 
         const { latitude, longitude } = position.coords;
         const userLoc = { lat: latitude, lng: longitude };
-        console.log("User location detected:", userLoc);
-        console.log("Is within PNW?", isWithinPNW(latitude, longitude));
         setUserLocation(userLoc);
       } catch (error) {
         console.log("Geolocation failed:", error);
@@ -180,9 +177,6 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
       if (userLocation && isWithinPNW(userLocation.lat, userLocation.lng)) {
         initialView = [userLocation.lat, userLocation.lng];
         initialZoom = 12;
-        console.log("Centering map on user location:", initialView);
-      } else {
-        console.log("Showing PNW view - user location:", userLocation);
       }
       
       mapInstanceRef.current = L.map(mapRef.current).setView(initialView, initialZoom);

@@ -96,6 +96,7 @@ Changelog:
 - July 01, 2025. Added directions functionality - users can get turn-by-turn directions to historical locations via Google Maps integration
 - July 01, 2025. Improved mobile experience - created clean intro screen with hero image and "Start Exploring" button, map appears only when button is pressed
 - July 01, 2025. Fixed mobile UI issues - corrected button text visibility on welcome screen and confirmed directions open in new window
-- July 01, 2025. Expanded scope to Pacific Northwest - updated app to cover Washington, Oregon, and Idaho with smart location-based map centering
+- July 01, 2025. Expanded scope to Pacific Northwest - updated app to cover Washington, Oregon, Northern California, Idaho, Montana, and Southern BC with smart location-based map centering
 - July 01, 2025. Enhanced map functionality - moved legend below map, added full functionality to all control buttons (Filter, Search, List View)
 - July 01, 2025. Added Pacific Northwest sample data - included historical locations from across WA, OR, and ID
+- July 01, 2025. Fixed location detection boundaries - corrected longitude coordinate logic for proper PNW boundary detection, map now centers correctly on user location within region
