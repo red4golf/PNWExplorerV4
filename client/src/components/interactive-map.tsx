@@ -41,10 +41,10 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
   
   // Function to check if coordinates are within PNW boundaries
   const isWithinPNW = (lat: number, lng: number): boolean => {
-    return lat >= PNW_BOUNDS.south && 
-           lat <= PNW_BOUNDS.north && 
-           lng >= PNW_BOUNDS.east && 
-           lng <= PNW_BOUNDS.west;
+    const inLatBounds = lat >= PNW_BOUNDS.south && lat <= PNW_BOUNDS.north;
+    const inLngBounds = lng >= PNW_BOUNDS.west && lng <= PNW_BOUNDS.east; // west (-125) to east (-110)
+    console.log(`Checking bounds for ${lat}, ${lng}: lat OK: ${inLatBounds}, lng OK: ${inLngBounds}`);
+    return inLatBounds && inLngBounds;
   };
   
   const { data: locations, isLoading } = useQuery<Location[]>({
