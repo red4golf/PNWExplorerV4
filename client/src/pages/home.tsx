@@ -1,15 +1,19 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import InteractiveMap from "@/components/interactive-map";
 import LocationCard from "@/components/location-card";
 import PhotoGallery from "@/components/photo-gallery";
-import { MapPin, BookOpen } from "lucide-react";
+import { MapPin, BookOpen, ArrowLeft, Menu, Plus, Settings } from "lucide-react";
 import type { Location } from "@shared/schema";
 
 export default function Home() {
+  const [showMap, setShowMap] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const { data: locations, isLoading } = useQuery<Location[]>({
     queryKey: ["/api/locations"],
   });
@@ -19,10 +23,85 @@ export default function Home() {
     window.location.href = `/location/${location.id}`;
   };
 
+  const handleStartExploring = () => {
+    setShowMap(true);
+  };
+
+  const handleBackToIntro = () => {
+    setShowMap(false);
+  };
+
+  // Show map view if user clicked Start Exploring
+  if (showMap) {
+    return (
+      <div className="bg-heritage-cream min-h-screen">
+        {/* Map Navigation Header */}
+        <div className="bg-white shadow-sm sticky top-0 z-10">
+          <div className="container mx-auto px-4 py-3">
+            <div className="flex items-center justify-between">
+              <Button
+                variant="ghost"
+                onClick={handleBackToIntro}
+                className="text-heritage-brown hover:bg-heritage-beige"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Button>
+              <h1 className="text-lg font-semibold text-heritage-brown">
+                Historical Map
+              </h1>
+              
+              {/* Navigation Menu */}
+              <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+                <SheetTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-heritage-brown hover:bg-heritage-beige"
+                  >
+                    <Menu className="w-5 h-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="bg-heritage-brown text-white border-heritage-olive">
+                  <div className="flex flex-col space-y-4 mt-8">
+                    <Link href="/submit" onClick={() => setMenuOpen(false)}>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start text-white hover:bg-white/20"
+                      >
+                        <Plus className="w-4 h-4 mr-3" />
+                        Submit Location
+                      </Button>
+                    </Link>
+                    <Link href="/admin" onClick={() => setMenuOpen(false)}>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start text-white hover:bg-white/20"
+                      >
+                        <Settings className="w-4 h-4 mr-3" />
+                        Admin
+                      </Button>
+                    </Link>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
+          </div>
+        </div>
+
+        {/* Full Screen Map */}
+        <div className="h-[calc(100vh-64px)]">
+          <InteractiveMap onLocationSelect={handleLocationSelect} />
+        </div>
+      </div>
+    );
+  }
+
+  // Show intro screen by default
   return (
-    <div className="bg-heritage-cream">
-      {/* Hero Section */}
-      <section className="relative py-20 overflow-hidden">
+    <div className="bg-heritage-cream min-h-screen">
+      {/* Hero/Intro Section - Full Screen on Mobile */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat" 
           style={{
@@ -31,19 +110,20 @@ export default function Home() {
         />
         <div className="absolute inset-0 bg-heritage-brown bg-opacity-50" />
         
-        <div className="relative container mx-auto px-4 text-center text-white">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6">
+        <div className="relative container mx-auto px-6 text-center text-white max-w-2xl">
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
             Discover Bainbridge Island's{" "}
             <span className="text-heritage-gold">Rich History</span>
           </h1>
-          <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
+          <p className="text-lg md:text-xl lg:text-2xl mb-12 leading-relaxed">
             Explore the stories, landmarks, and heritage that shaped our island community 
             through interactive maps and historical narratives.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col gap-4 max-w-sm mx-auto">
             <Button 
+              onClick={handleStartExploring}
               size="lg" 
-              className="bg-heritage-gold hover:bg-heritage-gold/90 text-heritage-brown px-8 py-4 text-lg font-semibold"
+              className="bg-heritage-gold hover:bg-heritage-gold/90 text-heritage-brown px-8 py-4 text-lg font-semibold w-full"
             >
               <MapPin className="w-5 h-5 mr-2" />
               Start Exploring
@@ -51,34 +131,25 @@ export default function Home() {
             <Button 
               variant="outline" 
               size="lg" 
-              className="border-2 border-white hover:bg-white hover:text-heritage-brown px-8 py-4 text-lg font-semibold"
+              className="border-2 border-white hover:bg-white hover:text-heritage-brown px-8 py-4 text-lg font-semibold w-full"
+              onClick={() => setShowMap(false)}
             >
               <BookOpen className="w-5 h-5 mr-2" />
               Learn More
             </Button>
           </div>
         </div>
-      </section>
 
-      {/* Interactive Map Section */}
-      <section id="explore" className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-heritage-brown mb-4">
-              Interactive Historical Map
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Click on markers to discover the stories behind Bainbridge Island's most 
-              significant historical locations.
-            </p>
+        {/* Scroll indicator for desktop */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 hidden md:block">
+          <div className="text-white text-sm opacity-75 animate-bounce">
+            Scroll down to explore
           </div>
-          
-          <InteractiveMap onLocationSelect={handleLocationSelect} />
         </div>
       </section>
 
-      {/* Featured Locations */}
-      <section id="locations" className="py-16 bg-heritage-beige">
+      {/* Featured Locations - Hidden on mobile initially, shown on desktop */}
+      <section id="locations" className="py-16 bg-white hidden md:block">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-heritage-brown mb-4">
@@ -117,20 +188,19 @@ export default function Home() {
           
           <div className="text-center mt-12">
             <Button 
+              onClick={handleStartExploring}
               size="lg" 
               className="bg-heritage-brown text-white hover:bg-heritage-brown/90 px-8 py-3 font-semibold"
             >
-              View All Locations
+              <MapPin className="w-5 h-5 mr-2" />
+              Explore on Map
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Photo Gallery */}
-      <PhotoGallery />
-
       {/* Call to Action */}
-      <section className="py-16 bg-heritage-brown text-white">
+      <section className="py-16 bg-heritage-brown text-white hidden md:block">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-4xl font-bold mb-6">Help Preserve Our History</h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto">

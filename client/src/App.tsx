@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -12,19 +12,53 @@ import Admin from "@/pages/admin";
 import NotFound from "@/pages/not-found";
 
 function Router() {
+  const [location] = useLocation();
+  const isHomePage = location === "/";
+
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
-      <main className="flex-1">
-        <Switch>
-          <Route path="/" component={Home} />
-          <Route path="/location/:id" component={LocationDetail} />
-          <Route path="/submit" component={SubmitLocation} />
-          <Route path="/admin" component={Admin} />
-          <Route component={NotFound} />
-        </Switch>
-      </main>
-      <Footer />
+      <Switch>
+        <Route path="/">
+          {/* Home page without header/footer for clean intro experience */}
+          <Home />
+        </Route>
+        <Route path="/location/:id">
+          <div className="min-h-screen flex flex-col">
+            <Header />
+            <main className="flex-1">
+              <LocationDetail />
+            </main>
+            <Footer />
+          </div>
+        </Route>
+        <Route path="/submit">
+          <div className="min-h-screen flex flex-col">
+            <Header />
+            <main className="flex-1">
+              <SubmitLocation />
+            </main>
+            <Footer />
+          </div>
+        </Route>
+        <Route path="/admin">
+          <div className="min-h-screen flex flex-col">
+            <Header />
+            <main className="flex-1">
+              <Admin />
+            </main>
+            <Footer />
+          </div>
+        </Route>
+        <Route>
+          <div className="min-h-screen flex flex-col">
+            <Header />
+            <main className="flex-1">
+              <NotFound />
+            </main>
+            <Footer />
+          </div>
+        </Route>
+      </Switch>
     </div>
   );
 }
