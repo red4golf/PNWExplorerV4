@@ -100,3 +100,4 @@ Changelog:
 - July 01, 2025. Enhanced map functionality - moved legend below map, added full functionality to all control buttons (Filter, Search, List View)
 - July 01, 2025. Added Pacific Northwest sample data - included historical locations from across WA, OR, and ID
 - July 01, 2025. Fixed location detection boundaries - corrected longitude coordinate logic for proper PNW boundary detection, map now centers correctly on user location within region
+- July 01, 2025. Added 10 additional historical locations - expanded database with diverse sites including Fort Clatsop, Columbia River Gorge, Bonneville Dam, Celilo Falls, Snoqualmie Falls, Oregon State Capitol, Hanford Site, Coeur d'Alene Mission, Glacier National Park, and Skagit Valley Tulip Fields
