@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a full-stack web application that allows users to explore historical locations throughout the Pacific Northwest (Washington, Oregon, and Idaho) through an interactive map and detailed location information. The application supports user-submitted locations, photo galleries, and administrative approval workflows for maintaining content quality.
+This is a full-stack web application that allows users to explore historical locations throughout the Pacific Northwest (Washington, Oregon, Northern California, Idaho, Montana, and Southern British Columbia) through an interactive map and detailed location information. The application supports user-submitted locations, photo galleries, and administrative approval workflows for maintaining content quality.
 
 ## System Architecture
 

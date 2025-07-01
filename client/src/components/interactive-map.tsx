@@ -27,17 +27,17 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [showListView, setShowListView] = useState(false);
   
-  // Pacific Northwest boundaries (approximate)
+  // Pacific Northwest boundaries (more accurate - includes parts of Northern California, Idaho, Montana, and southern BC)
   const PNW_BOUNDS = {
-    north: 49.0, // Northern border with Canada
-    south: 42.0, // Southern border of Oregon
-    east: -110.0, // Eastern border of Idaho
-    west: -124.8  // Pacific coast
+    north: 54.0, // Southern BC border
+    south: 40.0, // Northern California border
+    east: -110.0, // Eastern Montana/Idaho border
+    west: -125.0  // Pacific coast
   };
 
   // Default PNW view center and zoom
-  const PNW_CENTER = { lat: 45.5, lng: -117.0 };
-  const PNW_ZOOM = 6;
+  const PNW_CENTER = { lat: 47.0, lng: -120.0 };
+  const PNW_ZOOM = 5;
   
   // Function to check if coordinates are within PNW boundaries
   const isWithinPNW = (lat: number, lng: number): boolean => {
@@ -72,7 +72,7 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
     loadLeaflet();
   }, []);
 
-  // Get user's current location
+  // Get user's current location and center map on it
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
       setLocationError("Geolocation is not supported by this browser");
@@ -85,12 +85,34 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        setUserLocation({ lat: latitude, lng: longitude });
+        const newUserLocation = { lat: latitude, lng: longitude };
+        setUserLocation(newUserLocation);
         setIsLocating(false);
         
-        // Center map on user location if map is available
+        // Always center map on actual user location when button is clicked
         if (mapInstanceRef.current) {
           mapInstanceRef.current.setView([latitude, longitude], 15);
+          
+          // Update or add user marker
+          if (userMarkerRef.current) {
+            mapInstanceRef.current.removeLayer(userMarkerRef.current);
+          }
+          
+          const userIcon = L.divIcon({
+            html: `<div style="background-color: #3b82f6; border: 3px solid white; border-radius: 50%; width: 16px; height: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+            className: 'user-location-marker',
+            iconSize: [16, 16],
+            iconAnchor: [8, 8]
+          });
+
+          userMarkerRef.current = L.marker([latitude, longitude], { icon: userIcon })
+            .addTo(mapInstanceRef.current)
+            .bindPopup(`<div class="text-center"><strong>Your Location</strong><br/><small>Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}</small></div>`);
+        }
+        
+        // Update shouldCenterOnUser if user is within PNW
+        if (isWithinPNW(latitude, longitude)) {
+          setShouldCenterOnUser(true);
         }
       },
       (error) => {
@@ -113,16 +135,18 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
       {
         enableHighAccuracy: true,
         timeout: 10000,
-        maximumAge: 600000 // 10 minutes
+        maximumAge: 60000 // 1 minute for "Find My Location" button
       }
     );
   };
 
-  // Auto-get location on component mount and set initial map view
+  // State to track if we should center on user location
+  const [shouldCenterOnUser, setShouldCenterOnUser] = useState(false);
+
+  // Auto-get location on component mount
   useEffect(() => {
-    const initializeMapWithLocation = async () => {
+    const getUserLocation = async () => {
       if (!navigator.geolocation) {
-        // No geolocation - show full PNW view
         return;
       }
 
@@ -130,28 +154,26 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
         const position = await new Promise<GeolocationPosition>((resolve, reject) => {
           navigator.geolocation.getCurrentPosition(resolve, reject, {
             enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 600000
+            timeout: 10000,
+            maximumAge: 300000
           });
         });
 
         const { latitude, longitude } = position.coords;
-        setUserLocation({ lat: latitude, lng: longitude });
+        const userLoc = { lat: latitude, lng: longitude };
+        setUserLocation(userLoc);
         
         // Check if user is within PNW boundaries
         if (isWithinPNW(latitude, longitude)) {
-          // User is in PNW - center on their location
-          if (mapInstanceRef.current) {
-            mapInstanceRef.current.setView([latitude, longitude], 12);
-          }
+          setShouldCenterOnUser(true);
         }
       } catch (error) {
-        // Geolocation failed - will show PNW view by default
-        console.log("Geolocation failed, showing PNW view");
+        console.log("Geolocation failed:", error);
+        setLocationError("Unable to get your location. Showing full Pacific Northwest view.");
       }
     };
 
-    initializeMapWithLocation();
+    getUserLocation();
   }, []);
 
   useEffect(() => {
@@ -159,17 +181,25 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
 
     // Initialize map with appropriate view
     if (!mapInstanceRef.current) {
-      // Default to PNW view - will be updated if user location is available and within PNW
-      mapInstanceRef.current = L.map(mapRef.current).setView([PNW_CENTER.lat, PNW_CENTER.lng], PNW_ZOOM);
+      let initialView = [PNW_CENTER.lat, PNW_CENTER.lng];
+      let initialZoom = PNW_ZOOM;
+      
+      // If user location is available and within PNW, center on it
+      if (shouldCenterOnUser && userLocation) {
+        initialView = [userLocation.lat, userLocation.lng];
+        initialZoom = 12;
+      }
+      
+      mapInstanceRef.current = L.map(mapRef.current).setView(initialView, initialZoom);
       
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       }).addTo(mapInstanceRef.current);
-
-      // If user location is available and within PNW, center on it
-      if (userLocation && isWithinPNW(userLocation.lat, userLocation.lng)) {
-        mapInstanceRef.current.setView([userLocation.lat, userLocation.lng], 12);
-      }
+    }
+    
+    // Update map view if user location becomes available
+    else if (shouldCenterOnUser && userLocation && mapInstanceRef.current) {
+      mapInstanceRef.current.setView([userLocation.lat, userLocation.lng], 12);
     }
 
     // Clear existing markers (except user location marker)
@@ -256,7 +286,7 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
         userMarkerRef.current = null;
       }
     };
-  }, [L, locations, onLocationSelect, userLocation]);
+  }, [L, locations, onLocationSelect, userLocation, shouldCenterOnUser]);
 
   if (isLoading) {
     return (
