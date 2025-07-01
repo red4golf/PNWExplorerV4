@@ -22,6 +22,10 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isLocating, setIsLocating] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [showListView, setShowListView] = useState(false);
   
   const { data: locations, isLoading } = useQuery<Location[]>({
     queryKey: ["/api/locations"],
@@ -223,10 +227,10 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
           className="h-96 rounded-lg overflow-hidden bg-gray-300 relative"
         />
         
-        {/* Map Legend */}
-        <div className="absolute top-10 left-10 bg-white rounded-lg shadow-md p-3 z-[1000]">
-          <h4 className="font-semibold text-heritage-brown mb-2">Map Legend</h4>
-          <div className="space-y-2 text-sm">
+        {/* Map Legend - Moved below map */}
+        <div className="mt-4 bg-white rounded-lg shadow-md p-4">
+          <h4 className="font-semibold text-heritage-brown mb-3">Map Legend</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
             <div className="flex items-center">
               <div className="w-4 h-4 bg-heritage-gold rounded-full mr-2"></div>
               <span>Historical Landmarks</span>
@@ -241,12 +245,95 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
             </div>
           </div>
         </div>
-        
+
         {/* Location Status */}
         {locationError && (
           <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-red-600" />
             <span className="text-sm text-red-700">{locationError}</span>
+          </div>
+        )}
+
+        {/* Search Bar */}
+        {searchTerm !== "" && (
+          <div className="mt-4">
+            <Input
+              type="text"
+              placeholder="Search locations..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full"
+            />
+          </div>
+        )}
+
+        {/* Category Filter */}
+        {showFilters && (
+          <div className="mt-4 bg-white rounded-lg shadow-md p-4">
+            <h5 className="font-semibold text-heritage-brown mb-3">Filter by Category</h5>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={selectedCategory === "all" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory("all")}
+                className="text-xs"
+              >
+                All Categories
+              </Button>
+              <Button
+                variant={selectedCategory === "Historic Landmark" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory("Historic Landmark")}
+                className="text-xs"
+              >
+                Historic Landmarks
+              </Button>
+              <Button
+                variant={selectedCategory === "Cultural Site" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory("Cultural Site")}
+                className="text-xs"
+              >
+                Cultural Sites
+              </Button>
+              <Button
+                variant={selectedCategory === "Natural Heritage" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory("Natural Heritage")}
+                className="text-xs"
+              >
+                Natural Heritage
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* List View */}
+        {showListView && locations && (
+          <div className="mt-4 bg-white rounded-lg shadow-md p-4">
+            <h5 className="font-semibold text-heritage-brown mb-3">All Locations</h5>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {locations
+                .filter(loc => selectedCategory === "all" || loc.category === selectedCategory)
+                .filter(loc => searchTerm === "" || loc.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                .map((location) => (
+                <div
+                  key={location.id}
+                  className="flex items-center justify-between p-2 hover:bg-gray-50 rounded cursor-pointer"
+                  onClick={() => onLocationSelect?.(location)}
+                >
+                  <div>
+                    <span className="font-medium">{location.name}</span>
+                    <Badge variant="secondary" className="ml-2 text-xs">
+                      {location.category}
+                    </Badge>
+                  </div>
+                  <Button variant="ghost" size="sm">
+                    <MapPin className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -270,15 +357,27 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
               </>
             )}
           </Button>
-          <Button variant="outline" className="bg-heritage-brown text-white hover:bg-heritage-brown/90">
+          <Button 
+            variant="outline" 
+            className={`${showFilters ? 'bg-heritage-brown text-white' : 'bg-heritage-brown text-white hover:bg-heritage-brown/90'}`}
+            onClick={() => setShowFilters(!showFilters)}
+          >
             <Filter className="w-4 h-4 mr-2" />
             Filter Locations
           </Button>
-          <Button variant="outline" className="bg-heritage-olive text-white hover:bg-heritage-olive/90">
+          <Button 
+            variant="outline" 
+            className="bg-heritage-olive text-white hover:bg-heritage-olive/90"
+            onClick={() => setSearchTerm(searchTerm === "" ? " " : "")}
+          >
             <Search className="w-4 h-4 mr-2" />
             Search Places
           </Button>
-          <Button variant="outline" className="bg-heritage-gold text-heritage-brown hover:bg-heritage-gold/90">
+          <Button 
+            variant="outline" 
+            className={`${showListView ? 'bg-heritage-gold text-heritage-brown' : 'bg-heritage-gold text-heritage-brown hover:bg-heritage-gold/90'}`}
+            onClick={() => setShowListView(!showListView)}
+          >
             <List className="w-4 h-4 mr-2" />
             List View
           </Button>
