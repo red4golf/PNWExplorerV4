@@ -89,7 +89,7 @@ async function importSingleLocation(data: ImportLocation) {
       period: data.period,
       submitterName: data.submitterName || 'Content Import',
       submitterEmail: data.submitterEmail || 'import@pnwhistory.org',
-      status: data.status || 'approved'
+      status: data.status || 'pending'
     };
 
     const [newLocation] = await db.insert(locations).values(locationData).returning();
