@@ -47,9 +47,7 @@ export default function Home() {
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
               </Button>
-              <h1 className="text-lg font-semibold text-heritage-brown">
-                Historical Map
-              </h1>
+              <h1 className="text-lg font-semibold text-heritage-brown">Pacific Northwest Historical Explorer</h1>
               
               {/* Navigation Menu */}
               <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
@@ -112,11 +110,11 @@ export default function Home() {
         
         <div className="relative container mx-auto px-6 text-center text-white max-w-2xl">
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-            Discover Bainbridge Island's{" "}
+            Discover the Pacific Northwest's{" "}
             <span className="text-heritage-gold">Rich History</span>
           </h1>
           <p className="text-lg md:text-xl lg:text-2xl mb-12 leading-relaxed">
-            Explore the stories, landmarks, and heritage that shaped our island community 
+            Explore the stories, landmarks, and heritage across Washington, Oregon, and Idaho 
             through interactive maps and historical narratives.
           </p>
           <div className="flex flex-col gap-4 max-w-sm mx-auto">
