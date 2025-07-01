@@ -1,4 +1,5 @@
 import { pgTable, text, serial, integer, boolean, timestamp, real } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -46,6 +47,18 @@ export const insertPhotoSchema = createInsertSchema(photos).omit({
 export const insertAdminSchema = createInsertSchema(admins).omit({
   id: true,
 });
+
+// Relations
+export const locationsRelations = relations(locations, ({ many }) => ({
+  photos: many(photos),
+}));
+
+export const photosRelations = relations(photos, ({ one }) => ({
+  location: one(locations, {
+    fields: [photos.locationId],
+    references: [locations.id],
+  }),
+}));
 
 export type InsertLocation = z.infer<typeof insertLocationSchema>;
 export type Location = typeof locations.$inferSelect;
