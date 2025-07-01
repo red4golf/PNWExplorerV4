@@ -145,14 +145,26 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
         const marker = L.marker([location.latitude, location.longitude], { icon })
           .addTo(mapInstanceRef.current);
 
+        const distance = userLocation && location.latitude && location.longitude 
+          ? (calculateDistance(userLocation, { lat: location.latitude, lng: location.longitude })).toFixed(1)
+          : null;
+
         const popupContent = `
-          <div class="p-2 min-w-[200px]">
+          <div class="p-3 min-w-[220px]">
             <h3 class="font-bold text-lg mb-2">${location.name}</h3>
             <p class="text-sm text-gray-600 mb-2">${location.category}</p>
             <p class="text-sm mb-3">${location.description.substring(0, 100)}...</p>
-            <button class="bg-heritage-brown text-white px-3 py-1 rounded text-sm hover:bg-opacity-90" onclick="window.selectLocation(${location.id})">
-              View Details
-            </button>
+            ${distance ? `<p class="text-xs text-blue-600 font-semibold mb-3">${distance} miles away</p>` : ''}
+            <div class="flex gap-2">
+              <button class="bg-heritage-brown text-white px-3 py-1 rounded text-sm hover:bg-opacity-90" onclick="window.selectLocation(${location.id})">
+                View Details
+              </button>
+              ${location.latitude && location.longitude ? `
+                <button class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-opacity-90" onclick="window.getDirections(${location.id})">
+                  Directions
+                </button>
+              ` : ''}
+            </div>
           </div>
         `;
 

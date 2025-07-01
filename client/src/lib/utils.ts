@@ -43,3 +43,46 @@ export function getCategoryColor(category: string): string {
   
   return colors[category] || "bg-gray-100 text-gray-800";
 }
+
+export function getDirectionsUrl(
+  destination: { latitude?: number | null; longitude?: number | null; address?: string | null; name: string },
+  userLocation?: { lat: number; lng: number }
+): string {
+  // Construct the destination parameter
+  let destinationParam = '';
+  
+  if (destination.latitude && destination.longitude) {
+    destinationParam = `${destination.latitude},${destination.longitude}`;
+  } else if (destination.address) {
+    destinationParam = encodeURIComponent(destination.address);
+  } else {
+    destinationParam = encodeURIComponent(destination.name);
+  }
+  
+  // If we have user location, include it as origin
+  let originParam = '';
+  if (userLocation) {
+    originParam = `&origin=${userLocation.lat},${userLocation.lng}`;
+  }
+  
+  // Return Google Maps directions URL
+  return `https://www.google.com/maps/dir/?api=1${originParam}&destination=${destinationParam}&travelmode=driving`;
+}
+
+export function calculateDistance(
+  point1: { lat: number; lng: number },
+  point2: { lat: number; lng: number }
+): number {
+  const R = 3959; // Earth's radius in miles
+  const dLat = (point2.lat - point1.lat) * (Math.PI / 180);
+  const dLng = (point2.lng - point1.lng) * (Math.PI / 180);
+  
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(point1.lat * (Math.PI / 180)) * Math.cos(point2.lat * (Math.PI / 180)) *
+    Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  
+  return R * c; // Distance in miles
+}

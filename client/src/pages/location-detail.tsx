@@ -4,19 +4,39 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, MapPin, Calendar, User } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, User, Navigation, ExternalLink } from "lucide-react";
 import { Link } from "wouter";
-import { getCategoryIcon, getCategoryColor, formatDate } from "@/lib/utils";
+import { getCategoryIcon, getCategoryColor, formatDate, getDirectionsUrl, calculateDistance } from "@/lib/utils";
 import type { Location } from "@shared/schema";
+import { useState, useEffect } from "react";
 
 export default function LocationDetail() {
   const [, params] = useRoute("/location/:id");
   const locationId = params?.id ? parseInt(params.id) : 0;
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
 
   const { data: location, isLoading, error } = useQuery<Location>({
     queryKey: [`/api/locations/${locationId}`],
     enabled: !!locationId,
   });
+
+  // Get user location for directions
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        () => {
+          // Silently fail if location access is denied
+        },
+        { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 }
+      );
+    }
+  }, []);
 
   if (isLoading) {
     return (
@@ -164,9 +184,61 @@ export default function LocationDetail() {
               </CardContent>
             </Card>
 
+            {/* Distance and Directions */}
+            {location.latitude && location.longitude && userLocation && (
+              <Card className="bg-blue-50 border-blue-200 mt-6">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-blue-800">
+                        Distance from your location
+                      </p>
+                      <p className="text-lg font-bold text-blue-900">
+                        {calculateDistance(
+                          userLocation,
+                          { lat: location.latitude, lng: location.longitude }
+                        ).toFixed(1)} miles away
+                      </p>
+                    </div>
+                    <Button 
+                      onClick={() => window.open(getDirectionsUrl(location, userLocation || undefined), '_blank')}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      <Navigation className="w-4 h-4 mr-2" />
+                      Get Directions
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Action Buttons */}
             <div className="flex gap-4 mt-8">
-              <Button className="bg-heritage-brown hover:bg-heritage-brown/90">
+              {location.latitude && location.longitude && (
+                <Button 
+                  onClick={() => window.open(getDirectionsUrl(location, userLocation || undefined), '_blank')}
+                  className="bg-heritage-brown hover:bg-heritage-brown/90"
+                >
+                  <Navigation className="w-4 h-4 mr-2" />
+                  Directions
+                </Button>
+              )}
+              <Button 
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({
+                      title: location.name,
+                      text: location.description,
+                      url: window.location.href,
+                    });
+                  } else {
+                    navigator.clipboard.writeText(window.location.href);
+                  }
+                }}
+                variant="outline" 
+                className="border-heritage-brown text-heritage-brown hover:bg-heritage-brown hover:text-white"
+              >
+                <ExternalLink className="w-4 h-4 mr-2" />
                 Share Location
               </Button>
               <Button variant="outline" className="border-heritage-brown text-heritage-brown hover:bg-heritage-brown hover:text-white">
