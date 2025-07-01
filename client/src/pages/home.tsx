@@ -36,7 +36,7 @@ export default function Home() {
     return (
       <div className="bg-heritage-cream min-h-screen">
         {/* Map Navigation Header */}
-        <div className="bg-white shadow-sm sticky top-0 z-10">
+        <div className="bg-white shadow-sm sticky top-0 z-10 relative">
           <div className="container mx-auto px-4 py-3">
             <div className="flex items-center justify-between">
               <Button
@@ -50,17 +50,18 @@ export default function Home() {
               <h1 className="text-lg font-semibold text-heritage-brown">Pacific Northwest Historical Explorer</h1>
               
               {/* Navigation Menu */}
-              <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-                <SheetTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-heritage-brown hover:bg-heritage-beige"
-                  >
-                    <Menu className="w-5 h-5" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="bg-heritage-brown text-white border-heritage-olive">
+              <div className="relative z-[2000]">
+                <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+                  <SheetTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-heritage-brown hover:bg-heritage-beige"
+                    >
+                      <Menu className="w-5 h-5" />
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="right" className="bg-heritage-brown text-white border-heritage-olive z-[2000]" style={{ zIndex: 2000 }}>
                   <div className="flex flex-col space-y-4 mt-8">
                     <Link href="/submit" onClick={() => setMenuOpen(false)}>
                       <Button
@@ -82,7 +83,8 @@ export default function Home() {
                     </Link>
                   </div>
                 </SheetContent>
-              </Sheet>
+                </Sheet>
+              </div>
             </div>
           </div>
         </div>
