@@ -4,12 +4,14 @@ import { useForm } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Lock, Clock, MapPin, Users, CheckCircle, XCircle, LogIn, Upload, FileText, Database } from "lucide-react";
+import { Lock, Clock, MapPin, Users, CheckCircle, XCircle, LogIn, Upload, FileText, Database, Edit3, Search, Save } from "lucide-react";
 import { formatDate, getCategoryColor } from "@/lib/utils";
 import type { Location } from "@shared/schema";
 
@@ -26,6 +28,8 @@ interface AdminStats {
 
 export default function Admin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [editingLocation, setEditingLocation] = useState<Location | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -122,8 +126,35 @@ export default function Admin() {
     updateStatusMutation.mutate({ id: locationId, status });
   };
 
+  const updateLocationMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<Location> }) => {
+      const response = await apiRequest("PATCH", `/api/admin/locations/${id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Location Updated",
+        description: "Location details have been updated successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/locations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/locations/pending"] });
+      setEditingLocation(null);
+    },
+    onError: () => {
+      toast({
+        title: "Update Failed",
+        description: "Failed to update location. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleImport = () => {
     importMutation.mutate();
+  };
+
+  const handleEditLocation = (location: Location) => {
+    setEditingLocation(location);
   };
 
   if (!isAuthenticated) {
@@ -272,8 +303,9 @@ export default function Admin() {
 
         {/* Main Content */}
         <Tabs defaultValue="pending" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 max-w-lg">
+          <TabsList className="grid w-full grid-cols-4 max-w-2xl">
             <TabsTrigger value="pending">Pending Locations</TabsTrigger>
+            <TabsTrigger value="manage">Manage Locations</TabsTrigger>
             <TabsTrigger value="import">Import Data</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>

@@ -1,8 +1,10 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertLocationSchema } from "@shared/schema";
+import { insertLocationSchema, locations } from "@shared/schema";
 import { z } from "zod";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Get all approved locations
@@ -134,6 +136,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Import failed", 
         error: error instanceof Error ? error.message : "Unknown error" 
       });
+    }
+  });
+
+  // Update location details (admin only)
+  app.patch("/api/admin/locations/:id", async (req, res) => {
+    try {
+      const locationId = parseInt(req.params.id);
+      const updates = req.body;
+      
+      const [updatedLocation] = await db
+        .update(locations)
+        .set(updates)
+        .where(eq(locations.id, locationId))
+        .returning();
+      
+      res.json(updatedLocation);
+    } catch (error) {
+      console.error("Error updating location:", error);
+      res.status(500).json({ message: "Failed to update location" });
     }
   });
 
