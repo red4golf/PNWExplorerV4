@@ -103,3 +103,5 @@ Changelog:
 - July 01, 2025. Added 10 additional historical locations - expanded database with diverse sites including Fort Clatsop, Columbia River Gorge, Bonneville Dam, Celilo Falls, Snoqualmie Falls, Oregon State Capitol, Hanford Site, Coeur d'Alene Mission, Glacier National Park, and Skagit Valley Tulip Fields
 - July 01, 2025. Updated all page headers and branding - changed references from "Bainbridge Island" to "Pacific Northwest" across submit location page, admin page, and main header component
 - July 01, 2025. Added comprehensive location management system - created "Manage Locations" admin tab with search functionality, edit forms for all location data including extended story content, and database cleanup to remove duplicate entries
+- July 01, 2025. Added markdown rendering to location detail pages - extended story content now displays with proper formatting including headings, paragraphs, bold text, and other markdown features
+- July 01, 2025. Created Fort Casey location with rich historical narrative - added detailed story about the coastal fortification on Whidbey Island with markdown formatting
