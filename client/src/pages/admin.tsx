@@ -127,7 +127,7 @@ export default function Admin() {
                         <FormControl>
                           <Input
                             type="email"
-                            placeholder="admin@bainbridgehistory.org"
+                            placeholder="admin@pnwhistory.org"
                             {...field}
                           />
                         </FormControl>
@@ -179,7 +179,7 @@ export default function Admin() {
                   <strong>Demo Credentials:</strong>
                 </p>
                 <p className="text-sm text-gray-600">
-                  Email: admin@bainbridgehistory.org<br />
+                  Email: admin@pnwhistory.org<br />
                   Password: admin123
                 </p>
               </div>

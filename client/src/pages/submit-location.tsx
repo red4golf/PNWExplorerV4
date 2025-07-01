@@ -95,7 +95,7 @@ export default function SubmitLocation() {
             Share a Historical Location
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Help us preserve Bainbridge Island's history by submitting new locations and stories
+            Help us preserve Pacific Northwest history by submitting new locations and stories
           </p>
         </div>
 

@@ -25,7 +25,7 @@ export default function Header() {
         <nav className="flex items-center justify-between">
           <Link href="/" className="flex items-center space-x-4 hover:opacity-80 transition-opacity">
             <Landmark className="text-heritage-gold text-2xl" />
-            <h1 className="text-xl font-bold">Bainbridge Island Historical Explorer</h1>
+            <h1 className="text-xl font-bold">Pacific Northwest Historical Explorer</h1>
           </Link>
           
           {/* Desktop Navigation */}
