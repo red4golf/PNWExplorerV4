@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Lock, Clock, MapPin, Users, CheckCircle, XCircle, LogIn } from "lucide-react";
+import { Lock, Clock, MapPin, Users, CheckCircle, XCircle, LogIn, Upload, FileText, Database } from "lucide-react";
 import { formatDate, getCategoryColor } from "@/lib/utils";
 import type { Location } from "@shared/schema";
 
@@ -96,8 +96,34 @@ export default function Admin() {
     loginMutation.mutate(data);
   };
 
+  const importMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/admin/import", {});
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Import Successful",
+        description: "Location data has been imported successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/locations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Import Failed",
+        description: error.message || "Failed to import location data. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleStatusUpdate = (locationId: number, status: string) => {
     updateStatusMutation.mutate({ id: locationId, status });
+  };
+
+  const handleImport = () => {
+    importMutation.mutate();
   };
 
   if (!isAuthenticated) {
@@ -322,6 +348,68 @@ export default function Admin() {
                     ))}
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="import" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-heritage-brown flex items-center">
+                  <Database className="w-5 h-5 mr-2" />
+                  Import Location Data
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-blue-900 mb-2 flex items-center">
+                    <FileText className="w-4 h-4 mr-2" />
+                    How to Import Your Data
+                  </h3>
+                  <div className="text-sm text-blue-800 space-y-2">
+                    <p>Place your location files in the <code className="bg-blue-100 px-1 rounded">assets/locations/</code> directory.</p>
+                    <p><strong>Supported formats:</strong></p>
+                    <ul className="list-disc list-inside ml-4 space-y-1">
+                      <li><strong>JSON files:</strong> Single location objects or arrays of locations</li>
+                      <li><strong>CSV files:</strong> Comma-separated values with headers</li>
+                    </ul>
+                    <p><strong>Required fields:</strong> name, description, address, latitude, longitude, category, period</p>
+                    <p><strong>Optional fields:</strong> submitterName, submitterEmail, images, content</p>
+                  </div>
+                </div>
+
+                <div className="text-center">
+                  <Button
+                    onClick={handleImport}
+                    disabled={importMutation.isPending}
+                    className="bg-heritage-brown hover:bg-heritage-olive text-white px-8 py-3"
+                    size="lg"
+                  >
+                    {importMutation.isPending ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Importing...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-5 h-5 mr-2" />
+                        Import Location Files
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-yellow-900 mb-2">
+                    ⚠️ Important Notes
+                  </h3>
+                  <div className="text-sm text-yellow-800 space-y-1">
+                    <p>• This will import all valid files from the assets/locations/ directory</p>
+                    <p>• Duplicate locations (same name and coordinates) will be skipped</p>
+                    <p>• All imported locations will have "pending" status and require approval</p>
+                    <p>• Invalid data entries will be logged and skipped during import</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
