@@ -50,6 +50,11 @@ export default function Admin() {
     enabled: isAuthenticated,
   });
 
+  const { data: allLocations } = useQuery<Location[]>({
+    queryKey: ["/api/locations"],
+    enabled: isAuthenticated,
+  });
+
   const loginMutation = useMutation({
     mutationFn: async (data: LoginForm) => {
       const response = await apiRequest("POST", "/api/admin/login", data);
@@ -155,6 +160,134 @@ export default function Admin() {
 
   const handleEditLocation = (location: Location) => {
     setEditingLocation(location);
+  };
+
+  // LocationEditForm component
+  const LocationEditForm = ({ location, onSave }: { location: Location; onSave: (data: Partial<Location>) => void }) => {
+    const editForm = useForm({
+      defaultValues: {
+        name: location.name || '',
+        description: location.description || '',
+        address: location.address || '',
+        category: location.category || '',
+        period: location.period || '',
+        content: location.content || '',
+        status: location.status || 'pending',
+      },
+    });
+
+    const onSubmit = (data: any) => {
+      onSave(data);
+    };
+
+    return (
+      <Form {...editForm}>
+        <form onSubmit={editForm.handleSubmit(onSubmit)} className="space-y-6">
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={editForm.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Location Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter location name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={editForm.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter category" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <FormField
+            control={editForm.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Enter location description"
+                    className="min-h-[100px]"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={editForm.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Address</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter address" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={editForm.control}
+              name="period"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Historical Period</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., 1800s, Victorian Era" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <FormField
+            control={editForm.control}
+            name="content"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Extended Story Content (Markdown)</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Enter the detailed story content for this location. You can use markdown formatting."
+                    className="min-h-[200px] font-mono text-sm"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="flex justify-end space-x-2">
+            <Button type="submit" disabled={updateLocationMutation.isPending}>
+              <Save className="w-4 h-4 mr-2" />
+              {updateLocationMutation.isPending ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    );
   };
 
   if (!isAuthenticated) {
@@ -380,6 +513,86 @@ export default function Admin() {
                     ))}
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="manage" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-heritage-brown flex items-center">
+                  <Edit3 className="w-5 h-5 mr-2" />
+                  Manage Locations
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Search Bar */}
+                <div className="flex items-center space-x-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Search locations by name, category, or description..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+
+                {/* Locations List */}
+                <div className="space-y-4">
+                  {allLocations
+                    ?.filter(location => 
+                      !searchTerm || 
+                      location.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      location.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      location.description?.toLowerCase().includes(searchTerm.toLowerCase())
+                    )
+                    .map((location) => (
+                      <Card key={location.id} className="border border-gray-200">
+                        <CardContent className="p-6">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <h3 className="text-xl font-semibold text-heritage-brown mb-2">
+                                {location.name}
+                              </h3>
+                              <Badge className={`mb-2 ${getCategoryColor(location.category || '')}`}>
+                                {location.category}
+                              </Badge>
+                              <p className="text-gray-600 mb-2">{location.description}</p>
+                              {location.content && (
+                                <div className="text-sm text-gray-500">
+                                  📖 Has extended story content
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex space-x-2">
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleEditLocation(location)}
+                                  >
+                                    <Edit3 className="w-4 h-4 mr-2" />
+                                    Edit
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                                  <DialogHeader>
+                                    <DialogTitle>Edit Location: {location.name}</DialogTitle>
+                                  </DialogHeader>
+                                  {editingLocation && <LocationEditForm location={editingLocation} onSave={(data) => {
+                                    updateLocationMutation.mutate({ id: editingLocation.id, data });
+                                  }} />}
+                                </DialogContent>
+                              </Dialog>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
