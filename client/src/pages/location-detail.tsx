@@ -9,6 +9,8 @@ import { Link } from "wouter";
 import { getCategoryIcon, getCategoryColor, formatDate, getDirectionsUrl, calculateDistance } from "@/lib/utils";
 import type { Location } from "@shared/schema";
 import { useState, useEffect } from "react";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export default function LocationDetail() {
   const [, params] = useRoute("/location/:id");
@@ -169,10 +171,10 @@ export default function LocationDetail() {
                     <FileText className="w-5 h-5 mr-2" />
                     The Story
                   </h3>
-                  <div className="prose prose-lg max-w-none">
-                    <div className="text-gray-700 leading-relaxed whitespace-pre-line">
+                  <div className="prose prose-lg max-w-none text-gray-700">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {location.content}
-                    </div>
+                    </ReactMarkdown>
                   </div>
                 </CardContent>
               </Card>
