@@ -91,3 +91,4 @@ Preferred communication style: Simple, everyday language.
 
 Changelog:
 - July 01, 2025. Initial setup
+- July 01, 2025. Added GPS location functionality to interactive map - users can now see their current position relative to historical locations

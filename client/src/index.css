@@ -130,3 +130,31 @@
 .custom-marker.culture {
   background-color: var(--heritage-brown);
 }
+
+/* User location marker styling */
+.user-location-marker {
+  position: relative;
+}
+
+.user-location-marker::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  width: 32px;
+  height: 32px;
+  background-color: rgba(59, 130, 246, 0.2);
+  border-radius: 50%;
+  animation: pulse-location 2s infinite;
+}
+
+@keyframes pulse-location {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}

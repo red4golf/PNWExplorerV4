@@ -1,10 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, Filter, List, MapPin } from "lucide-react";
+import { Search, Filter, List, MapPin, Navigation, AlertCircle } from "lucide-react";
 import { getCategoryIcon, getCategoryColor } from "@/lib/utils";
 import type { Location } from "@shared/schema";
 
@@ -18,11 +18,16 @@ interface InteractiveMapProps {
 export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
+  const userMarkerRef = useRef<any>(null);
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
   
   const { data: locations, isLoading } = useQuery<Location[]>({
     queryKey: ["/api/locations"],
   });
 
+  // Load Leaflet
   useEffect(() => {
     const loadLeaflet = async () => {
       if (typeof window !== "undefined" && !L) {
@@ -43,6 +48,57 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
     loadLeaflet();
   }, []);
 
+  // Get user's current location
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError("Geolocation is not supported by this browser");
+      return;
+    }
+
+    setIsLocating(true);
+    setLocationError(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setUserLocation({ lat: latitude, lng: longitude });
+        setIsLocating(false);
+        
+        // Center map on user location if map is available
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.setView([latitude, longitude], 15);
+        }
+      },
+      (error) => {
+        setIsLocating(false);
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            setLocationError("Location access denied by user");
+            break;
+          case error.POSITION_UNAVAILABLE:
+            setLocationError("Location information is unavailable");
+            break;
+          case error.TIMEOUT:
+            setLocationError("Location request timed out");
+            break;
+          default:
+            setLocationError("An unknown error occurred while retrieving location");
+            break;
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 600000 // 10 minutes
+      }
+    );
+  };
+
+  // Auto-get location on component mount
+  useEffect(() => {
+    getCurrentLocation();
+  }, []);
+
   useEffect(() => {
     if (!L || !mapRef.current || !locations) return;
 
@@ -55,12 +111,26 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
       }).addTo(mapInstanceRef.current);
     }
 
-    // Clear existing markers
+    // Clear existing markers (except user location marker)
     mapInstanceRef.current.eachLayer((layer: any) => {
-      if (layer instanceof L.Marker) {
+      if (layer instanceof L.Marker && layer !== userMarkerRef.current) {
         mapInstanceRef.current.removeLayer(layer);
       }
     });
+
+    // Add user location marker
+    if (userLocation && !userMarkerRef.current) {
+      const userIcon = L.divIcon({
+        html: `<div style="background-color: #3b82f6; border: 3px solid white; border-radius: 50%; width: 16px; height: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+        className: 'user-location-marker',
+        iconSize: [16, 16],
+        iconAnchor: [8, 8]
+      });
+
+      userMarkerRef.current = L.marker([userLocation.lat, userLocation.lng], { icon: userIcon })
+        .addTo(mapInstanceRef.current)
+        .bindPopup(`<div class="text-center"><strong>Your Location</strong><br/><small>Lat: ${userLocation.lat.toFixed(4)}, Lng: ${userLocation.lng.toFixed(4)}</small></div>`);
+    }
 
     // Add markers for each location
     locations.forEach((location) => {
@@ -102,9 +172,10 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
+        userMarkerRef.current = null;
       }
     };
-  }, [L, locations, onLocationSelect]);
+  }, [L, locations, onLocationSelect, userLocation]);
 
   if (isLoading) {
     return (
@@ -151,8 +222,34 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
           </div>
         </div>
         
+        {/* Location Status */}
+        {locationError && (
+          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-red-600" />
+            <span className="text-sm text-red-700">{locationError}</span>
+          </div>
+        )}
+
         {/* Map Controls */}
         <div className="flex flex-wrap gap-4 mt-6">
+          <Button 
+            onClick={getCurrentLocation}
+            disabled={isLocating}
+            variant="outline" 
+            className="bg-blue-600 text-white hover:bg-blue-700 border-blue-600"
+          >
+            {isLocating ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                Locating...
+              </>
+            ) : (
+              <>
+                <Navigation className="w-4 h-4 mr-2" />
+                Find My Location
+              </>
+            )}
+          </Button>
           <Button variant="outline" className="bg-heritage-brown text-white hover:bg-heritage-brown/90">
             <Filter className="w-4 h-4 mr-2" />
             Filter Locations
