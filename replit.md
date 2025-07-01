@@ -92,3 +92,5 @@ Preferred communication style: Simple, everyday language.
 Changelog:
 - July 01, 2025. Initial setup
 - July 01, 2025. Added GPS location functionality to interactive map - users can now see their current position relative to historical locations
+- July 01, 2025. Added database integration with PostgreSQL - replaced in-memory storage with persistent database
+- July 01, 2025. Added directions functionality - users can get turn-by-turn directions to historical locations via Google Maps integration

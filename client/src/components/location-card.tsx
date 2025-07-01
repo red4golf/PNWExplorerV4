@@ -2,8 +2,8 @@ import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
-import { getCategoryIcon, getCategoryColor } from "@/lib/utils";
+import { ArrowRight, Navigation } from "lucide-react";
+import { getCategoryIcon, getCategoryColor, getDirectionsUrl } from "@/lib/utils";
 import type { Location } from "@shared/schema";
 
 interface LocationCardProps {
@@ -46,11 +46,23 @@ export default function LocationCard({ location }: LocationCardProps) {
           <span className="text-sm text-heritage-olive font-medium">
             {location.period}
           </span>
-          <Link href={`/location/${location.id}`}>
-            <Button variant="ghost" size="sm" className="text-heritage-brown hover:text-heritage-gold">
-              <ArrowRight className="w-4 h-4" />
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            {location.latitude && location.longitude && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-blue-600 hover:text-blue-700"
+                onClick={() => window.open(getDirectionsUrl(location), '_blank')}
+              >
+                <Navigation className="w-4 h-4" />
+              </Button>
+            )}
+            <Link href={`/location/${location.id}`}>
+              <Button variant="ghost" size="sm" className="text-heritage-brown hover:text-heritage-gold">
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </Link>
+          </div>
         </div>
       </CardContent>
     </Card>

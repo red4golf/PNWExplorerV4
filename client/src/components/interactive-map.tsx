@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, Filter, List, MapPin, Navigation, AlertCircle } from "lucide-react";
-import { getCategoryIcon, getCategoryColor } from "@/lib/utils";
+import { getCategoryIcon, getCategoryColor, calculateDistance, getDirectionsUrl } from "@/lib/utils";
 import type { Location } from "@shared/schema";
 
 // Leaflet imports with dynamic loading
@@ -172,11 +172,19 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
       }
     });
 
-    // Add global function to handle location selection
+    // Add global functions to handle location selection and directions
     (window as any).selectLocation = (locationId: number) => {
       const location = locations.find(l => l.id === locationId);
       if (location && onLocationSelect) {
         onLocationSelect(location);
+      }
+    };
+
+    (window as any).getDirections = (locationId: number) => {
+      const location = locations.find(l => l.id === locationId);
+      if (location) {
+        const directionsUrl = getDirectionsUrl(location, userLocation || undefined);
+        window.open(directionsUrl, '_blank');
       }
     };
 
