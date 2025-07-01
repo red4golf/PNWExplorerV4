@@ -229,6 +229,31 @@ export default function SubmitLocation() {
                   )}
                 />
 
+                {/* Extended Story Content */}
+                <FormField
+                  control={form.control}
+                  name="content"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-heritage-brown font-semibold">
+                        Extended Story (Optional)
+                      </FormLabel>
+                      <FormControl>
+                        <Textarea
+                          rows={10}
+                          placeholder="Share a detailed story about this location... Paint a picture with words that brings the history to life. Include sensory details, historical context, and what visitors should know."
+                          className="focus:ring-heritage-gold focus:border-heritage-gold"
+                          {...field}
+                        />
+                      </FormControl>
+                      <p className="text-sm text-gray-600">
+                        Add a rich, narrative description that tells the full story of this location. This will be displayed alongside the basic description.
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 {/* Photo Upload */}
                 <div>
                   <label className="block text-sm font-semibold text-heritage-brown mb-2">
