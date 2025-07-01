@@ -89,11 +89,13 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
         setUserLocation(newUserLocation);
         setIsLocating(false);
         
-        // Always center map on actual user location when button is clicked
+        // Center map on actual user location when button is clicked
         if (mapInstanceRef.current) {
           mapInstanceRef.current.setView([latitude, longitude], 15);
-          
-          // Update or add user marker
+        }
+        
+        // Update or add user marker
+        if (mapInstanceRef.current) {
           if (userMarkerRef.current) {
             mapInstanceRef.current.removeLayer(userMarkerRef.current);
           }
@@ -108,11 +110,6 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
           userMarkerRef.current = L.marker([latitude, longitude], { icon: userIcon })
             .addTo(mapInstanceRef.current)
             .bindPopup(`<div class="text-center"><strong>Your Location</strong><br/><small>Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}</small></div>`);
-        }
-        
-        // Update shouldCenterOnUser if user is within PNW
-        if (isWithinPNW(latitude, longitude)) {
-          setShouldCenterOnUser(true);
         }
       },
       (error) => {
@@ -163,9 +160,12 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
         const userLoc = { lat: latitude, lng: longitude };
         setUserLocation(userLoc);
         
-        // Check if user is within PNW boundaries
+        // Only center on user if they're within PNW boundaries
         if (isWithinPNW(latitude, longitude)) {
           setShouldCenterOnUser(true);
+        } else {
+          // User is outside PNW - show full PNW view
+          setShouldCenterOnUser(false);
         }
       } catch (error) {
         console.log("Geolocation failed:", error);
@@ -197,9 +197,10 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
       }).addTo(mapInstanceRef.current);
     }
     
-    // Update map view if user location becomes available
+    // Update map view if user location becomes available and they're in PNW
     else if (shouldCenterOnUser && userLocation && mapInstanceRef.current) {
       mapInstanceRef.current.setView([userLocation.lat, userLocation.lng], 12);
+      setShouldCenterOnUser(false); // Prevent re-centering
     }
 
     // Clear existing markers (except user location marker)
