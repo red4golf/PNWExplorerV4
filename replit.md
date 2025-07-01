@@ -94,3 +94,5 @@ Changelog:
 - July 01, 2025. Added GPS location functionality to interactive map - users can now see their current position relative to historical locations
 - July 01, 2025. Added database integration with PostgreSQL - replaced in-memory storage with persistent database
 - July 01, 2025. Added directions functionality - users can get turn-by-turn directions to historical locations via Google Maps integration
+- July 01, 2025. Improved mobile experience - created clean intro screen with hero image and "Start Exploring" button, map appears only when button is pressed
+- July 01, 2025. Fixed mobile UI issues - corrected button text visibility on welcome screen and confirmed directions open in new window
