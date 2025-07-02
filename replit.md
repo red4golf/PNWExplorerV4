@@ -107,3 +107,5 @@ Changelog:
 - July 01, 2025. Created Fort Casey location with rich historical narrative - added detailed story about the coastal fortification on Whidbey Island with markdown formatting
 - July 01, 2025. Fixed location detail page navigation and maps - "Back to Map" button now properly returns to map view, added embedded OpenStreetMap displays for each location
 - July 01, 2025. Added Pia the Peacekeeper location - created entry for Thomas Dambo's troll sculpture in Sakai Park with full community creation story and environmental stewardship narrative
+- July 01, 2025. Enhanced existing locations with rich stories - updated Port Blakely Mill and Fort Clatsop with detailed historical narratives
+- July 01, 2025. Added 6 major Pacific Northwest historical locations - created Ebey's Landing, Yama Village, Pioneer Square/Klondike Gold Rush, Whitman Mission, San Juan Island Pig War, and Mount St. Helens with comprehensive markdown-formatted stories covering pioneer settlement, cultural heritage, economic transformation, international diplomacy, and natural disasters
