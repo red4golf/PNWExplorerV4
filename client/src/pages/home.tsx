@@ -3,12 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import InteractiveMap from "@/components/interactive-map";
 import LocationCard from "@/components/location-card";
 import PhotoGallery from "@/components/photo-gallery";
-import { MapPin, BookOpen, ArrowLeft, Menu, Plus, Settings } from "lucide-react";
+import { MapPin, BookOpen, ArrowLeft, Menu, Plus, Settings, Users, Calendar, Mountain, Waves, TreePine, Factory } from "lucide-react";
 import type { Location } from "@shared/schema";
 
 export default function Home() {
@@ -122,10 +123,31 @@ export default function Home() {
             Discover the Pacific Northwest's{" "}
             <span className="text-heritage-gold">Rich History</span>
           </h1>
-          <p className="text-lg md:text-xl lg:text-2xl mb-12 leading-relaxed">
-            Explore the stories, landmarks, and heritage across Washington, Oregon, and Idaho 
-            through interactive maps and historical narratives.
+          <p className="text-lg md:text-xl lg:text-2xl mb-8 leading-relaxed">
+            Explore the stories, landmarks, and heritage across Washington, Oregon, Northern California, Idaho, Montana, and Southern British Columbia through interactive maps and historical narratives.
           </p>
+          
+          {/* Statistics */}
+          {locations && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 text-center">
+              <div className="bg-white/20 rounded-lg p-4 backdrop-blur-sm">
+                <div className="text-3xl font-bold text-heritage-gold">{locations.length}</div>
+                <div className="text-sm">Historic Locations</div>
+              </div>
+              <div className="bg-white/20 rounded-lg p-4 backdrop-blur-sm">
+                <div className="text-3xl font-bold text-heritage-gold">{locations.filter(l => l.category === 'Historical').length}</div>
+                <div className="text-sm">Historical Sites</div>
+              </div>
+              <div className="bg-white/20 rounded-lg p-4 backdrop-blur-sm">
+                <div className="text-3xl font-bold text-heritage-gold">{locations.filter(l => l.category === 'Natural').length}</div>
+                <div className="text-sm">Natural Wonders</div>
+              </div>
+              <div className="bg-white/20 rounded-lg p-4 backdrop-blur-sm">
+                <div className="text-3xl font-bold text-heritage-gold">{locations.filter(l => l.category === 'Cultural').length}</div>
+                <div className="text-sm">Cultural Heritage</div>
+              </div>
+            </div>
+          )}
           <div className="flex flex-col gap-4 max-w-sm mx-auto">
             <Button 
               onClick={handleStartExploring}
@@ -161,13 +183,52 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-heritage-brown mb-4">
-              Featured Historical Locations
+              Explore Pacific Northwest Heritage
             </h2>
             <p className="text-xl text-gray-600">
-              Discover the most significant places in Bainbridge Island's history
+              From ancient redwood forests to modern ski resorts, discover the diverse history of the Pacific Northwest
             </p>
           </div>
           
+          {/* Category Highlights */}
+          {locations && (
+            <div className="grid md:grid-cols-3 gap-8 mb-12">
+              <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+                <CardContent className="p-6 text-center">
+                  <TreePine className="w-12 h-12 text-green-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-green-800 mb-2">Natural Wonders</h3>
+                  <p className="text-green-700 mb-4">Ancient forests, volcanic landscapes, and pristine wilderness areas</p>
+                  <Badge variant="secondary" className="bg-green-200 text-green-800">
+                    {locations.filter(l => l.category === 'Natural').length} locations
+                  </Badge>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
+                <CardContent className="p-6 text-center">
+                  <Mountain className="w-12 h-12 text-amber-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-amber-800 mb-2">Historical Sites</h3>
+                  <p className="text-amber-700 mb-4">Gold rush towns, frontier forts, and landmark battles</p>
+                  <Badge variant="secondary" className="bg-amber-200 text-amber-800">
+                    {locations.filter(l => l.category === 'Historical').length} locations
+                  </Badge>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+                <CardContent className="p-6 text-center">
+                  <Users className="w-12 h-12 text-blue-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-blue-800 mb-2">Cultural Heritage</h3>
+                  <p className="text-blue-700 mb-4">Indigenous traditions, maritime culture, and modern innovations</p>
+                  <Badge variant="secondary" className="bg-blue-200 text-blue-800">
+                    {locations.filter(l => l.category === 'Cultural').length} locations
+                  </Badge>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+          
+          {/* Featured Location Samples */}
           {isLoading ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[...Array(6)].map((_, i) => (
@@ -188,7 +249,7 @@ export default function Home() {
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {locations?.map((location) => (
+              {locations?.slice(0, 6).map((location) => (
                 <LocationCard key={location.id} location={location} />
               ))}
             </div>
@@ -201,7 +262,7 @@ export default function Home() {
               className="bg-heritage-brown text-white hover:bg-heritage-brown/90 px-8 py-3 font-semibold"
             >
               <MapPin className="w-5 h-5 mr-2" />
-              Explore on Map
+              Explore All {locations?.length || 0} Locations
             </Button>
           </div>
         </div>
@@ -210,16 +271,17 @@ export default function Home() {
       {/* Call to Action */}
       <section className="py-16 bg-heritage-brown text-white hidden md:block">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold mb-6">Help Preserve Our History</h2>
+          <h2 className="text-4xl font-bold mb-6">Help Preserve Pacific Northwest History</h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto">
             Have a historical location or story to share? Contribute to our growing collection 
-            of Bainbridge Island's heritage.
+            of Pacific Northwest heritage spanning Washington, Oregon, Northern California, Idaho, Montana, and Southern British Columbia.
           </p>
           <Link href="/submit">
             <Button 
               size="lg" 
               className="bg-heritage-gold hover:bg-heritage-gold/90 text-heritage-brown px-8 py-4 text-lg font-semibold"
             >
+              <Plus className="w-5 h-5 mr-2" />
               Submit a Location
             </Button>
           </Link>
