@@ -123,6 +123,11 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   font-size: 14px;
   line-height: 1.4;
+  white-space: normal;
+  word-wrap: break-word;
+  max-width: 280px;
+  min-width: 200px;
+  width: auto;
 }
 
 .custom-tooltip:before {
