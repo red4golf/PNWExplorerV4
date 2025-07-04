@@ -115,6 +115,36 @@
   border-radius: 8px;
 }
 
+/* Custom tooltip styling */
+.custom-tooltip {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.custom-tooltip:before {
+  border-top-color: white;
+}
+
+.leaflet-tooltip-top.custom-tooltip:before {
+  border-top-color: #ddd;
+}
+
+.leaflet-tooltip-bottom.custom-tooltip:before {
+  border-bottom-color: #ddd;
+}
+
+.leaflet-tooltip-left.custom-tooltip:before {
+  border-left-color: #ddd;
+}
+
+.leaflet-tooltip-right.custom-tooltip:before {
+  border-right-color: #ddd;
+}
+
 .custom-marker {
   background-color: var(--heritage-gold);
   border: 2px solid var(--heritage-brown);

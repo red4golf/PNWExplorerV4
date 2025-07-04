@@ -259,6 +259,17 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
           ? (calculateDistance(userLocation, { lat: location.latitude, lng: location.longitude })).toFixed(1)
           : null;
 
+        // Hover tooltip content (simpler, just key info)
+        const tooltipContent = `
+          <div class="p-2 min-w-[180px] max-w-[250px]">
+            <h3 class="font-bold text-base mb-1">${location.name}</h3>
+            <p class="text-sm text-gray-600 mb-1">${location.category}</p>
+            <p class="text-xs text-gray-700">${location.description.substring(0, 80)}...</p>
+            ${distance ? `<p class="text-xs text-blue-600 font-semibold mt-1">${distance} miles away</p>` : ''}
+          </div>
+        `;
+
+        // Full popup content (detailed, with action buttons)
         const popupContent = `
           <div class="p-3 min-w-[220px]">
             <h3 class="font-bold text-lg mb-2">${location.name}</h3>
@@ -278,6 +289,15 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
           </div>
         `;
 
+        // Bind both tooltip (hover) and popup (click)
+        marker.bindTooltip(tooltipContent, {
+          permanent: false,
+          sticky: true,
+          direction: 'top',
+          offset: [0, -10],
+          className: 'custom-tooltip'
+        });
+        
         marker.bindPopup(popupContent);
       }
     });
