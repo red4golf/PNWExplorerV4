@@ -1338,7 +1338,7 @@ export default function Admin() {
                           totalLocations: allLocations?.length || 0,
                           approvedLocations: allLocations?.filter(l => l.status === 'approved').length || 0,
                           locationsWithImages: allLocations?.filter(l => l.heroImage).length || 0,
-                          categories: [...new Set(allLocations?.map(l => l.category))],
+                          categories: Array.from(new Set(allLocations?.map(l => l.category))),
                           lastUpdate: new Date().toISOString()
                         };
                         console.log('System Statistics:', stats);
@@ -1436,7 +1436,7 @@ export default function Admin() {
                   
                   <div className="text-center">
                     <div className="text-2xl font-bold text-blue-600">
-                      {new Set(allLocations?.map(l => l.category)).size || 0}
+                      {new Set(allLocations?.map(l => l.category) || []).size}
                     </div>
                     <div className="text-sm text-gray-600">Categories</div>
                   </div>

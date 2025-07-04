@@ -285,25 +285,36 @@ export default function LocationDetail() {
           </div>
         </div>
 
-        {/* Related Locations */}
+        {/* Related Locations - Coming Soon */}
         <section className="mt-16">
-          <h2 className="text-3xl font-bold text-heritage-brown mb-8">
-            Related Historical Locations
-          </h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <Card key={i} className="hover:shadow-lg transition-shadow">
-                <div className="h-32 bg-gray-200 rounded-t-lg"></div>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold text-heritage-brown mb-2">
-                    Related Location {i}
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    Brief description of another historical location...
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="text-center py-12 bg-gradient-to-r from-heritage-cream to-heritage-beige rounded-lg border-2 border-dashed border-heritage-olive/30">
+            <div className="max-w-2xl mx-auto px-6">
+              <h2 className="text-3xl font-bold text-heritage-brown mb-4">
+                Related Historical Locations
+              </h2>
+              <p className="text-lg text-heritage-olive mb-6">
+                Discover connections between Pacific Northwest historical sites
+              </p>
+              <div className="bg-white/60 rounded-lg p-6 border border-heritage-olive/20">
+                <div className="flex items-center justify-center mb-4">
+                  <div className="w-12 h-12 bg-heritage-brown/10 rounded-full flex items-center justify-center">
+                    <MapPin className="w-6 h-6 text-heritage-brown" />
+                  </div>
+                </div>
+                <h3 className="text-xl font-semibold text-heritage-brown mb-3">
+                  Coming Soon: Smart Location Connections
+                </h3>
+                <p className="text-gray-700 leading-relaxed">
+                  We're developing an intelligent system to connect historical locations based on 
+                  geographical proximity, time periods, cultural themes, and historical events. 
+                  Soon you'll be able to explore curated trails and discover how Pacific Northwest 
+                  locations relate to each other across time and space.
+                </p>
+                <div className="mt-4 text-sm text-heritage-olive font-medium">
+                  Feature in development • Stay tuned for updates
+                </div>
+              </div>
+            </div>
           </div>
         </section>
       </div>
