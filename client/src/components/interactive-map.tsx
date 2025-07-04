@@ -261,10 +261,10 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
 
         // Hover tooltip content (simpler, just key info)
         const tooltipContent = `
-          <div style="padding: 8px; line-height: 1.4; word-wrap: break-word;">
-            <div style="font-weight: bold; font-size: 15px; margin-bottom: 4px; color: #333;">${location.name}</div>
+          <div style="padding: 8px; line-height: 1.4; word-wrap: break-word; white-space: normal; max-width: 250px;">
+            <div style="font-weight: bold; font-size: 15px; margin-bottom: 4px; color: #333; word-wrap: break-word; white-space: normal;">${location.name}</div>
             <div style="font-size: 12px; color: #666; margin-bottom: 4px;">${location.category}</div>
-            <div style="font-size: 12px; color: #555; margin-bottom: 4px;">${location.description.substring(0, 90)}...</div>
+            <div style="font-size: 12px; color: #555; margin-bottom: 4px; word-wrap: break-word; white-space: normal; overflow-wrap: break-word;">${location.description.substring(0, 90)}...</div>
             ${distance ? `<div style="font-size: 11px; color: #2563eb; font-weight: 600; margin-top: 4px;">${distance} miles away</div>` : ''}
           </div>
         `;
