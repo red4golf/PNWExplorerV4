@@ -17,7 +17,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Lock, Clock, MapPin, Users, CheckCircle, XCircle, LogIn, Upload, FileText, Database, Edit3, Search, Save, Filter, Eye, Trash2, Image, Calendar, BarChart3, Settings, RefreshCw, Download, ChevronDown, AlertCircle, X, MessageSquare, Bug, Lightbulb } from "lucide-react";
+import { Lock, Clock, MapPin, Users, CheckCircle, XCircle, LogIn, Upload, FileText, Database, Edit3, Search, Save, Filter, Eye, Trash2, Image, Calendar, BarChart3, Settings, RefreshCw, Download, ChevronDown, AlertCircle, X, MessageSquare, Bug, Lightbulb, BookOpen } from "lucide-react";
 import { formatDate, getCategoryColor } from "@/lib/utils";
 import type { Location, Feedback } from "@shared/schema";
 
