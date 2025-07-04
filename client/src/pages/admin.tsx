@@ -16,7 +16,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Lock, Clock, MapPin, Users, CheckCircle, XCircle, LogIn, Upload, FileText, Database, Edit3, Search, Save, Filter, Eye, Trash2, Image, Calendar, BarChart3, Settings, RefreshCw, Download, ChevronDown, AlertCircle } from "lucide-react";
+import { Lock, Clock, MapPin, Users, CheckCircle, XCircle, LogIn, Upload, FileText, Database, Edit3, Search, Save, Filter, Eye, Trash2, Image, Calendar, BarChart3, Settings, RefreshCw, Download, ChevronDown, AlertCircle, X } from "lucide-react";
 import { formatDate, getCategoryColor } from "@/lib/utils";
 import type { Location } from "@shared/schema";
 
@@ -160,6 +160,39 @@ export default function Admin() {
       toast({
         title: "Update Failed",
         description: "Failed to update location. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const uploadHeroImageMutation = useMutation({
+    mutationFn: async ({ locationId, file }: { locationId: number; file: File }) => {
+      const formData = new FormData();
+      formData.append('heroImage', file);
+      
+      const response = await fetch(`/api/admin/locations/${locationId}/upload-hero`, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to upload image');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Hero Image Updated",
+        description: "Location image has been uploaded successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/locations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/locations/pending"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Upload Failed",
+        description: error.message || "Failed to upload image. Please try again.",
         variant: "destructive",
       });
     },
@@ -403,6 +436,80 @@ export default function Admin() {
               </FormItem>
             )}
           />
+
+          {/* Hero Image Upload Section */}
+          <div className="border-t pt-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-lg font-semibold text-heritage-brown">Hero Image</h4>
+                <p className="text-sm text-gray-600">Upload a main image for this location</p>
+              </div>
+              {location.heroImage && (
+                <div className="relative">
+                  <img 
+                    src={location.heroImage} 
+                    alt="Current hero image" 
+                    className="w-24 h-16 object-cover rounded-lg border"
+                  />
+                  <Badge className="absolute -top-2 -right-2 bg-green-500 text-white">
+                    Current
+                  </Badge>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <input
+                  id={`heroImage-${location.id}`}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      uploadHeroImageMutation.mutate({ locationId: location.id, file });
+                    }
+                  }}
+                />
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm"
+                  disabled={uploadHeroImageMutation.isPending}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const fileInput = document.getElementById(`heroImage-${location.id}`) as HTMLInputElement;
+                    fileInput?.click();
+                  }}
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  {uploadHeroImageMutation.isPending ? 'Uploading...' : 'Upload Image'}
+                </Button>
+              </div>
+              
+              {location.heroImage && (
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => {
+                    updateLocationMutation.mutate({ 
+                      id: location.id, 
+                      data: { heroImage: null } 
+                    });
+                  }}
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Remove
+                </Button>
+              )}
+            </div>
+            
+            <p className="text-xs text-gray-500">
+              Supported formats: JPEG, PNG, GIF, WebP. Max size: 5MB
+            </p>
+          </div>
 
           <div className="flex justify-end space-x-2">
             <Button type="submit" disabled={updateLocationMutation.isPending}>
@@ -797,9 +904,23 @@ export default function Admin() {
                           <div className="flex-1">
                             <div className="flex justify-between items-start">
                               <div className="flex-1">
-                                <h3 className="text-xl font-semibold text-heritage-brown mb-2">
-                                  {location.name}
-                                </h3>
+                                <div className="flex items-center space-x-3 mb-2">
+                                  <h3 className="text-xl font-semibold text-heritage-brown">
+                                    {location.name}
+                                  </h3>
+                                  {location.heroImage && (
+                                    <div className="relative">
+                                      <img 
+                                        src={location.heroImage} 
+                                        alt="Hero" 
+                                        className="w-8 h-8 object-cover rounded border"
+                                      />
+                                      <Badge className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1 py-0">
+                                        ✓
+                                      </Badge>
+                                    </div>
+                                  )}
+                                </div>
                                 <div className="flex items-center space-x-2 mb-2">
                                   <Badge className={`${getCategoryColor(location.category || '')}`}>
                                     {location.category}

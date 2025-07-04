@@ -13,6 +13,7 @@ export const locations = pgTable("locations", {
   category: text("category").notNull(),
   period: text("period"),
   photos: text("photos").array().default([]),
+  heroImage: text("hero_image"), // Main image for the location
   content: text("content"), // Rich story content
   submitterName: text("submitter_name"),
   submitterEmail: text("submitter_email"),

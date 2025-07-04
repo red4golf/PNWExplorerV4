@@ -11,13 +11,14 @@ interface LocationCardProps {
 }
 
 export default function LocationCard({ location }: LocationCardProps) {
-  // Use a placeholder image for now since we don't have actual photos
+  // Use hero image if available, otherwise use placeholder
   const placeholderImage = `https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&w=800&h=600&fit=crop`;
+  const imageUrl = location.heroImage || placeholderImage;
 
   return (
     <Card className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
       <img 
-        src={placeholderImage} 
+        src={imageUrl} 
         alt={location.name}
         className="w-full h-48 object-cover"
       />

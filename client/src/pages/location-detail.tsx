@@ -90,6 +90,7 @@ export default function LocationDetail() {
   }
 
   const placeholderImage = `https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&w=800&h=600&fit=crop`;
+  const imageUrl = location.heroImage || placeholderImage;
 
   return (
     <div className="min-h-screen bg-heritage-cream py-8">
@@ -106,7 +107,7 @@ export default function LocationDetail() {
           {/* Image Section */}
           <div>
             <img
-              src={placeholderImage}
+              src={imageUrl}
               alt={location.name}
               className="w-full h-96 object-cover rounded-lg shadow-lg"
             />

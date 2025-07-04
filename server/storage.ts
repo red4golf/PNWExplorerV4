@@ -10,6 +10,7 @@ export interface IStorage {
   getPendingLocations(): Promise<Location[]>;
   createLocation(location: InsertLocation): Promise<Location>;
   updateLocationStatus(id: number, status: string): Promise<Location | undefined>;
+  updateLocationHeroImage(id: number, heroImage: string): Promise<Location | undefined>;
   
   // Photo methods
   getPhotosByLocationId(locationId: number): Promise<Photo[]>;
@@ -53,6 +54,15 @@ export class DatabaseStorage implements IStorage {
     const [location] = await db
       .update(locations)
       .set({ status })
+      .where(eq(locations.id, id))
+      .returning();
+    return location || undefined;
+  }
+
+  async updateLocationHeroImage(id: number, heroImage: string): Promise<Location | undefined> {
+    const [location] = await db
+      .update(locations)
+      .set({ heroImage })
       .where(eq(locations.id, id))
       .returning();
     return location || undefined;
