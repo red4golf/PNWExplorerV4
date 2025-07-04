@@ -12,13 +12,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Lock, Clock, MapPin, Users, CheckCircle, XCircle, LogIn, Upload, FileText, Database, Edit3, Search, Save, Filter, Eye, Trash2, Image, Calendar, BarChart3, Settings, RefreshCw, Download, ChevronDown, AlertCircle, X } from "lucide-react";
+import { Lock, Clock, MapPin, Users, CheckCircle, XCircle, LogIn, Upload, FileText, Database, Edit3, Search, Save, Filter, Eye, Trash2, Image, Calendar, BarChart3, Settings, RefreshCw, Download, ChevronDown, AlertCircle, X, MessageSquare, Bug, Lightbulb } from "lucide-react";
 import { formatDate, getCategoryColor } from "@/lib/utils";
-import type { Location } from "@shared/schema";
+import type { Location, Feedback } from "@shared/schema";
 
 interface LoginForm {
   email: string;
@@ -321,6 +322,119 @@ export default function Admin() {
   };
 
   // LocationEditForm component
+  const FeedbackList = () => {
+    const { data: feedbackData, isLoading: feedbackLoading } = useQuery<Feedback[]>({
+      queryKey: ["/api/admin/feedback"],
+    });
+
+    const updateFeedbackStatus = useMutation({
+      mutationFn: async ({ id, status }: { id: number; status: string }) => {
+        return apiRequest("PATCH", `/api/admin/feedback/${id}`, { status });
+      },
+      onSuccess: () => {
+        toast({
+          title: "Feedback Updated",
+          description: "Feedback status has been updated successfully.",
+        });
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/feedback"] });
+      },
+    });
+
+    const getTypeIcon = (type: string) => {
+      switch (type) {
+        case "bug": return <Bug className="w-4 h-4 text-red-500" />;
+        case "feature": return <Lightbulb className="w-4 h-4 text-yellow-500" />;
+        case "location": return <MapPin className="w-4 h-4 text-blue-500" />;
+        default: return <MessageSquare className="w-4 h-4 text-gray-500" />;
+      }
+    };
+
+    const getStatusBadge = (status: string) => {
+      switch (status) {
+        case "new": return <Badge variant="default">New</Badge>;
+        case "in-progress": return <Badge variant="secondary">In Progress</Badge>;
+        case "resolved": return <Badge variant="outline">Resolved</Badge>;
+        default: return <Badge variant="outline">{status}</Badge>;
+      }
+    };
+
+    if (feedbackLoading) {
+      return (
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-32 w-full" />
+          ))}
+        </div>
+      );
+    }
+
+    if (!feedbackData || feedbackData.length === 0) {
+      return (
+        <div className="text-center py-8">
+          <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-500">No feedback submissions yet.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        {feedbackData.map((feedback) => (
+          <Card key={feedback.id} className="border border-gray-200">
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center space-x-2">
+                  {getTypeIcon(feedback.type)}
+                  <h3 className="font-semibold">{feedback.title}</h3>
+                  {getStatusBadge(feedback.status)}
+                </div>
+                <div className="text-sm text-gray-500">
+                  {feedback.createdAt ? formatDate(feedback.createdAt) : "Unknown date"}
+                </div>
+              </div>
+              
+              <p className="text-gray-700 mb-3">{feedback.message}</p>
+              
+              <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
+                {feedback.userName && (
+                  <div><strong>Name:</strong> {feedback.userName}</div>
+                )}
+                {feedback.userEmail && (
+                  <div><strong>Email:</strong> {feedback.userEmail}</div>
+                )}
+                {feedback.url && (
+                  <div><strong>Page:</strong> {feedback.url}</div>
+                )}
+                {feedback.locationId && (
+                  <div><strong>Location ID:</strong> {feedback.locationId}</div>
+                )}
+              </div>
+              
+              <div className="flex space-x-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => updateFeedbackStatus.mutate({ id: feedback.id, status: "in-progress" })}
+                  disabled={feedback.status === "in-progress"}
+                >
+                  Mark In Progress
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => updateFeedbackStatus.mutate({ id: feedback.id, status: "resolved" })}
+                  disabled={feedback.status === "resolved"}
+                >
+                  Mark Resolved
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  };
+
   const LocationEditForm = ({ location, onSave }: { location: Location; onSave: (data: Partial<Location>) => void }) => {
     const editForm = useForm({
       defaultValues: {
@@ -668,9 +782,10 @@ export default function Admin() {
 
         {/* Main Content */}
         <Tabs defaultValue="pending" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 max-w-3xl">
+          <TabsList className="grid w-full grid-cols-6 max-w-4xl">
             <TabsTrigger value="pending">Pending Locations</TabsTrigger>
             <TabsTrigger value="manage">Manage Locations</TabsTrigger>
+            <TabsTrigger value="feedback">Feedback</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="import">Import Data</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
@@ -1030,6 +1145,20 @@ export default function Admin() {
                     </div>
                   )}
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="feedback" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <MessageSquare className="w-5 h-5 mr-2" />
+                  User Feedback Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FeedbackList />
               </CardContent>
             </Card>
           </TabsContent>

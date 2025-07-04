@@ -35,6 +35,20 @@ export const admins = pgTable("admins", {
   password: text("password").notNull(),
 });
 
+export const feedback = pgTable("feedback", {
+  id: serial("id").primaryKey(),
+  type: text("type").notNull(), // "general", "bug", "feature", "location"
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  userEmail: text("user_email"),
+  userName: text("user_name"),
+  locationId: integer("location_id").references(() => locations.id),
+  userAgent: text("user_agent"),
+  url: text("url"),
+  status: text("status").notNull().default("new"), // new, in-progress, resolved
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertLocationSchema = createInsertSchema(locations).omit({
   id: true,
   createdAt: true,
@@ -50,14 +64,28 @@ export const insertAdminSchema = createInsertSchema(admins).omit({
   id: true,
 });
 
+export const insertFeedbackSchema = createInsertSchema(feedback).omit({
+  id: true,
+  createdAt: true,
+  status: true,
+});
+
 // Relations
 export const locationsRelations = relations(locations, ({ many }) => ({
   photos: many(photos),
+  feedback: many(feedback),
 }));
 
 export const photosRelations = relations(photos, ({ one }) => ({
   location: one(locations, {
     fields: [photos.locationId],
+    references: [locations.id],
+  }),
+}));
+
+export const feedbackRelations = relations(feedback, ({ one }) => ({
+  location: one(locations, {
+    fields: [feedback.locationId],
     references: [locations.id],
   }),
 }));
@@ -68,3 +96,5 @@ export type InsertPhoto = z.infer<typeof insertPhotoSchema>;
 export type Photo = typeof photos.$inferSelect;
 export type InsertAdmin = z.infer<typeof insertAdminSchema>;
 export type Admin = typeof admins.$inferSelect;
+export type InsertFeedback = z.infer<typeof insertFeedbackSchema>;
+export type Feedback = typeof feedback.$inferSelect;

@@ -9,6 +9,8 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import InteractiveMap from "@/components/interactive-map";
 import LocationCard from "@/components/location-card";
 import PhotoGallery from "@/components/photo-gallery";
+import FeedbackForm from "@/components/feedback-form";
+import QRShare from "@/components/qr-share";
 import { MapPin, BookOpen, ArrowLeft, Menu, Plus, Settings, Users, Calendar, Mountain, Waves, TreePine, Factory } from "lucide-react";
 import type { Location } from "@shared/schema";
 
@@ -167,6 +169,20 @@ export default function Home() {
               <BookOpen className="w-5 h-5 mr-2" />
               Learn More
             </Button>
+            
+            {/* Beta Utility Bar */}
+            <div className="flex justify-center gap-3 pt-4">
+              <FeedbackForm 
+                trigger={
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="text-white/80 hover:text-white hover:bg-white/10"
+                  />
+                }
+              />
+              <QRShare />
+            </div>
           </div>
         </div>
 

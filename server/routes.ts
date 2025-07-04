@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertLocationSchema, locations } from "@shared/schema";
+import { insertLocationSchema, insertFeedbackSchema, locations } from "@shared/schema";
 import { z } from "zod";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -252,6 +252,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(allLocations);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch all locations" });
+    }
+  });
+
+  // Feedback routes
+  app.post("/api/feedback", async (req, res) => {
+    try {
+      const feedbackData = insertFeedbackSchema.parse({
+        ...req.body,
+        userAgent: req.get('User-Agent'),
+        url: req.get('Referer') || req.body.url
+      });
+      
+      const feedback = await storage.createFeedback(feedbackData);
+      res.json(feedback);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid feedback data", errors: error.errors });
+      }
+      console.error("Error creating feedback:", error);
+      res.status(500).json({ message: "Failed to submit feedback" });
+    }
+  });
+
+  // Get all feedback (admin only)
+  app.get("/api/admin/feedback", async (req, res) => {
+    try {
+      const allFeedback = await storage.getAllFeedback();
+      res.json(allFeedback);
+    } catch (error) {
+      console.error("Error fetching feedback:", error);
+      res.status(500).json({ message: "Failed to fetch feedback" });
+    }
+  });
+
+  // Update feedback status (admin only)
+  app.patch("/api/admin/feedback/:id", async (req, res) => {
+    try {
+      const feedbackId = parseInt(req.params.id);
+      const { status } = req.body;
+      
+      const updatedFeedback = await storage.updateFeedbackStatus(feedbackId, status);
+      
+      if (!updatedFeedback) {
+        return res.status(404).json({ message: "Feedback not found" });
+      }
+      
+      res.json(updatedFeedback);
+    } catch (error) {
+      console.error("Error updating feedback:", error);
+      res.status(500).json({ message: "Failed to update feedback" });
     }
   });
 

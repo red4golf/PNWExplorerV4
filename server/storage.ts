@@ -1,6 +1,6 @@
-import { locations, photos, admins, type Location, type InsertLocation, type Photo, type InsertPhoto, type Admin, type InsertAdmin } from "@shared/schema";
+import { locations, photos, admins, feedback, type Location, type InsertLocation, type Photo, type InsertPhoto, type Admin, type InsertAdmin, type Feedback, type InsertFeedback } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
   // Location methods
@@ -19,6 +19,12 @@ export interface IStorage {
   // Admin methods
   getAdminByEmail(email: string): Promise<Admin | undefined>;
   createAdmin(admin: InsertAdmin): Promise<Admin>;
+  
+  // Feedback methods
+  createFeedback(feedback: InsertFeedback): Promise<Feedback>;
+  getAllFeedback(): Promise<Feedback[]>;
+  getFeedbackById(id: number): Promise<Feedback | undefined>;
+  updateFeedbackStatus(id: number, status: string): Promise<Feedback | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -91,6 +97,28 @@ export class DatabaseStorage implements IStorage {
       .values(insertAdmin)
       .returning();
     return admin;
+  }
+
+  async createFeedback(insertFeedback: InsertFeedback): Promise<Feedback> {
+    const [feedbackItem] = await db.insert(feedback).values(insertFeedback).returning();
+    return feedbackItem;
+  }
+
+  async getAllFeedback(): Promise<Feedback[]> {
+    return await db.select().from(feedback).orderBy(desc(feedback.createdAt));
+  }
+
+  async getFeedbackById(id: number): Promise<Feedback | undefined> {
+    const [feedbackItem] = await db.select().from(feedback).where(eq(feedback.id, id));
+    return feedbackItem;
+  }
+
+  async updateFeedbackStatus(id: number, status: string): Promise<Feedback | undefined> {
+    const [feedbackItem] = await db.update(feedback)
+      .set({ status })
+      .where(eq(feedback.id, id))
+      .returning();
+    return feedbackItem;
   }
 }
 
