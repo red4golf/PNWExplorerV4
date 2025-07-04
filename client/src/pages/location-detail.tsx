@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, MapPin, Calendar, User, Navigation, ExternalLink, FileText } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, User, Navigation, ExternalLink, FileText, BookOpen } from "lucide-react";
 import { Link } from "wouter";
 import { getCategoryIcon, getCategoryColor, formatDate, getDirectionsUrl, calculateDistance } from "@/lib/utils";
 import type { Location } from "@shared/schema";
@@ -284,6 +284,60 @@ export default function LocationDetail() {
             </div>
           </div>
         </div>
+
+        {/* Book Recommendations */}
+        {location.recommendedBooks && JSON.parse(location.recommendedBooks).length > 0 && (
+          <section className="mt-16">
+            <Card className="bg-white border-heritage-olive/20">
+              <CardHeader>
+                <CardTitle className="flex items-center text-heritage-brown text-2xl">
+                  <BookOpen className="w-6 h-6 mr-3" />
+                  Further Reading
+                </CardTitle>
+                <p className="text-gray-600">
+                  Deepen your understanding with these recommended books about {location.name} and related historical topics.
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-6">
+                  {JSON.parse(location.recommendedBooks).map((book: any, index: number) => (
+                    <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="flex items-start space-x-4">
+                        <div className="w-16 h-20 bg-heritage-beige rounded flex-shrink-0 flex items-center justify-center">
+                          <BookOpen className="w-8 h-8 text-heritage-brown" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-heritage-brown mb-1">{book.title}</h3>
+                          <p className="text-sm text-gray-600 mb-2">by {book.author}</p>
+                          <p className="text-sm text-gray-700 mb-3">{book.description}</p>
+                          <a
+                            href={book.amazonUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center px-3 py-2 text-sm bg-heritage-brown text-white rounded hover:bg-heritage-brown/90 transition-colors"
+                            onClick={() => {
+                              // Track affiliate clicks for analytics
+                              console.log('Affiliate click:', { locationId: location.id, bookTitle: book.title });
+                            }}
+                          >
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            View on Amazon
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-6 pt-4 border-t border-gray-200">
+                  <p className="text-xs text-gray-500">
+                    As an Amazon Associate, Pacific Northwest Historical Explorer earns from qualifying purchases. 
+                    This helps support the development and maintenance of this historical resource.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+        )}
 
         {/* Related Locations - Coming Soon */}
         <section className="mt-16">

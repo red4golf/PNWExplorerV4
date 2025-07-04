@@ -625,6 +625,131 @@ export default function Admin() {
             </p>
           </div>
 
+          {/* Book Recommendations Section */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-heritage-brown">Book Recommendations</h3>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const currentBooks = location.recommendedBooks ? JSON.parse(location.recommendedBooks) : [];
+                  const newBook = {
+                    title: "",
+                    author: "",
+                    amazonUrl: "",
+                    description: ""
+                  };
+                  const updatedBooks = [...currentBooks, newBook];
+                  updateLocationMutation.mutate({
+                    id: location.id,
+                    data: { recommendedBooks: JSON.stringify(updatedBooks) }
+                  });
+                }}
+              >
+                Add Book
+              </Button>
+            </div>
+            
+            {(() => {
+              const books = location.recommendedBooks ? JSON.parse(location.recommendedBooks) : [];
+              return books.map((book: any, index: number) => (
+                <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium">Book {index + 1}</h4>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const updatedBooks = books.filter((_: any, i: number) => i !== index);
+                        updateLocationMutation.mutate({
+                          id: location.id,
+                          data: { recommendedBooks: JSON.stringify(updatedBooks) }
+                        });
+                      }}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-sm font-medium">Title</label>
+                      <Input
+                        value={book.title || ""}
+                        onChange={(e) => {
+                          const updatedBooks = [...books];
+                          updatedBooks[index] = { ...book, title: e.target.value };
+                          updateLocationMutation.mutate({
+                            id: location.id,
+                            data: { recommendedBooks: JSON.stringify(updatedBooks) }
+                          });
+                        }}
+                        placeholder="Book title"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Author</label>
+                      <Input
+                        value={book.author || ""}
+                        onChange={(e) => {
+                          const updatedBooks = [...books];
+                          updatedBooks[index] = { ...book, author: e.target.value };
+                          updateLocationMutation.mutate({
+                            id: location.id,
+                            data: { recommendedBooks: JSON.stringify(updatedBooks) }
+                          });
+                        }}
+                        placeholder="Author name"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium">Amazon Affiliate URL</label>
+                    <Input
+                      value={book.amazonUrl || ""}
+                      onChange={(e) => {
+                        const updatedBooks = [...books];
+                        updatedBooks[index] = { ...book, amazonUrl: e.target.value };
+                        updateLocationMutation.mutate({
+                          id: location.id,
+                          data: { recommendedBooks: JSON.stringify(updatedBooks) }
+                        });
+                      }}
+                      placeholder="https://amzn.to/..."
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium">Description</label>
+                    <Textarea
+                      value={book.description || ""}
+                      onChange={(e) => {
+                        const updatedBooks = [...books];
+                        updatedBooks[index] = { ...book, description: e.target.value };
+                        updateLocationMutation.mutate({
+                          id: location.id,
+                          data: { recommendedBooks: JSON.stringify(updatedBooks) }
+                        });
+                      }}
+                      placeholder="Brief description of why this book relates to this location"
+                      className="min-h-[80px]"
+                    />
+                  </div>
+                </div>
+              ));
+            })()}
+            
+            {(!location.recommendedBooks || JSON.parse(location.recommendedBooks).length === 0) && (
+              <p className="text-gray-500 text-sm text-center py-4">
+                No book recommendations added yet. Click "Add Book" to start building your reading list.
+              </p>
+            )}
+          </div>
+
           <div className="flex justify-end space-x-2">
             <Button type="submit" disabled={updateLocationMutation.isPending}>
               <Save className="w-4 h-4 mr-2" />
