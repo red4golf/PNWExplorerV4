@@ -87,6 +87,23 @@ The application follows a monorepo structure with clear separation between clien
 
 Preferred communication style: Simple, everyday language.
 
+## Future Feature Ideas
+
+### Location Discovery Wizard
+- Interest-based questionnaire (Military History, Native Heritage, Natural Disasters, Pioneer Stories)
+- Time and transportation constraints assessment
+- Smart itinerary generation with optimal routing
+- Adaptive learning from user behavior and feedback
+- Personalized recommendations for returning visitors
+
+### Mini-Podcasts
+- 3-5 minute audio episodes per location with professional narration
+- GPS-triggered audio suggestions when near locations
+- Multiple episodes for major sites covering different historical periods
+- Offline capability for areas with poor connectivity
+- Multi-language support including Native languages for relevant sites
+- AI voice synthesis with period-appropriate ambient sounds and music
+
 ## Changelog
 
 Changelog:
