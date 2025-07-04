@@ -738,7 +738,7 @@ export default function Admin() {
             </div>
             
             <p className="text-xs text-gray-500">
-              Supported formats: JPEG, PNG, GIF, WebP. Max size: 5MB
+              Supported formats: JPEG, PNG, GIF, WebP, HEIC. Max size: 5MB
             </p>
           </div>
 

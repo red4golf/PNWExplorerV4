@@ -29,11 +29,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     storage: storage_config,
     limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
     fileFilter: (req, file, cb) => {
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      console.log('File upload attempt:', {
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+        size: file.size || 'unknown'
+      });
+      
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif'];
       if (allowedTypes.includes(file.mimetype)) {
         cb(null, true);
       } else {
-        cb(new Error('Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.'));
+        console.log('Rejected file type:', file.mimetype);
+        cb(new Error(`Invalid file type: ${file.mimetype}. Only JPEG, PNG, GIF, WebP, and HEIC are allowed.`));
       }
     }
   });
@@ -47,30 +54,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Upload hero image for location
-  app.post("/api/admin/locations/:id/upload-hero", upload.single('heroImage'), async (req, res) => {
-    try {
-      const locationId = parseInt(req.params.id);
-      
-      if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
+  app.post("/api/admin/locations/:id/upload-hero", (req, res) => {
+    upload.single('heroImage')(req, res, async (err) => {
+      if (err) {
+        console.error("Multer upload error:", err);
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          const contentLength = req.headers['content-length'];
+          let fileSizeMB: string | number = 'unknown';
+          if (contentLength && typeof contentLength === 'string') {
+            const sizeBytes = parseInt(contentLength, 10);
+            if (!isNaN(sizeBytes)) {
+              fileSizeMB = Math.round(sizeBytes / 1024 / 1024 * 100) / 100;
+            }
+          }
+          return res.status(400).json({ 
+            message: `File too large. Maximum size is 5MB. Your file size: ${fileSizeMB}MB` 
+          });
+        }
+        return res.status(400).json({ 
+          message: err.message || "File upload failed" 
+        });
       }
-      
-      const heroImagePath = `/uploads/${req.file.filename}`;
-      const updatedLocation = await storage.updateLocationHeroImage(locationId, heroImagePath);
-      
-      if (!updatedLocation) {
-        return res.status(404).json({ message: "Location not found" });
+
+      try {
+        const locationId = parseInt(req.params.id);
+        
+        if (!req.file) {
+          return res.status(400).json({ message: "No file uploaded" });
+        }
+        
+        console.log('Successfully uploaded file:', {
+          filename: req.file.filename,
+          originalname: req.file.originalname,
+          mimetype: req.file.mimetype,
+          size: `${Math.round(req.file.size / 1024 / 1024 * 100) / 100}MB`
+        });
+        
+        const heroImagePath = `/uploads/${req.file.filename}`;
+        const updatedLocation = await storage.updateLocationHeroImage(locationId, heroImagePath);
+        
+        if (!updatedLocation) {
+          return res.status(404).json({ message: "Location not found" });
+        }
+        
+        res.json({ 
+          message: "Hero image uploaded successfully", 
+          location: updatedLocation,
+          heroImagePath 
+        });
+      } catch (error) {
+        console.error("Error uploading hero image:", error);
+        res.status(500).json({ message: "Failed to upload hero image" });
       }
-      
-      res.json({ 
-        message: "Hero image uploaded successfully", 
-        location: updatedLocation,
-        heroImagePath 
-      });
-    } catch (error) {
-      console.error("Error uploading hero image:", error);
-      res.status(500).json({ message: "Failed to upload hero image" });
-    }
+    });
   });
 
   // Get all approved locations
