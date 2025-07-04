@@ -350,8 +350,7 @@ export default function LearnMore() {
             <Link href="/submit">
               <Button 
                 size="lg" 
-                variant="outline"
-                className="border-2 border-heritage-gold text-heritage-gold hover:bg-heritage-gold hover:text-heritage-brown px-8 py-4 text-lg font-semibold"
+                className="bg-transparent border-2 border-heritage-gold text-heritage-gold hover:bg-heritage-gold hover:text-heritage-brown px-8 py-4 text-lg font-semibold"
               >
                 <Users className="w-5 h-5 mr-2" />
                 Submit a Location
