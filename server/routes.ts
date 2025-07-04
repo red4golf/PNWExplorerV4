@@ -158,6 +158,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete location (admin only)
+  app.delete("/api/admin/locations/:id", async (req, res) => {
+    try {
+      const locationId = parseInt(req.params.id);
+      
+      const [deletedLocation] = await db
+        .delete(locations)
+        .where(eq(locations.id, locationId))
+        .returning();
+      
+      if (!deletedLocation) {
+        return res.status(404).json({ message: "Location not found" });
+      }
+      
+      res.json({ message: "Location deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting location:", error);
+      res.status(500).json({ message: "Failed to delete location" });
+    }
+  });
+
+  // Get all locations for admin (includes pending/rejected)
+  app.get("/api/admin/locations", async (req, res) => {
+    try {
+      const allLocations = await storage.getAllLocations();
+      res.json(allLocations);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch all locations" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

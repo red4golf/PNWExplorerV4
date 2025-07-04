@@ -10,9 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Lock, Clock, MapPin, Users, CheckCircle, XCircle, LogIn, Upload, FileText, Database, Edit3, Search, Save } from "lucide-react";
+import { Lock, Clock, MapPin, Users, CheckCircle, XCircle, LogIn, Upload, FileText, Database, Edit3, Search, Save, Filter, Eye, Trash2, Image, Calendar, BarChart3, Settings, RefreshCw, Download, ChevronDown, AlertCircle } from "lucide-react";
 import { formatDate, getCategoryColor } from "@/lib/utils";
 import type { Location } from "@shared/schema";
 
@@ -31,6 +35,12 @@ export default function Admin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [editingLocation, setEditingLocation] = useState<Location | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [selectedLocations, setSelectedLocations] = useState<Set<number>>(new Set());
+  const [showPreview, setShowPreview] = useState<Location | null>(null);
+  const [sortBy, setSortBy] = useState<string>("name");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -52,7 +62,7 @@ export default function Admin() {
   });
 
   const { data: allLocations } = useQuery<Location[]>({
-    queryKey: ["/api/locations"],
+    queryKey: ["/api/admin/locations"],
     enabled: isAuthenticated,
   });
 
@@ -91,7 +101,7 @@ export default function Admin() {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/locations/pending"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/locations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/locations"] });
     },
     onError: () => {
       toast({
@@ -116,7 +126,7 @@ export default function Admin() {
         title: "Import Successful",
         description: "Location data has been imported successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/locations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/locations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
     },
     onError: (error: any) => {
@@ -142,7 +152,7 @@ export default function Admin() {
         title: "Location Updated",
         description: "Location details have been updated successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/locations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/locations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/locations/pending"] });
       setEditingLocation(null);
     },
@@ -161,6 +171,120 @@ export default function Admin() {
 
   const handleEditLocation = (location: Location) => {
     setEditingLocation(location);
+  };
+
+  // Bulk operations
+  const bulkUpdateStatusMutation = useMutation({
+    mutationFn: async ({ ids, status }: { ids: number[]; status: string }) => {
+      const promises = ids.map(id => 
+        apiRequest("PATCH", `/api/admin/locations/${id}/status`, { status })
+      );
+      return Promise.all(promises);
+    },
+    onSuccess: (_, { status }) => {
+      toast({
+        title: "Bulk Update Complete",
+        description: `${selectedLocations.size} locations ${status}.`,
+      });
+      setSelectedLocations(new Set());
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/locations/pending"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/locations"] });
+    },
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids: number[]) => {
+      const promises = ids.map(id => 
+        apiRequest("DELETE", `/api/admin/locations/${id}`, {})
+      );
+      return Promise.all(promises);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Bulk Delete Complete",
+        description: `${selectedLocations.size} locations deleted.`,
+      });
+      setSelectedLocations(new Set());
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/locations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
+    },
+  });
+
+  const handleBulkAction = (action: string) => {
+    const ids = Array.from(selectedLocations);
+    if (ids.length === 0) return;
+
+    switch (action) {
+      case "approve":
+        bulkUpdateStatusMutation.mutate({ ids, status: "approved" });
+        break;
+      case "reject":
+        bulkUpdateStatusMutation.mutate({ ids, status: "rejected" });
+        break;
+      case "delete":
+        if (confirm(`Are you sure you want to delete ${ids.length} locations?`)) {
+          bulkDeleteMutation.mutate(ids);
+        }
+        break;
+    }
+  };
+
+  const handleSelectLocation = (id: number, checked: boolean) => {
+    const newSelected = new Set(selectedLocations);
+    if (checked) {
+      newSelected.add(id);
+    } else {
+      newSelected.delete(id);
+    }
+    setSelectedLocations(newSelected);
+  };
+
+  const handleSelectAll = (locations: Location[], checked: boolean) => {
+    if (checked) {
+      const newSelected = new Set(selectedLocations);
+      locations.forEach(location => newSelected.add(location.id));
+      setSelectedLocations(newSelected);
+    } else {
+      setSelectedLocations(new Set());
+    }
+  };
+
+  // Enhanced filtering and sorting
+  const getFilteredAndSortedLocations = (locations: Location[]) => {
+    let filtered = locations.filter(location => {
+      const matchesSearch = !searchTerm || 
+        location.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        location.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        location.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesStatus = filterStatus === "all" || location.status === filterStatus;
+      const matchesCategory = filterCategory === "all" || location.category === filterCategory;
+      
+      return matchesSearch && matchesStatus && matchesCategory;
+    });
+
+    // Sort locations
+    filtered.sort((a, b) => {
+      let aValue: any = a[sortBy as keyof Location];
+      let bValue: any = b[sortBy as keyof Location];
+      
+      if (sortBy === "createdAt") {
+        aValue = new Date(aValue || 0).getTime();
+        bValue = new Date(bValue || 0).getTime();
+      } else if (typeof aValue === "string") {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+      
+      if (sortOrder === "asc") {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+
+    return filtered;
   };
 
   // LocationEditForm component
@@ -437,9 +561,10 @@ export default function Admin() {
 
         {/* Main Content */}
         <Tabs defaultValue="pending" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 max-w-2xl">
+          <TabsList className="grid w-full grid-cols-5 max-w-3xl">
             <TabsTrigger value="pending">Pending Locations</TabsTrigger>
             <TabsTrigger value="manage">Manage Locations</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="import">Import Data</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
@@ -521,82 +646,416 @@ export default function Admin() {
           <TabsContent value="manage" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-heritage-brown flex items-center">
-                  <Edit3 className="w-5 h-5 mr-2" />
-                  Manage Locations
+                <CardTitle className="text-heritage-brown flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Edit3 className="w-5 h-5 mr-2" />
+                    Manage Locations
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => queryClient.invalidateQueries({ queryKey: ["/api/admin/locations"] })}
+                    >
+                      <RefreshCw className="w-4 h-4 mr-1" />
+                      Refresh
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Download className="w-4 h-4 mr-1" />
+                      Export
+                    </Button>
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Search Bar */}
-                <div className="flex items-center space-x-4">
-                  <div className="relative flex-1">
+                {/* Enhanced Filters */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="relative">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
-                      placeholder="Search locations by name, category, or description..."
+                      placeholder="Search locations..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10"
                     />
                   </div>
+                  
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Filter by status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="approved">Approved</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="rejected">Rejected</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <Select value={filterCategory} onValueChange={setFilterCategory}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Filter by category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Categories</SelectItem>
+                      <SelectItem value="Historical">Historical</SelectItem>
+                      <SelectItem value="Natural">Natural</SelectItem>
+                      <SelectItem value="Cultural">Cultural</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <Select value={`${sortBy}-${sortOrder}`} onValueChange={(value) => {
+                    const [field, order] = value.split('-');
+                    setSortBy(field);
+                    setSortOrder(order as "asc" | "desc");
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sort by" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="name-asc">Name (A-Z)</SelectItem>
+                      <SelectItem value="name-desc">Name (Z-A)</SelectItem>
+                      <SelectItem value="category-asc">Category (A-Z)</SelectItem>
+                      <SelectItem value="createdAt-desc">Newest First</SelectItem>
+                      <SelectItem value="createdAt-asc">Oldest First</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
+
+                {/* Bulk Actions */}
+                {selectedLocations.size > 0 && (
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription className="flex items-center justify-between">
+                      <span>{selectedLocations.size} locations selected</span>
+                      <div className="flex space-x-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleBulkAction("approve")}
+                          disabled={bulkUpdateStatusMutation.isPending}
+                        >
+                          <CheckCircle className="w-4 h-4 mr-1" />
+                          Approve All
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleBulkAction("reject")}
+                          disabled={bulkUpdateStatusMutation.isPending}
+                        >
+                          <XCircle className="w-4 h-4 mr-1" />
+                          Reject All
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="destructive"
+                          onClick={() => handleBulkAction("delete")}
+                          disabled={bulkDeleteMutation.isPending}
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" />
+                          Delete All
+                        </Button>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                )}
 
                 {/* Locations List */}
                 <div className="space-y-4">
-                  {allLocations
-                    ?.filter(location => 
-                      !searchTerm || 
-                      location.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                      location.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                      location.description?.toLowerCase().includes(searchTerm.toLowerCase())
-                    )
-                    .map((location) => (
-                      <Card key={location.id} className="border border-gray-200">
-                        <CardContent className="p-6">
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <h3 className="text-xl font-semibold text-heritage-brown mb-2">
-                                {location.name}
-                              </h3>
-                              <Badge className={`mb-2 ${getCategoryColor(location.category || '')}`}>
-                                {location.category}
-                              </Badge>
-                              <p className="text-gray-600 mb-2">{location.description}</p>
-                              {location.content && (
-                                <div className="text-sm text-gray-500">
-                                  📖 Has extended story content
+                  {allLocations && allLocations.length > 0 && (
+                    <div className="flex items-center space-x-2 mb-4">
+                      <Checkbox
+                        id="select-all"
+                        checked={
+                          getFilteredAndSortedLocations(allLocations).length > 0 &&
+                          getFilteredAndSortedLocations(allLocations).every(location => 
+                            selectedLocations.has(location.id)
+                          )
+                        }
+                        onCheckedChange={(checked) => 
+                          handleSelectAll(getFilteredAndSortedLocations(allLocations), checked as boolean)
+                        }
+                      />
+                      <label htmlFor="select-all" className="text-sm font-medium">
+                        Select All ({getFilteredAndSortedLocations(allLocations).length} locations)
+                      </label>
+                    </div>
+                  )}
+                  
+                  {getFilteredAndSortedLocations(allLocations || []).map((location) => (
+                    <Card key={location.id} className="border border-gray-200">
+                      <CardContent className="p-6">
+                        <div className="flex items-start space-x-4">
+                          <Checkbox
+                            checked={selectedLocations.has(location.id)}
+                            onCheckedChange={(checked) => 
+                              handleSelectLocation(location.id, checked as boolean)
+                            }
+                          />
+                          
+                          <div className="flex-1">
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <h3 className="text-xl font-semibold text-heritage-brown mb-2">
+                                  {location.name}
+                                </h3>
+                                <div className="flex items-center space-x-2 mb-2">
+                                  <Badge className={`${getCategoryColor(location.category || '')}`}>
+                                    {location.category}
+                                  </Badge>
+                                  <Badge variant={
+                                    location.status === 'approved' ? 'default' : 
+                                    location.status === 'pending' ? 'secondary' : 'destructive'
+                                  }>
+                                    {location.status}
+                                  </Badge>
                                 </div>
-                              )}
-                            </div>
-                            <div className="flex space-x-2">
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleEditLocation(location)}
-                                  >
-                                    <Edit3 className="w-4 h-4 mr-2" />
-                                    Edit
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                                  <DialogHeader>
-                                    <DialogTitle>Edit Location: {location.name}</DialogTitle>
-                                    <DialogDescription>
-                                      Update location details, description, and extended story content.
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  {editingLocation && <LocationEditForm location={editingLocation} onSave={(data) => {
-                                    updateLocationMutation.mutate({ id: editingLocation.id, data });
-                                  }} />}
-                                </DialogContent>
-                              </Dialog>
+                                <p className="text-gray-600 mb-2">{location.description}</p>
+                                <div className="flex items-center space-x-4 text-sm text-gray-500">
+                                  <div className="flex items-center">
+                                    <MapPin className="w-4 h-4 mr-1" />
+                                    {location.address || "No address"}
+                                  </div>
+                                  <div className="flex items-center">
+                                    <Calendar className="w-4 h-4 mr-1" />
+                                    {location.period || "No period"}
+                                  </div>
+                                  {location.content && (
+                                    <div className="flex items-center">
+                                      <FileText className="w-4 h-4 mr-1" />
+                                      Story content
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              <div className="flex space-x-2">
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => setShowPreview(location)}
+                                    >
+                                      <Eye className="w-4 h-4 mr-2" />
+                                      Preview
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                                    <DialogHeader>
+                                      <DialogTitle>{location.name}</DialogTitle>
+                                      <DialogDescription>
+                                        Preview how this location appears to users
+                                      </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="space-y-4">
+                                      <div className="flex items-center space-x-2">
+                                        <Badge className={`${getCategoryColor(location.category || '')}`}>
+                                          {location.category}
+                                        </Badge>
+                                        <Badge variant="outline">{location.period}</Badge>
+                                      </div>
+                                      <p className="text-gray-600">{location.description}</p>
+                                      {location.content && (
+                                        <div className="prose prose-sm max-w-none">
+                                          <h4>Extended Story</h4>
+                                          <div className="bg-gray-50 p-4 rounded-lg">
+                                            <pre className="whitespace-pre-wrap text-sm">
+                                              {location.content.substring(0, 500)}
+                                              {location.content.length > 500 && '...'}
+                                            </pre>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </DialogContent>
+                                </Dialog>
+                                
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleEditLocation(location)}
+                                    >
+                                      <Edit3 className="w-4 h-4 mr-2" />
+                                      Edit
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                                    <DialogHeader>
+                                      <DialogTitle>Edit Location: {location.name}</DialogTitle>
+                                      <DialogDescription>
+                                        Update location details, description, and extended story content.
+                                      </DialogDescription>
+                                    </DialogHeader>
+                                    {editingLocation && <LocationEditForm location={editingLocation} onSave={(data) => {
+                                      updateLocationMutation.mutate({ id: editingLocation.id, data });
+                                    }} />}
+                                  </DialogContent>
+                                </Dialog>
+                              </div>
                             </div>
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                  
+                  {allLocations && getFilteredAndSortedLocations(allLocations).length === 0 && (
+                    <div className="text-center py-8">
+                      <p className="text-gray-500">No locations match your current filters.</p>
+                    </div>
+                  )}
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="analytics" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-heritage-brown flex items-center">
+                  <BarChart3 className="w-5 h-5 mr-2" />
+                  Analytics & Insights
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Analytics Overview */}
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <Card className="bg-blue-50 border-blue-200">
+                    <CardContent className="p-4 text-center">
+                      <h4 className="font-semibold text-blue-900 mb-1">Total Locations</h4>
+                      <p className="text-2xl font-bold text-blue-700">{allLocations?.length || 0}</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-green-50 border-green-200">
+                    <CardContent className="p-4 text-center">
+                      <h4 className="font-semibold text-green-900 mb-1">Approved</h4>
+                      <p className="text-2xl font-bold text-green-700">
+                        {allLocations?.filter(l => l.status === 'approved').length || 0}
+                      </p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-yellow-50 border-yellow-200">
+                    <CardContent className="p-4 text-center">
+                      <h4 className="font-semibold text-yellow-900 mb-1">Pending</h4>
+                      <p className="text-2xl font-bold text-yellow-700">
+                        {allLocations?.filter(l => l.status === 'pending').length || 0}
+                      </p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-purple-50 border-purple-200">
+                    <CardContent className="p-4 text-center">
+                      <h4 className="font-semibold text-purple-900 mb-1">With Stories</h4>
+                      <p className="text-2xl font-bold text-purple-700">
+                        {allLocations?.filter(l => l.content && l.content.length > 100).length || 0}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Category Breakdown */}
+                <div className="grid md:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Locations by Category</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {['Historical', 'Natural', 'Cultural'].map(category => {
+                          const count = allLocations?.filter(l => l.category === category).length || 0;
+                          const total = allLocations?.length || 1;
+                          const percentage = Math.round((count / total) * 100);
+                          
+                          return (
+                            <div key={category} className="space-y-2">
+                              <div className="flex justify-between items-center">
+                                <span className="font-medium">{category}</span>
+                                <span className="text-sm text-gray-600">{count} ({percentage}%)</span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div 
+                                  className={`h-2 rounded-full ${
+                                    category === 'Historical' ? 'bg-amber-500' :
+                                    category === 'Natural' ? 'bg-green-500' : 'bg-blue-500'
+                                  }`}
+                                  style={{ width: `${percentage}%` }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Content Completion</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <span>Basic Information</span>
+                            <span className="text-sm text-gray-600">
+                              {allLocations?.filter(l => l.name && l.description && l.category).length || 0}
+                              /{allLocations?.length || 0}
+                            </span>
+                          </div>
+                          <div className="space-y-2">
+                            <span>Extended Stories</span>
+                            <span className="text-sm text-gray-600">
+                              {allLocations?.filter(l => l.content && l.content.length > 100).length || 0}
+                              /{allLocations?.length || 0}
+                            </span>
+                          </div>
+                          <div className="space-y-2">
+                            <span>Geographic Data</span>
+                            <span className="text-sm text-gray-600">
+                              {allLocations?.filter(l => l.latitude && l.longitude && l.address).length || 0}
+                              /{allLocations?.length || 0}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Recent Activity */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Recent Activity</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {allLocations
+                        ?.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+                        .slice(0, 5)
+                        .map(location => (
+                          <div key={location.id} className="flex items-center justify-between py-2 border-b last:border-b-0">
+                            <div>
+                              <p className="font-medium">{location.name}</p>
+                              <p className="text-sm text-gray-600">
+                                {location.category} • {location.status}
+                              </p>
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {location.createdAt ? formatDate(location.createdAt) : 'Unknown date'}
+                            </div>
+                          </div>
+                        )) || (
+                        <p className="text-gray-500 text-center py-4">No recent activity</p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
               </CardContent>
             </Card>
           </TabsContent>
