@@ -523,6 +523,10 @@ export default function Admin() {
   };
 
   const LocationEditForm = ({ location, onSave }: { location: Location; onSave: (data: Partial<Location>) => void }) => {
+    const [localBooks, setLocalBooks] = useState(() => {
+      return location.recommendedBooks ? JSON.parse(location.recommendedBooks) : [];
+    });
+
     const editForm = useForm({
       defaultValues: {
         name: location.name || '',
@@ -536,7 +540,33 @@ export default function Admin() {
     });
 
     const onSubmit = (data: any) => {
-      onSave(data);
+      // Include the local books state in the save data
+      const saveData = {
+        ...data,
+        recommendedBooks: JSON.stringify(localBooks)
+      };
+      onSave(saveData);
+    };
+
+    const addBook = () => {
+      const newBook = {
+        title: "",
+        author: "",
+        amazonUrl: "",
+        description: ""
+      };
+      setLocalBooks([...localBooks, newBook]);
+    };
+
+    const updateBook = (index: number, field: string, value: string) => {
+      const updatedBooks = [...localBooks];
+      updatedBooks[index] = { ...updatedBooks[index], [field]: value };
+      setLocalBooks(updatedBooks);
+    };
+
+    const removeBook = (index: number) => {
+      const updatedBooks = localBooks.filter((_: any, i: number) => i !== index);
+      setLocalBooks(updatedBooks);
     };
 
     return (
@@ -720,117 +750,67 @@ export default function Admin() {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  const currentBooks = location.recommendedBooks ? JSON.parse(location.recommendedBooks) : [];
-                  const newBook = {
-                    title: "",
-                    author: "",
-                    amazonUrl: "",
-                    description: ""
-                  };
-                  const updatedBooks = [...currentBooks, newBook];
-                  updateLocationMutation.mutate({
-                    id: location.id,
-                    data: { recommendedBooks: JSON.stringify(updatedBooks) }
-                  });
-                }}
+                onClick={addBook}
               >
                 Add Book
               </Button>
             </div>
             
-            {(() => {
-              const books = location.recommendedBooks ? JSON.parse(location.recommendedBooks) : [];
-              return books.map((book: any, index: number) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-medium">Book {index + 1}</h4>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        const updatedBooks = books.filter((_: any, i: number) => i !== index);
-                        updateLocationMutation.mutate({
-                          id: location.id,
-                          data: { recommendedBooks: JSON.stringify(updatedBooks) }
-                        });
-                      }}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
+            {localBooks.map((book: any, index: number) => (
+              <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-medium">Book {index + 1}</h4>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeBook(index)}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
                   
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-sm font-medium">Title</label>
-                      <Input
-                        value={book.title || ""}
-                        onChange={(e) => {
-                          const updatedBooks = [...books];
-                          updatedBooks[index] = { ...book, title: e.target.value };
-                          updateLocationMutation.mutate({
-                            id: location.id,
-                            data: { recommendedBooks: JSON.stringify(updatedBooks) }
-                          });
-                        }}
-                        placeholder="Book title"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Author</label>
-                      <Input
-                        value={book.author || ""}
-                        onChange={(e) => {
-                          const updatedBooks = [...books];
-                          updatedBooks[index] = { ...book, author: e.target.value };
-                          updateLocationMutation.mutate({
-                            id: location.id,
-                            data: { recommendedBooks: JSON.stringify(updatedBooks) }
-                          });
-                        }}
-                        placeholder="Author name"
-                      />
-                    </div>
-                  </div>
-                  
+                <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-sm font-medium">Amazon Affiliate URL</label>
+                    <label className="text-sm font-medium">Title</label>
                     <Input
-                      value={book.amazonUrl || ""}
-                      onChange={(e) => {
-                        const updatedBooks = [...books];
-                        updatedBooks[index] = { ...book, amazonUrl: e.target.value };
-                        updateLocationMutation.mutate({
-                          id: location.id,
-                          data: { recommendedBooks: JSON.stringify(updatedBooks) }
-                        });
-                      }}
-                      placeholder="https://amzn.to/..."
+                      value={book.title || ""}
+                      onChange={(e) => updateBook(index, 'title', e.target.value)}
+                      placeholder="Book title"
                     />
                   </div>
-                  
                   <div>
-                    <label className="text-sm font-medium">Description</label>
-                    <Textarea
-                      value={book.description || ""}
-                      onChange={(e) => {
-                        const updatedBooks = [...books];
-                        updatedBooks[index] = { ...book, description: e.target.value };
-                        updateLocationMutation.mutate({
-                          id: location.id,
-                          data: { recommendedBooks: JSON.stringify(updatedBooks) }
-                        });
-                      }}
-                      placeholder="Brief description of why this book relates to this location"
-                      className="min-h-[80px]"
+                    <label className="text-sm font-medium">Author</label>
+                    <Input
+                      value={book.author || ""}
+                      onChange={(e) => updateBook(index, 'author', e.target.value)}
+                      placeholder="Author name"
                     />
                   </div>
                 </div>
-              ));
-            })()}
+                
+                <div>
+                  <label className="text-sm font-medium">Amazon Affiliate URL</label>
+                  <Input
+                    value={book.amazonUrl || ""}
+                    onChange={(e) => updateBook(index, 'amazonUrl', e.target.value)}
+                    placeholder="https://amzn.to/..."
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium">Description</label>
+                  <Textarea
+                    value={book.description || ""}
+                    onChange={(e) => updateBook(index, 'description', e.target.value)}
+                    placeholder="Brief description of why this book relates to this location"
+                    className="min-h-[80px]"
+                  />
+                </div>
+              </div>
+            ))}
             
-            {(!location.recommendedBooks || JSON.parse(location.recommendedBooks).length === 0) && (
+            {localBooks.length === 0 && (
               <p className="text-gray-500 text-sm text-center py-4">
                 No book recommendations added yet. Click "Add Book" to start building your reading list.
               </p>
@@ -1235,18 +1215,31 @@ export default function Admin() {
                                   <h3 className="text-xl font-semibold text-heritage-brown">
                                     {location.name}
                                   </h3>
-                                  {location.heroImage && (
-                                    <div className="relative">
-                                      <img 
-                                        src={location.heroImage} 
-                                        alt="Hero" 
-                                        className="w-8 h-8 object-cover rounded border"
-                                      />
-                                      <Badge className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1 py-0">
-                                        ✓
-                                      </Badge>
-                                    </div>
-                                  )}
+                                  
+                                  {/* Visual indicators for custom content */}
+                                  <div className="flex items-center space-x-2">
+                                    {location.heroImage && (
+                                      <div className="relative">
+                                        <div className="w-6 h-6 bg-green-100 border border-green-300 rounded flex items-center justify-center">
+                                          <Image className="w-3 h-3 text-green-600" />
+                                        </div>
+                                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full flex items-center justify-center">
+                                          <span className="text-white text-xs">✓</span>
+                                        </div>
+                                      </div>
+                                    )}
+                                    
+                                    {location.recommendedBooks && JSON.parse(location.recommendedBooks).length > 0 && (
+                                      <div className="relative">
+                                        <div className="w-6 h-6 bg-blue-100 border border-blue-300 rounded flex items-center justify-center">
+                                          <BookOpen className="w-3 h-3 text-blue-600" />
+                                        </div>
+                                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs">
+                                          {JSON.parse(location.recommendedBooks).length}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                                 <div className="flex items-center space-x-2 mb-2">
                                   <Badge className={`${getCategoryColor(location.category || '')}`}>
