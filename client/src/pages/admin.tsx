@@ -438,12 +438,10 @@ export default function Admin() {
   const AffiliateClicksAnalytics = () => {
     const { data: affiliateStats, isLoading: statsLoading } = useQuery({
       queryKey: ['/api/admin/affiliate-clicks/stats'],
-      queryFn: () => apiRequest('/api/admin/affiliate-clicks/stats'),
     });
 
     const { data: recentClicks, isLoading: clicksLoading } = useQuery({
       queryKey: ['/api/admin/affiliate-clicks'],
-      queryFn: () => apiRequest('/api/admin/affiliate-clicks'),
     });
 
     if (statsLoading || clicksLoading) {
