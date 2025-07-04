@@ -59,7 +59,11 @@ export default function QRShare({ url = window.location.href, title = "Pacific N
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button 
+          variant="ghost" 
+          size="sm"
+          className="text-white/80 hover:text-white hover:bg-white/10 border border-white/20"
+        >
           <Share2 className="w-4 h-4 mr-2" />
           Share App
         </Button>

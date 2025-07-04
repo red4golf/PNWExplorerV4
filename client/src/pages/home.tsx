@@ -11,7 +11,7 @@ import LocationCard from "@/components/location-card";
 import PhotoGallery from "@/components/photo-gallery";
 import FeedbackForm from "@/components/feedback-form";
 import QRShare from "@/components/qr-share";
-import { MapPin, BookOpen, ArrowLeft, Menu, Plus, Settings, Users, Calendar, Mountain, Waves, TreePine, Factory } from "lucide-react";
+import { MapPin, BookOpen, ArrowLeft, Menu, Plus, Settings, Users, Calendar, Mountain, Waves, TreePine, Factory, MessageCircle } from "lucide-react";
 import type { Location } from "@shared/schema";
 
 export default function Home() {
@@ -177,8 +177,11 @@ export default function Home() {
                   <Button 
                     variant="ghost" 
                     size="sm"
-                    className="text-white/80 hover:text-white hover:bg-white/10"
-                  />
+                    className="text-white/80 hover:text-white hover:bg-white/10 border border-white/20"
+                  >
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Feedback
+                  </Button>
                 }
               />
               <QRShare />
