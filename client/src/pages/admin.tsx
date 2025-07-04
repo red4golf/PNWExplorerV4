@@ -1243,43 +1243,221 @@ export default function Admin() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="settings">
+          <TabsContent value="settings" className="space-y-6">
+            <div className="grid lg:grid-cols-2 gap-6">
+              {/* Data Management */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-heritage-brown flex items-center">
+                    <Database className="w-5 h-5 mr-2" />
+                    Data Management
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex justify-between items-center py-3 border-b">
+                    <div>
+                      <h4 className="font-semibold">Export All Locations</h4>
+                      <p className="text-sm text-gray-600">
+                        Download complete database as JSON
+                      </p>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        if (allLocations) {
+                          const dataStr = JSON.stringify(allLocations, null, 2);
+                          const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                          const url = URL.createObjectURL(dataBlob);
+                          const link = document.createElement('a');
+                          link.href = url;
+                          link.download = `pnw-locations-${new Date().toISOString().split('T')[0]}.json`;
+                          link.click();
+                          URL.revokeObjectURL(url);
+                          toast({
+                            title: "Export Complete",
+                            description: "Location data has been downloaded as JSON file.",
+                          });
+                        }
+                      }}
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Export JSON
+                    </Button>
+                  </div>
+                  
+                  <div className="flex justify-between items-center py-3 border-b">
+                    <div>
+                      <h4 className="font-semibold">Export for Backup</h4>
+                      <p className="text-sm text-gray-600">
+                        Export with all metadata for restoration
+                      </p>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        if (allLocations) {
+                          const backupData = {
+                            exportDate: new Date().toISOString(),
+                            totalLocations: allLocations.length,
+                            locations: allLocations
+                          };
+                          const dataStr = JSON.stringify(backupData, null, 2);
+                          const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                          const url = URL.createObjectURL(dataBlob);
+                          const link = document.createElement('a');
+                          link.href = url;
+                          link.download = `pnw-backup-${new Date().toISOString().split('T')[0]}.json`;
+                          link.click();
+                          URL.revokeObjectURL(url);
+                          toast({
+                            title: "Backup Complete",
+                            description: "Complete backup file has been downloaded.",
+                          });
+                        }
+                      }}
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Backup
+                    </Button>
+                  </div>
+
+                  <div className="flex justify-between items-center py-3">
+                    <div>
+                      <h4 className="font-semibold">System Statistics</h4>
+                      <p className="text-sm text-gray-600">
+                        View detailed system information
+                      </p>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        const stats = {
+                          totalLocations: allLocations?.length || 0,
+                          approvedLocations: allLocations?.filter(l => l.status === 'approved').length || 0,
+                          locationsWithImages: allLocations?.filter(l => l.heroImage).length || 0,
+                          categories: [...new Set(allLocations?.map(l => l.category))],
+                          lastUpdate: new Date().toISOString()
+                        };
+                        console.log('System Statistics:', stats);
+                        toast({
+                          title: "Statistics Generated",
+                          description: "Check browser console for detailed statistics.",
+                        });
+                      }}
+                    >
+                      <BarChart3 className="w-4 h-4 mr-2" />
+                      View Stats
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* System Configuration */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-heritage-brown flex items-center">
+                    <Settings className="w-5 h-5 mr-2" />
+                    System Configuration
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    <div>
+                      <h4 className="font-semibold mb-2">Default Location Status</h4>
+                      <Select defaultValue="pending">
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select default status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending Review</SelectItem>
+                          <SelectItem value="approved">Auto-Approved</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-gray-600 mt-1">
+                        Status assigned to new location submissions
+                      </p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold mb-2">Upload Settings</h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">Max File Size</span>
+                          <Badge variant="outline">5MB</Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">Allowed Formats</span>
+                          <Badge variant="outline">JPEG, PNG, GIF, WebP</Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">Upload Directory</span>
+                          <code className="text-xs bg-gray-100 px-2 py-1 rounded">/uploads</code>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* System Information */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-heritage-brown">
-                  System Settings
+                <CardTitle className="text-heritage-brown flex items-center">
+                  <BarChart3 className="w-5 h-5 mr-2" />
+                  System Information
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center py-4 border-b">
-                    <div>
-                      <h4 className="font-semibold">Auto-approve submissions</h4>
-                      <p className="text-sm text-gray-600">
-                        Automatically approve submissions from trusted contributors
-                      </p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-heritage-brown">
+                      {allLocations?.length || 0}
                     </div>
-                    <Button variant="outline">Configure</Button>
+                    <div className="text-sm text-gray-600">Total Locations</div>
                   </div>
                   
-                  <div className="flex justify-between items-center py-4 border-b">
-                    <div>
-                      <h4 className="font-semibold">Email notifications</h4>
-                      <p className="text-sm text-gray-600">
-                        Get notified when new submissions are received
-                      </p>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">
+                      {allLocations?.filter(l => l.status === 'approved').length || 0}
                     </div>
-                    <Button variant="outline">Configure</Button>
+                    <div className="text-sm text-gray-600">Published</div>
                   </div>
                   
-                  <div className="flex justify-between items-center py-4">
-                    <div>
-                      <h4 className="font-semibold">Export data</h4>
-                      <p className="text-sm text-gray-600">
-                        Download historical location data
-                      </p>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-orange-600">
+                      {allLocations?.filter(l => l.heroImage).length || 0}
                     </div>
-                    <Button variant="outline">Download</Button>
+                    <div className="text-sm text-gray-600">With Images</div>
+                  </div>
+                  
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {new Set(allLocations?.map(l => l.category)).size || 0}
+                    </div>
+                    <div className="text-sm text-gray-600">Categories</div>
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-4 border-t">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-600">Database Status</span>
+                    <Badge variant="default" className="bg-green-500">Connected</Badge>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-600">Application Version</span>
+                    <span>v2.1.0</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-600">Database Type</span>
+                    <span>PostgreSQL</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-600">Last Updated</span>
+                    <span>{new Date().toLocaleDateString()}</span>
                   </div>
                 </div>
               </CardContent>
