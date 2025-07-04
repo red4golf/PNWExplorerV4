@@ -129,27 +129,7 @@ export default function Home() {
             Explore the stories, landmarks, and heritage across Washington, Oregon, Northern California, Idaho, Montana, and Southern British Columbia through interactive maps and historical narratives.
           </p>
           
-          {/* Statistics */}
-          {locations && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 text-center">
-              <div className="bg-white/20 rounded-lg p-4 backdrop-blur-sm">
-                <div className="text-3xl font-bold text-heritage-gold">{locations.length}</div>
-                <div className="text-sm">Historic Locations</div>
-              </div>
-              <div className="bg-white/20 rounded-lg p-4 backdrop-blur-sm">
-                <div className="text-3xl font-bold text-heritage-gold">{locations.filter(l => l.category === 'Historical').length}</div>
-                <div className="text-sm">Historical Sites</div>
-              </div>
-              <div className="bg-white/20 rounded-lg p-4 backdrop-blur-sm">
-                <div className="text-3xl font-bold text-heritage-gold">{locations.filter(l => l.category === 'Natural').length}</div>
-                <div className="text-sm">Natural Wonders</div>
-              </div>
-              <div className="bg-white/20 rounded-lg p-4 backdrop-blur-sm">
-                <div className="text-3xl font-bold text-heritage-gold">{locations.filter(l => l.category === 'Cultural').length}</div>
-                <div className="text-sm">Cultural Heritage</div>
-              </div>
-            </div>
-          )}
+
           <div className="flex flex-col gap-4 max-w-sm mx-auto">
             <Button 
               onClick={handleStartExploring}
@@ -159,16 +139,17 @@ export default function Home() {
               <MapPin className="w-5 h-5 mr-2" />
               Start Exploring
             </Button>
-            <Button 
-              variant="outline" 
-              size="lg" 
-              style={{ color: 'white', borderColor: 'white' }}
-              className="border-2 bg-transparent hover:bg-white hover:text-heritage-brown px-8 py-4 text-lg font-semibold w-full"
-              onClick={() => setShowMap(false)}
-            >
-              <BookOpen className="w-5 h-5 mr-2" />
-              Learn More
-            </Button>
+            <Link href="/learn-more">
+              <Button 
+                variant="outline" 
+                size="lg" 
+                style={{ color: 'white', borderColor: 'white' }}
+                className="border-2 bg-transparent hover:bg-white hover:text-heritage-brown px-8 py-4 text-lg font-semibold w-full"
+              >
+                <BookOpen className="w-5 h-5 mr-2" />
+                Learn More
+              </Button>
+            </Link>
             
             {/* Beta Utility Bar */}
             <div className="flex justify-center gap-3 pt-4">

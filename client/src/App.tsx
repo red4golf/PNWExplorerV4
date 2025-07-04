@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
 import Home from "@/pages/home";
+import LearnMore from "@/pages/learn-more";
 import LocationDetail from "@/pages/location-detail";
 import SubmitLocation from "@/pages/submit-location";
 import Admin from "@/pages/admin";
@@ -21,6 +22,9 @@ function Router() {
         <Route path="/">
           {/* Home page without header/footer for clean intro experience */}
           <Home />
+        </Route>
+        <Route path="/learn-more">
+          <LearnMore />
         </Route>
         <Route path="/location/:id">
           <div className="min-h-screen flex flex-col">
