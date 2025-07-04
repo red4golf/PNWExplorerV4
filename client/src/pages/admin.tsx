@@ -435,6 +435,95 @@ export default function Admin() {
     );
   };
 
+  const AffiliateClicksAnalytics = () => {
+    const { data: affiliateStats, isLoading: statsLoading } = useQuery({
+      queryKey: ['/api/admin/affiliate-clicks/stats'],
+      queryFn: () => apiRequest('/api/admin/affiliate-clicks/stats'),
+    });
+
+    const { data: recentClicks, isLoading: clicksLoading } = useQuery({
+      queryKey: ['/api/admin/affiliate-clicks'],
+      queryFn: () => apiRequest('/api/admin/affiliate-clicks'),
+    });
+
+    if (statsLoading || clicksLoading) {
+      return (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Affiliate Marketing Performance</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return (
+      <div className="grid md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center">
+              <BarChart3 className="w-5 h-5 mr-2" />
+              Affiliate Click Performance
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="text-center">
+                <p className="text-3xl font-bold text-heritage-brown">
+                  {affiliateStats?.totalClicks || 0}
+                </p>
+                <p className="text-sm text-gray-600">Total Book Link Clicks</p>
+              </div>
+              
+              <div className="space-y-2">
+                <h4 className="font-semibold text-sm">Top Performing Locations</h4>
+                {affiliateStats?.clicksByLocation?.slice(0, 5).map((location: any) => (
+                  <div key={location.locationId} className="flex justify-between items-center py-1">
+                    <span className="text-sm">{location.locationName}</span>
+                    <span className="text-sm font-medium">{location.clicks} clicks</span>
+                  </div>
+                )) || (
+                  <p className="text-gray-500 text-sm">No clicks recorded yet</p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Recent Affiliate Clicks</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {recentClicks?.slice(0, 5).map((click: any) => (
+                <div key={click.id} className="flex items-center justify-between py-2 border-b last:border-b-0">
+                  <div>
+                    <p className="font-medium text-sm">{click.bookTitle}</p>
+                    <p className="text-xs text-gray-600">
+                      Location ID: {click.locationId}
+                    </p>
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {click.clickedAt ? formatDate(click.clickedAt) : 'Unknown date'}
+                  </div>
+                </div>
+              )) || (
+                <p className="text-gray-500 text-center py-4">No affiliate clicks yet</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
+
   const LocationEditForm = ({ location, onSave }: { location: Location; onSave: (data: Partial<Location>) => void }) => {
     const editForm = useForm({
       defaultValues: {
@@ -1402,6 +1491,9 @@ export default function Admin() {
                     </CardContent>
                   </Card>
                 </div>
+
+                {/* Affiliate Marketing Performance */}
+                <AffiliateClicksAnalytics />
 
                 {/* Recent Activity */}
                 <Card>

@@ -50,6 +50,15 @@ export const feedback = pgTable("feedback", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const affiliateClicks = pgTable("affiliate_clicks", {
+  id: serial("id").primaryKey(),
+  locationId: integer("location_id").references(() => locations.id),
+  bookTitle: text("book_title").notNull(),
+  clickedAt: timestamp("clicked_at").defaultNow(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+});
+
 export const insertLocationSchema = createInsertSchema(locations).omit({
   id: true,
   createdAt: true,
@@ -71,10 +80,16 @@ export const insertFeedbackSchema = createInsertSchema(feedback).omit({
   status: true,
 });
 
+export const insertAffiliateClickSchema = createInsertSchema(affiliateClicks).omit({
+  id: true,
+  clickedAt: true,
+});
+
 // Relations
 export const locationsRelations = relations(locations, ({ many }) => ({
   photos: many(photos),
   feedback: many(feedback),
+  affiliateClicks: many(affiliateClicks),
 }));
 
 export const photosRelations = relations(photos, ({ one }) => ({
@@ -91,6 +106,13 @@ export const feedbackRelations = relations(feedback, ({ one }) => ({
   }),
 }));
 
+export const affiliateClicksRelations = relations(affiliateClicks, ({ one }) => ({
+  location: one(locations, {
+    fields: [affiliateClicks.locationId],
+    references: [locations.id],
+  }),
+}));
+
 export type InsertLocation = z.infer<typeof insertLocationSchema>;
 export type Location = typeof locations.$inferSelect;
 export type InsertPhoto = z.infer<typeof insertPhotoSchema>;
@@ -99,3 +121,5 @@ export type InsertAdmin = z.infer<typeof insertAdminSchema>;
 export type Admin = typeof admins.$inferSelect;
 export type InsertFeedback = z.infer<typeof insertFeedbackSchema>;
 export type Feedback = typeof feedback.$inferSelect;
+export type InsertAffiliateClick = z.infer<typeof insertAffiliateClickSchema>;
+export type AffiliateClick = typeof affiliateClicks.$inferSelect;

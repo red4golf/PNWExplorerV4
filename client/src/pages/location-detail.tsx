@@ -315,9 +315,21 @@ export default function LocationDetail() {
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center px-3 py-2 text-sm bg-heritage-brown text-white rounded hover:bg-heritage-brown/90 transition-colors"
-                            onClick={() => {
-                              // Track affiliate clicks for analytics
-                              console.log('Affiliate click:', { locationId: location.id, bookTitle: book.title });
+                            onClick={async () => {
+                              try {
+                                // Track affiliate clicks in database
+                                await fetch('/api/affiliate-clicks', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    locationId: location.id,
+                                    bookTitle: book.title,
+                                  }),
+                                });
+                                console.log('Affiliate click:', { locationId: location.id, bookTitle: book.title });
+                              } catch (error) {
+                                console.error('Failed to track affiliate click:', error);
+                              }
                             }}
                           >
                             <ExternalLink className="w-4 h-4 mr-2" />

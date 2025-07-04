@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertLocationSchema, insertFeedbackSchema, locations } from "@shared/schema";
+import { insertLocationSchema, insertFeedbackSchema, insertAffiliateClickSchema, locations } from "@shared/schema";
 import { z } from "zod";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -302,6 +302,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating feedback:", error);
       res.status(500).json({ message: "Failed to update feedback" });
+    }
+  });
+
+  // Affiliate clicks tracking
+  app.post("/api/affiliate-clicks", async (req, res) => {
+    try {
+      const clickData = insertAffiliateClickSchema.parse(req.body);
+      
+      // Add IP address and User Agent for analytics
+      const enrichedClickData = {
+        ...clickData,
+        ipAddress: req.ip || req.connection.remoteAddress || "unknown",
+        userAgent: req.get("User-Agent") || "unknown",
+      };
+      
+      const click = await storage.createAffiliateClick(enrichedClickData);
+      res.json(click);
+    } catch (error) {
+      console.error("Error tracking affiliate click:", error);
+      res.status(500).json({ message: "Failed to track click" });
+    }
+  });
+
+  // Get affiliate clicks stats (admin only)
+  app.get("/api/admin/affiliate-clicks/stats", async (req, res) => {
+    try {
+      const stats = await storage.getAffiliateClicksStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error getting affiliate clicks stats:", error);
+      res.status(500).json({ message: "Failed to get stats" });
+    }
+  });
+
+  // Get all affiliate clicks (admin only)
+  app.get("/api/admin/affiliate-clicks", async (req, res) => {
+    try {
+      const clicks = await storage.getAllAffiliateClicks();
+      res.json(clicks);
+    } catch (error) {
+      console.error("Error getting affiliate clicks:", error);
+      res.status(500).json({ message: "Failed to get clicks" });
     }
   });
 

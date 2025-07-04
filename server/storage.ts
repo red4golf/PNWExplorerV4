@@ -1,4 +1,4 @@
-import { locations, photos, admins, feedback, type Location, type InsertLocation, type Photo, type InsertPhoto, type Admin, type InsertAdmin, type Feedback, type InsertFeedback } from "@shared/schema";
+import { locations, photos, admins, feedback, affiliateClicks, type Location, type InsertLocation, type Photo, type InsertPhoto, type Admin, type InsertAdmin, type Feedback, type InsertFeedback, type AffiliateClick, type InsertAffiliateClick } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
 
@@ -25,6 +25,12 @@ export interface IStorage {
   getAllFeedback(): Promise<Feedback[]>;
   getFeedbackById(id: number): Promise<Feedback | undefined>;
   updateFeedbackStatus(id: number, status: string): Promise<Feedback | undefined>;
+  
+  // Affiliate clicks methods
+  createAffiliateClick(click: InsertAffiliateClick): Promise<AffiliateClick>;
+  getAffiliateClicksByLocationId(locationId: number): Promise<AffiliateClick[]>;
+  getAllAffiliateClicks(): Promise<AffiliateClick[]>;
+  getAffiliateClicksStats(): Promise<{ totalClicks: number; clicksByLocation: { locationId: number; locationName: string; clicks: number; }[] }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -119,6 +125,49 @@ export class DatabaseStorage implements IStorage {
       .where(eq(feedback.id, id))
       .returning();
     return feedbackItem;
+  }
+
+  async createAffiliateClick(insertClick: InsertAffiliateClick): Promise<AffiliateClick> {
+    const [click] = await db.insert(affiliateClicks).values(insertClick).returning();
+    return click;
+  }
+
+  async getAffiliateClicksByLocationId(locationId: number): Promise<AffiliateClick[]> {
+    return await db.select().from(affiliateClicks).where(eq(affiliateClicks.locationId, locationId)).orderBy(desc(affiliateClicks.clickedAt));
+  }
+
+  async getAllAffiliateClicks(): Promise<AffiliateClick[]> {
+    return await db.select().from(affiliateClicks).orderBy(desc(affiliateClicks.clickedAt));
+  }
+
+  async getAffiliateClicksStats(): Promise<{ totalClicks: number; clicksByLocation: { locationId: number; locationName: string; clicks: number; }[] }> {
+    const allClicks = await db.select({
+      locationId: affiliateClicks.locationId,
+      locationName: locations.name,
+      bookTitle: affiliateClicks.bookTitle,
+      clickedAt: affiliateClicks.clickedAt,
+    }).from(affiliateClicks)
+      .leftJoin(locations, eq(affiliateClicks.locationId, locations.id))
+      .orderBy(desc(affiliateClicks.clickedAt));
+    
+    const totalClicks = allClicks.length;
+    
+    // Group clicks by location
+    const clicksByLocation = allClicks.reduce((acc, click) => {
+      const existing = acc.find(item => item.locationId === click.locationId);
+      if (existing) {
+        existing.clicks++;
+      } else {
+        acc.push({
+          locationId: click.locationId!,
+          locationName: click.locationName!,
+          clicks: 1,
+        });
+      }
+      return acc;
+    }, [] as { locationId: number; locationName: string; clicks: number; }[]);
+    
+    return { totalClicks, clicksByLocation };
   }
 }
 
