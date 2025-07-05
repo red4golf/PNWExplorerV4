@@ -115,9 +115,9 @@ function PhotoManager({ locationId }: { locationId: number }) {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <span className="text-sm font-medium">Gallery Photos ({photos.length})</span>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1 sm:space-x-2 flex-wrap">
           {!isSelectionMode ? (
             <>
               <Button 
@@ -172,13 +172,13 @@ function PhotoManager({ locationId }: { locationId: number }) {
         </div>
       </div>
       
-      <div className="grid grid-cols-6 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
         {photos.map((photo: any) => (
           <div key={photo.id} className="relative group">
             <img
               src={photo.filename}
               alt={photo.caption || 'Gallery photo'}
-              className={`w-full h-16 object-cover rounded border cursor-pointer ${
+              className={`w-full h-12 sm:h-16 md:h-20 lg:h-16 object-cover rounded border cursor-pointer ${
                 selectedPhotos.includes(photo.id) ? 'ring-2 ring-blue-500' : ''
               }`}
               onClick={() => isSelectionMode && togglePhotoSelection(photo.id)}
