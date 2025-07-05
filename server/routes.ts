@@ -98,35 +98,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         const uploadedPhotos = [];
+        const errors = [];
         
         for (const file of req.files) {
-          console.log('Processing uploaded photo:', {
-            filename: file.filename,
-            originalname: file.originalname,
-            mimetype: file.mimetype,
-            size: `${Math.round(file.size / 1024 / 1024 * 100) / 100}MB`,
-            path: file.path
-          });
-          
-          // Verify file was actually saved to disk
-          if (!fs.existsSync(file.path)) {
-            console.error('File not saved to disk:', file.path);
-            continue;
+          try {
+            console.log('Processing uploaded photo:', {
+              filename: file.filename,
+              originalname: file.originalname,
+              mimetype: file.mimetype,
+              size: `${Math.round(file.size / 1024 / 1024 * 100) / 100}MB`,
+              path: file.path
+            });
+            
+            // Verify file was actually saved to disk
+            if (!fs.existsSync(file.path)) {
+              console.error('File not saved to disk:', file.path);
+              errors.push(`${file.originalname}: File not saved to disk`);
+              continue;
+            }
+            
+            const photoPath = `/uploads/${file.filename}`;
+            const photo = await storage.createPhoto({
+              locationId: locationId,
+              filename: photoPath,
+              caption: file.originalname // Use filename as default caption
+            });
+            
+            uploadedPhotos.push(photo);
+          } catch (error) {
+            console.error('Error processing file:', file.originalname, error);
+            const errorMessage = error instanceof Error ? error.message : 'Upload failed';
+            errors.push(`${file.originalname}: ${errorMessage}`);
           }
-          
-          const photoPath = `/uploads/${file.filename}`;
-          const photo = await storage.createPhoto({
-            locationId: locationId,
-            filename: photoPath,
-            caption: file.originalname // Use filename as default caption
-          });
-          
-          uploadedPhotos.push(photo);
+        }
+        
+        // Prepare response
+        let message = `${uploadedPhotos.length} photos uploaded successfully`;
+        if (errors.length > 0) {
+          message += `, ${errors.length} failed`;
         }
         
         res.json({ 
-          message: `${uploadedPhotos.length} photos uploaded successfully`, 
-          photos: uploadedPhotos
+          message,
+          photos: uploadedPhotos,
+          errors: errors.length > 0 ? errors : undefined
         });
       } catch (error) {
         console.error("Error uploading photos:", error);

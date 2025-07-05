@@ -268,6 +268,8 @@ export default function Admin() {
     setEditingLocation(location);
   };
 
+
+
   // Bulk operations
   const bulkUpdateStatusMutation = useMutation({
     mutationFn: async ({ ids, status }: { ids: number[]; status: string }) => {
@@ -844,9 +846,8 @@ export default function Admin() {
             </div>
             
             {/* Photos Display */}
-            <div className="grid grid-cols-4 gap-2">
-              {/* TODO: Add photos fetching and display */}
-              <div className="text-sm text-gray-500">Photos will appear here after upload</div>
+            <div className="text-sm text-gray-500">
+              Gallery photos will appear here after upload. View them on the location detail page.
             </div>
           </div>
 

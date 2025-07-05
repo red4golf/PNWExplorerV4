@@ -11,6 +11,7 @@ import type { Location } from "@shared/schema";
 import { useState, useEffect } from "react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import LocationPhotoGallery from "@/components/location-photo-gallery";
 
 
 
@@ -197,6 +198,16 @@ export default function LocationDetail() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Photo Gallery */}
+            <Card className="mb-8 border-heritage-beige">
+              <CardContent className="p-6">
+                <LocationPhotoGallery 
+                  locationId={location.id} 
+                  locationName={location.name}
+                />
+              </CardContent>
+            </Card>
 
             {/* Submission Info */}
             <Card className="bg-heritage-beige">
