@@ -26,7 +26,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log('Created uploads directory:', uploadsDir);
         } catch (error) {
           console.error('Failed to create uploads directory:', error);
-          return cb(error, uploadsDir);
+          return cb(new Error(`Failed to create uploads directory: ${error}`), uploadsDir);
         }
       }
       cb(null, uploadsDir);
@@ -100,12 +100,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const uploadedPhotos = [];
         
         for (const file of req.files) {
-          console.log('Successfully uploaded photo:', {
+          console.log('Processing uploaded photo:', {
             filename: file.filename,
             originalname: file.originalname,
             mimetype: file.mimetype,
-            size: `${Math.round(file.size / 1024 / 1024 * 100) / 100}MB`
+            size: `${Math.round(file.size / 1024 / 1024 * 100) / 100}MB`,
+            path: file.path
           });
+          
+          // Verify file was actually saved to disk
+          if (!fs.existsSync(file.path)) {
+            console.error('File not saved to disk:', file.path);
+            continue;
+          }
           
           const photoPath = `/uploads/${file.filename}`;
           const photo = await storage.createPhoto({
@@ -158,12 +165,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "No file uploaded" });
         }
         
-        console.log('Successfully uploaded file:', {
+        console.log('Processing uploaded hero image:', {
           filename: req.file.filename,
           originalname: req.file.originalname,
           mimetype: req.file.mimetype,
-          size: `${Math.round(req.file.size / 1024 / 1024 * 100) / 100}MB`
+          size: `${Math.round(req.file.size / 1024 / 1024 * 100) / 100}MB`,
+          path: req.file.path
         });
+        
+        // Verify file was actually saved to disk
+        if (!fs.existsSync(req.file.path)) {
+          console.error('Hero image not saved to disk:', req.file.path);
+          return res.status(500).json({ message: "File upload failed - file not saved" });
+        }
         
         const heroImagePath = `/uploads/${req.file.filename}`;
         const updatedLocation = await storage.updateLocationHeroImage(locationId, heroImagePath);
