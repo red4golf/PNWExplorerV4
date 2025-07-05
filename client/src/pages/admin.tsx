@@ -234,8 +234,11 @@ export default function Admin() {
         try {
           const errorData = await response.json();
           errorMessage = errorData.message || errorMessage;
+          console.error('Upload error response:', errorData);
         } catch (e) {
           console.error('Could not parse error response:', e);
+          const responseText = await response.text();
+          console.error('Raw response:', responseText);
         }
         throw new Error(errorMessage);
       }
@@ -243,10 +246,21 @@ export default function Admin() {
       return response.json();
     },
     onSuccess: (data) => {
+      const successMessage = data.errors && data.errors.length > 0 
+        ? `${data.photos.length} photos uploaded successfully, ${data.errors.length} failed`
+        : `${data.photos.length} photos uploaded successfully`;
+      
       toast({
         title: "Photos Uploaded",
-        description: `${data.photos.length} photos uploaded successfully.`,
+        description: successMessage,
+        variant: data.errors && data.errors.length > 0 ? "destructive" : "default",
       });
+      
+      // Show specific errors if any
+      if (data.errors && data.errors.length > 0) {
+        console.error('Upload errors:', data.errors);
+      }
+      
       queryClient.invalidateQueries({ queryKey: ["/api/admin/locations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/locations/pending"] });
     },

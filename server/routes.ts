@@ -49,13 +49,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         size: file.size || 'unknown'
       });
       
+      // Check MIME type first
       const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif'];
       if (allowedTypes.includes(file.mimetype)) {
         cb(null, true);
-      } else {
-        console.log('Rejected file type:', file.mimetype);
-        cb(new Error(`Invalid file type: ${file.mimetype}. Only JPEG, PNG, GIF, WebP, and HEIC are allowed.`));
+        return;
       }
+      
+      // If MIME type is not recognized, check file extension as fallback
+      const ext = file.originalname.toLowerCase().split('.').pop();
+      const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif'];
+      
+      if (ext && allowedExtensions.includes(ext)) {
+        console.log('Accepted file based on extension:', ext);
+        cb(null, true);
+        return;
+      }
+      
+      console.log('Rejected file - type:', file.mimetype, 'extension:', ext);
+      cb(new Error(`Invalid file type: ${file.mimetype}. Only JPEG, PNG, GIF, WebP, and HEIC are allowed.`));
     }
   });
 
@@ -107,7 +119,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               originalname: file.originalname,
               mimetype: file.mimetype,
               size: `${Math.round(file.size / 1024 / 1024 * 100) / 100}MB`,
-              path: file.path
+              path: file.path,
+              locationId: locationId
             });
             
             // Verify file was actually saved to disk
@@ -118,15 +131,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
             
             const photoPath = `/uploads/${file.filename}`;
+            console.log('Creating photo database entry:', {
+              locationId,
+              filename: photoPath,
+              caption: file.originalname
+            });
+            
             const photo = await storage.createPhoto({
               locationId: locationId,
               filename: photoPath,
               caption: file.originalname // Use filename as default caption
             });
             
+            console.log('Photo created successfully:', photo);
             uploadedPhotos.push(photo);
           } catch (error) {
             console.error('Error processing file:', file.originalname, error);
+            if (error instanceof Error) {
+              console.error('Error stack:', error.stack);
+            }
             const errorMessage = error instanceof Error ? error.message : 'Upload failed';
             errors.push(`${file.originalname}: ${errorMessage}`);
           }
