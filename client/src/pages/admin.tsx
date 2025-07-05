@@ -225,39 +225,61 @@ export default function Admin() {
         throw new Error('No files selected for upload');
       }
       
-      const formData = new FormData();
-      files.forEach((file, index) => {
-        console.log(`Adding file ${index + 1} to FormData:`, file.name);
-        formData.append('photos', file);
-      });
+      // Upload files one by one to prevent "request too large" errors
+      const uploadedPhotos = [];
+      const errors = [];
       
-      const response = await fetch(`/api/admin/locations/${locationId}/upload-photos`, {
-        method: 'POST',
-        body: formData,
-      });
-      
-      if (!response.ok) {
-        let errorMessage = 'Failed to upload photos';
+      for (const file of files) {
         try {
-          const responseText = await response.text();
-          console.error('Raw response:', responseText);
+          console.log(`Uploading file: ${file.name}`);
           
-          // Try to parse as JSON
-          try {
-            const errorData = JSON.parse(responseText);
-            errorMessage = errorData.message || errorMessage;
-            console.error('Upload error response:', errorData);
-          } catch (parseError) {
-            console.error('Could not parse error response as JSON:', parseError);
-            errorMessage = responseText || errorMessage;
+          const formData = new FormData();
+          formData.append('photos', file);
+          
+          const response = await fetch(`/api/admin/locations/${locationId}/upload-photos`, {
+            method: 'POST',
+            body: formData,
+          });
+          
+          if (!response.ok) {
+            let errorMessage = 'Failed to upload photo';
+            try {
+              const responseText = await response.text();
+              console.error('Raw response:', responseText);
+              
+              // Try to parse as JSON
+              try {
+                const errorData = JSON.parse(responseText);
+                errorMessage = errorData.message || errorMessage;
+                console.error('Upload error response:', errorData);
+              } catch (parseError) {
+                console.error('Could not parse error response as JSON:', parseError);
+                errorMessage = responseText || errorMessage;
+              }
+            } catch (e) {
+              console.error('Could not read error response:', e);
+            }
+            errors.push(`${file.name}: ${errorMessage}`);
+            continue;
           }
-        } catch (e) {
-          console.error('Could not read error response:', e);
+          
+          const result = await response.json();
+          if (result.photos && result.photos.length > 0) {
+            uploadedPhotos.push(...result.photos);
+          }
+          
+        } catch (error) {
+          console.error('Error uploading file:', file.name, error);
+          const errorMessage = error instanceof Error ? error.message : 'Upload failed';
+          errors.push(`${file.name}: ${errorMessage}`);
         }
-        throw new Error(errorMessage);
       }
       
-      return response.json();
+      return {
+        photos: uploadedPhotos,
+        errors: errors.length > 0 ? errors : undefined,
+        message: `${uploadedPhotos.length} photos uploaded successfully${errors.length > 0 ? `, ${errors.length} failed` : ''}`
+      };
     },
     onSuccess: (data) => {
       const successMessage = data.errors && data.errors.length > 0 
@@ -864,7 +886,7 @@ export default function Admin() {
                   }}
                 >
                   <Upload className="w-4 h-4 mr-2" />
-                  {uploadPhotosMutation.isPending ? 'Uploading...' : 'Upload Photos'}
+                  {uploadPhotosMutation.isPending ? 'Processing...' : 'Upload Photos'}
                 </Button>
               </div>
               
