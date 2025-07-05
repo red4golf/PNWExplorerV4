@@ -213,6 +213,53 @@ export default function Admin() {
     },
   });
 
+  const uploadPhotosMutation = useMutation({
+    mutationFn: async ({ locationId, files }: { locationId: number; files: File[] }) => {
+      console.log('Starting upload for files:', files.map(f => ({
+        name: f.name,
+        type: f.type,
+        size: `${(f.size / 1024 / 1024).toFixed(2)}MB`
+      })));
+      
+      const formData = new FormData();
+      files.forEach(file => formData.append('photos', file));
+      
+      const response = await fetch(`/api/admin/locations/${locationId}/upload-photos`, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        let errorMessage = 'Failed to upload photos';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (e) {
+          console.error('Could not parse error response:', e);
+        }
+        throw new Error(errorMessage);
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Photos Uploaded",
+        description: `${data.photos.length} photos uploaded successfully.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/locations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/locations/pending"] });
+    },
+    onError: (error) => {
+      console.error('Upload error:', error);
+      toast({
+        title: "Upload Failed",
+        description: error.message || "Failed to upload photos. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleImport = () => {
     importMutation.mutate();
   };
@@ -754,6 +801,53 @@ export default function Admin() {
             <p className="text-xs text-gray-500">
               Supported formats: JPEG, PNG, GIF, WebP, HEIC. Max size: 10MB
             </p>
+          </div>
+
+          {/* Photo Gallery Section */}
+          <div className="border border-gray-200 rounded-lg p-4">
+            <h4 className="font-semibold mb-3">Photo Gallery</h4>
+            
+            <div className="flex items-center space-x-4 mb-4">
+              <div className="flex items-center space-x-2">
+                <input
+                  id={`photos-${location.id}`}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || []);
+                    if (files.length > 0) {
+                      uploadPhotosMutation.mutate({ locationId: location.id, files });
+                    }
+                  }}
+                />
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm"
+                  disabled={uploadPhotosMutation.isPending}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const fileInput = document.getElementById(`photos-${location.id}`) as HTMLInputElement;
+                    fileInput?.click();
+                  }}
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  {uploadPhotosMutation.isPending ? 'Uploading...' : 'Upload Photos'}
+                </Button>
+              </div>
+              
+              <p className="text-xs text-gray-500">
+                Select multiple photos to upload to gallery
+              </p>
+            </div>
+            
+            {/* Photos Display */}
+            <div className="grid grid-cols-4 gap-2">
+              {/* TODO: Add photos fetching and display */}
+              <div className="text-sm text-gray-500">Photos will appear here after upload</div>
+            </div>
           </div>
 
           {/* Book Recommendations Section */}

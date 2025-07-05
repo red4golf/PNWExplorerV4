@@ -53,6 +53,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
   
+  // Upload multiple photos for location
+  app.post("/api/admin/locations/:id/upload-photos", (req, res) => {
+    upload.array('photos', 10)(req, res, async (err) => {
+      if (err) {
+        console.error("Multer upload error:", err);
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          const contentLength = req.headers['content-length'];
+          let fileSizeMB: string | number = 'unknown';
+          if (contentLength && typeof contentLength === 'string') {
+            const sizeBytes = parseInt(contentLength, 10);
+            if (!isNaN(sizeBytes)) {
+              fileSizeMB = Math.round(sizeBytes / 1024 / 1024 * 100) / 100;
+            }
+          }
+          return res.status(400).json({ 
+            message: `File too large. Maximum size is 10MB. Your file size: ${fileSizeMB}MB` 
+          });
+        }
+        return res.status(400).json({ 
+          message: err.message || "File upload failed" 
+        });
+      }
+
+      try {
+        const locationId = parseInt(req.params.id);
+        
+        if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
+          return res.status(400).json({ message: "No files uploaded" });
+        }
+        
+        const uploadedPhotos = [];
+        
+        for (const file of req.files) {
+          console.log('Successfully uploaded photo:', {
+            filename: file.filename,
+            originalname: file.originalname,
+            mimetype: file.mimetype,
+            size: `${Math.round(file.size / 1024 / 1024 * 100) / 100}MB`
+          });
+          
+          const photoPath = `/uploads/${file.filename}`;
+          const photo = await storage.createPhoto({
+            locationId: locationId,
+            filename: photoPath,
+            caption: file.originalname // Use filename as default caption
+          });
+          
+          uploadedPhotos.push(photo);
+        }
+        
+        res.json({ 
+          message: `${uploadedPhotos.length} photos uploaded successfully`, 
+          photos: uploadedPhotos
+        });
+      } catch (error) {
+        console.error("Error uploading photos:", error);
+        res.status(500).json({ message: "Failed to upload photos" });
+      }
+    });
+  });
+
   // Upload hero image for location
   app.post("/api/admin/locations/:id/upload-hero", (req, res) => {
     upload.single('heroImage')(req, res, async (err) => {
@@ -68,7 +129,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
           return res.status(400).json({ 
-            message: `File too large. Maximum size is 5MB. Your file size: ${fileSizeMB}MB` 
+            message: `File too large. Maximum size is 10MB. Your file size: ${fileSizeMB}MB` 
           });
         }
         return res.status(400).json({ 
