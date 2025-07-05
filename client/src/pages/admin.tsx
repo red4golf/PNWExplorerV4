@@ -221,8 +221,15 @@ export default function Admin() {
         size: `${(f.size / 1024 / 1024).toFixed(2)}MB`
       })));
       
+      if (!files || files.length === 0) {
+        throw new Error('No files selected for upload');
+      }
+      
       const formData = new FormData();
-      files.forEach(file => formData.append('photos', file));
+      files.forEach((file, index) => {
+        console.log(`Adding file ${index + 1} to FormData:`, file.name);
+        formData.append('photos', file);
+      });
       
       const response = await fetch(`/api/admin/locations/${locationId}/upload-photos`, {
         method: 'POST',
@@ -232,13 +239,20 @@ export default function Admin() {
       if (!response.ok) {
         let errorMessage = 'Failed to upload photos';
         try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorMessage;
-          console.error('Upload error response:', errorData);
-        } catch (e) {
-          console.error('Could not parse error response:', e);
           const responseText = await response.text();
           console.error('Raw response:', responseText);
+          
+          // Try to parse as JSON
+          try {
+            const errorData = JSON.parse(responseText);
+            errorMessage = errorData.message || errorMessage;
+            console.error('Upload error response:', errorData);
+          } catch (parseError) {
+            console.error('Could not parse error response as JSON:', parseError);
+            errorMessage = responseText || errorMessage;
+          }
+        } catch (e) {
+          console.error('Could not read error response:', e);
         }
         throw new Error(errorMessage);
       }
