@@ -14,14 +14,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const storage_config = multer.diskStorage({
     destination: (req, file, cb) => {
       const uploadsDir = path.join(process.cwd(), 'uploads');
+      console.log('Multer destination check:', { 
+        cwd: process.cwd(), 
+        uploadsDir, 
+        exists: fs.existsSync(uploadsDir) 
+      });
+      
       if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
+        try {
+          fs.mkdirSync(uploadsDir, { recursive: true });
+          console.log('Created uploads directory:', uploadsDir);
+        } catch (error) {
+          console.error('Failed to create uploads directory:', error);
+          return cb(error, uploadsDir);
+        }
       }
       cb(null, uploadsDir);
     },
     filename: (req, file, cb) => {
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      cb(null, 'location-' + uniqueSuffix + path.extname(file.originalname));
+      const filename = 'location-' + uniqueSuffix + path.extname(file.originalname);
+      console.log('Multer filename generated:', filename);
+      cb(null, filename);
     }
   });
 
