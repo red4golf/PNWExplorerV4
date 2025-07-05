@@ -168,6 +168,12 @@ export default function Admin() {
 
   const uploadHeroImageMutation = useMutation({
     mutationFn: async ({ locationId, file }: { locationId: number; file: File }) => {
+      console.log('Starting upload for file:', {
+        name: file.name,
+        type: file.type,
+        size: `${(file.size / 1024 / 1024).toFixed(2)}MB`
+      });
+      
       const formData = new FormData();
       formData.append('heroImage', file);
       
@@ -177,7 +183,14 @@ export default function Admin() {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to upload image');
+        let errorMessage = 'Failed to upload image';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (e) {
+          console.error('Could not parse error response:', e);
+        }
+        throw new Error(errorMessage);
       }
       
       return response.json();
@@ -191,6 +204,7 @@ export default function Admin() {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/locations/pending"] });
     },
     onError: (error) => {
+      console.error('Upload error:', error);
       toast({
         title: "Upload Failed",
         description: error.message || "Failed to upload image. Please try again.",
