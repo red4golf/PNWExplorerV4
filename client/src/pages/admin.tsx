@@ -752,7 +752,7 @@ export default function Admin() {
             </div>
             
             <p className="text-xs text-gray-500">
-              Supported formats: JPEG, PNG, GIF, WebP, HEIC. Max size: 5MB
+              Supported formats: JPEG, PNG, GIF, WebP, HEIC. Max size: 10MB
             </p>
           </div>
 
@@ -1737,7 +1737,7 @@ export default function Admin() {
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
                           <span className="text-sm">Max File Size</span>
-                          <Badge variant="outline">5MB</Badge>
+                          <Badge variant="outline">10MB</Badge>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-sm">Allowed Formats</span>
