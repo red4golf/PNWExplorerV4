@@ -24,6 +24,9 @@ import type { Location, Feedback } from "@shared/schema";
 // Photo Manager Component
 function PhotoManager({ locationId }: { locationId: number }) {
   const { toast } = useToast();
+  const [selectedPhotos, setSelectedPhotos] = useState<number[]>([]);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  
   const { data: photos = [], isLoading, refetch } = useQuery({
     queryKey: ["/api/locations", locationId, "photos"],
     queryFn: async () => {
@@ -33,34 +36,76 @@ function PhotoManager({ locationId }: { locationId: number }) {
     },
   });
 
-  const deletePhotoMutation = useMutation({
-    mutationFn: async (photoId: number) => {
-      const response = await fetch(`/api/admin/photos/${photoId}`, {
-        method: 'DELETE',
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to delete photo: ${errorText}`);
+  const deletePhotosMutation = useMutation({
+    mutationFn: async (photoIds: number[]) => {
+      const results = [];
+      for (const photoId of photoIds) {
+        try {
+          const response = await fetch(`/api/admin/photos/${photoId}`, {
+            method: 'DELETE',
+          });
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to delete photo ${photoId}: ${errorText}`);
+          }
+          
+          results.push({ photoId, success: true });
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          results.push({ photoId, success: false, error: errorMessage });
+        }
       }
-      
-      return response.json();
+      return results;
     },
-    onSuccess: () => {
+    onSuccess: (results) => {
+      const successful = results.filter(r => r.success).length;
+      const failed = results.filter(r => !r.success).length;
+      
       toast({
-        title: "Photo Deleted",
-        description: "Photo has been removed from the gallery.",
+        title: `${successful} Photo${successful !== 1 ? 's' : ''} Deleted`,
+        description: failed > 0 ? `${failed} deletion${failed !== 1 ? 's' : ''} failed` : "Photos removed from gallery.",
+        variant: failed > 0 ? "destructive" : "default",
       });
+      
+      setSelectedPhotos([]);
+      setIsSelectionMode(false);
       refetch();
     },
     onError: (error) => {
       toast({
         title: "Delete Failed",
-        description: error.message || "Failed to delete photo.",
+        description: error.message || "Failed to delete photos.",
         variant: "destructive",
       });
     },
   });
+
+  const togglePhotoSelection = (photoId: number) => {
+    setSelectedPhotos(prev => 
+      prev.includes(photoId) 
+        ? prev.filter(id => id !== photoId)
+        : [...prev, photoId]
+    );
+  };
+
+  const selectAllPhotos = () => {
+    setSelectedPhotos(photos.map((photo: any) => photo.id));
+  };
+
+  const clearSelection = () => {
+    setSelectedPhotos([]);
+    setIsSelectionMode(false);
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedPhotos.length === 0) return;
+    
+    const count = selectedPhotos.length;
+    if (confirm(`Are you sure you want to delete ${count} photo${count !== 1 ? 's' : ''}?`)) {
+      deletePhotosMutation.mutate(selectedPhotos);
+    }
+  };
 
   if (isLoading) return <div className="text-sm text-gray-500">Loading photos...</div>;
   
@@ -72,15 +117,59 @@ function PhotoManager({ locationId }: { locationId: number }) {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium">Gallery Photos ({photos.length})</span>
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => refetch()}
-          disabled={isLoading}
-        >
-          <RefreshCw className="w-4 h-4 mr-1" />
-          Refresh
-        </Button>
+        <div className="flex items-center space-x-2">
+          {!isSelectionMode ? (
+            <>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setIsSelectionMode(true)}
+              >
+                <Checkbox className="w-4 h-4 mr-1" />
+                Select Multiple
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => refetch()}
+                disabled={isLoading}
+              >
+                <RefreshCw className="w-4 h-4 mr-1" />
+                Refresh
+              </Button>
+            </>
+          ) : (
+            <>
+              <span className="text-xs text-gray-500">
+                {selectedPhotos.length} selected
+              </span>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={selectAllPhotos}
+                disabled={selectedPhotos.length === photos.length}
+              >
+                Select All
+              </Button>
+              <Button 
+                variant="destructive" 
+                size="sm"
+                onClick={handleBulkDelete}
+                disabled={selectedPhotos.length === 0 || deletePhotosMutation.isPending}
+              >
+                <Trash2 className="w-4 h-4 mr-1" />
+                Delete ({selectedPhotos.length})
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={clearSelection}
+              >
+                Cancel
+              </Button>
+            </>
+          )}
+        </div>
       </div>
       
       <div className="grid grid-cols-6 gap-2">
@@ -89,25 +178,42 @@ function PhotoManager({ locationId }: { locationId: number }) {
             <img
               src={photo.filename}
               alt={photo.caption || 'Gallery photo'}
-              className="w-full h-16 object-cover rounded border"
+              className={`w-full h-16 object-cover rounded border cursor-pointer ${
+                selectedPhotos.includes(photo.id) ? 'ring-2 ring-blue-500' : ''
+              }`}
+              onClick={() => isSelectionMode && togglePhotoSelection(photo.id)}
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.src = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&w=200&h=150&fit=crop';
               }}
             />
             
-            {/* Delete Button */}
-            <button
-              onClick={() => {
-                if (confirm('Are you sure you want to delete this photo?')) {
-                  deletePhotoMutation.mutate(photo.id);
-                }
-              }}
-              disabled={deletePhotoMutation.isPending}
-              className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <X className="w-3 h-3" />
-            </button>
+            {/* Selection Checkbox */}
+            {isSelectionMode && (
+              <div className="absolute top-1 left-1">
+                <input
+                  type="checkbox"
+                  checked={selectedPhotos.includes(photo.id)}
+                  onChange={() => togglePhotoSelection(photo.id)}
+                  className="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500"
+                />
+              </div>
+            )}
+            
+            {/* Quick Delete Button (only in non-selection mode) */}
+            {!isSelectionMode && (
+              <button
+                onClick={() => {
+                  if (confirm('Delete this photo?')) {
+                    deletePhotosMutation.mutate([photo.id]);
+                  }
+                }}
+                disabled={deletePhotosMutation.isPending}
+                className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
             
             {/* Photo Info */}
             <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b opacity-0 group-hover:opacity-100 transition-opacity">

@@ -95,7 +95,7 @@ export class DatabaseStorage implements IStorage {
 
   async deletePhoto(photoId: number): Promise<boolean> {
     const result = await db.delete(photos).where(eq(photos.id, photoId));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   async getAdminByEmail(email: string): Promise<Admin | undefined> {
