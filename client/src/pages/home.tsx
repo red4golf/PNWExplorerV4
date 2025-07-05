@@ -110,8 +110,8 @@ export default function Home() {
   // Show intro screen by default
   return (
     <div className="bg-heritage-cream min-h-screen">
-      {/* Hero/Intro Section - Full Screen on Mobile */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Hero/Intro Section - Responsive Heights */}
+      <section className="relative min-h-screen md:min-h-[85vh] lg:min-h-screen flex items-center justify-center overflow-hidden">
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat" 
           style={{
@@ -120,23 +120,40 @@ export default function Home() {
         />
         <div className="absolute inset-0 bg-heritage-brown bg-opacity-50" />
         
-        <div className="relative container mx-auto px-6 text-center text-white max-w-2xl">
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+        <div className="relative container mx-auto px-4 md:px-6 text-center text-white max-w-4xl">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 md:mb-6 leading-tight">
             Discover the Pacific Northwest's{" "}
             <span className="text-heritage-gold">Rich History</span>
           </h1>
-          <p className="text-lg md:text-xl lg:text-2xl mb-8 leading-relaxed">
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-6 md:mb-8 leading-relaxed px-2 md:px-0">
             Explore the stories, landmarks, and heritage across Washington, Oregon, Northern California, Idaho, Montana, and Southern British Columbia through interactive maps and historical narratives.
           </p>
           
+          {/* iPad/Tablet specific statistics preview */}
+          <div className="hidden md:block lg:hidden mb-8">
+            <div className="flex justify-center gap-6 text-sm">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-heritage-gold">{locations?.length || 0}</div>
+                <div className="text-white/80">Historic Sites</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-heritage-gold">{locations?.filter(l => l.category === 'Natural').length || 0}</div>
+                <div className="text-white/80">Natural Wonders</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-heritage-gold">{locations?.filter(l => l.category === 'Cultural').length || 0}</div>
+                <div className="text-white/80">Cultural Sites</div>
+              </div>
+            </div>
+          </div>
 
-          <div className="flex flex-col gap-4 max-w-sm mx-auto">
+          <div className="flex flex-col gap-3 md:gap-4 max-w-xs sm:max-w-sm md:max-w-md mx-auto">
             <Button 
               onClick={handleStartExploring}
               size="lg" 
-              className="bg-heritage-gold hover:bg-heritage-gold/90 text-heritage-brown px-8 py-4 text-lg font-semibold w-full"
+              className="bg-heritage-gold hover:bg-heritage-gold/90 text-heritage-brown px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-semibold w-full"
             >
-              <MapPin className="w-5 h-5 mr-2" />
+              <MapPin className="w-4 h-4 md:w-5 md:h-5 mr-2" />
               Start Exploring
             </Button>
             <Link href="/learn-more">
@@ -144,23 +161,23 @@ export default function Home() {
                 variant="outline" 
                 size="lg" 
                 style={{ color: 'white', borderColor: 'white' }}
-                className="border-2 bg-transparent hover:bg-white hover:text-heritage-brown px-8 py-4 text-lg font-semibold w-full"
+                className="border-2 bg-transparent hover:bg-white hover:text-heritage-brown px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-semibold w-full"
               >
-                <BookOpen className="w-5 h-5 mr-2" />
+                <BookOpen className="w-4 h-4 md:w-5 md:h-5 mr-2" />
                 Learn More
               </Button>
             </Link>
             
-            {/* Beta Utility Bar */}
-            <div className="flex justify-center gap-3 pt-4">
+            {/* Beta Utility Bar - Responsive */}
+            <div className="flex justify-center gap-2 md:gap-3 pt-2 md:pt-4">
               <FeedbackForm 
                 trigger={
                   <Button 
                     variant="ghost" 
                     size="sm"
-                    className="text-white/80 hover:text-white hover:bg-white/10 border border-white/20"
+                    className="text-white/80 hover:text-white hover:bg-white/10 border border-white/20 text-xs md:text-sm"
                   >
-                    <MessageCircle className="w-4 h-4 mr-2" />
+                    <MessageCircle className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
                     Feedback
                   </Button>
                 }
@@ -171,7 +188,7 @@ export default function Home() {
         </div>
 
         {/* Scroll indicator for desktop */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 hidden md:block">
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 hidden lg:block">
           <div className="text-white text-sm opacity-75 animate-bounce">
             Scroll down to explore
           </div>

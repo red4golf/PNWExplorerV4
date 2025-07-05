@@ -49,8 +49,8 @@ export default function LocationPhotoGallery({ locationId, locationName }: Locat
         <Badge variant="secondary">{photos.length} photos</Badge>
       </div>
 
-      {/* Photo Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {/* Photo Grid - Responsive Layout */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
         {photos.map((photo) => (
           <Dialog key={photo.id}>
             <DialogTrigger asChild>
@@ -58,13 +58,18 @@ export default function LocationPhotoGallery({ locationId, locationName }: Locat
                 <img
                   src={photo.filename}
                   alt={photo.caption || `Photo of ${locationName}`}
-                  className="w-full h-32 object-cover rounded-lg shadow-md hover:shadow-lg transition-shadow"
+                  className="w-full h-24 sm:h-28 md:h-32 lg:h-36 object-cover rounded-lg shadow-md hover:shadow-lg transition-all group-hover:scale-105"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.src = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&w=400&h=300&fit=crop';
                   }}
                 />
                 <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg" />
+                {photo.caption && (
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 rounded-b-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                    <p className="text-white text-xs truncate">{photo.caption}</p>
+                  </div>
+                )}
               </div>
             </DialogTrigger>
             <DialogContent className="max-w-4xl">

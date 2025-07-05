@@ -104,14 +104,24 @@ export default function LocationDetail() {
           </Button>
         </Link>
 
-        <div className="grid lg:grid-cols-2 gap-8">
-          {/* Image Section */}
-          <div>
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Image and Map Section */}
+          <div className="lg:col-span-2">
             <img
               src={imageUrl}
               alt={location.name}
-              className="w-full h-96 object-cover rounded-lg shadow-lg"
+              className="w-full h-64 sm:h-80 md:h-96 object-cover rounded-lg shadow-lg"
             />
+            
+            {/* Photo Gallery - Moved to top for better mobile/tablet experience */}
+            <Card className="mt-6 border-heritage-beige">
+              <CardContent className="p-4 md:p-6">
+                <LocationPhotoGallery 
+                  locationId={location.id} 
+                  locationName={location.name}
+                />
+              </CardContent>
+            </Card>
             
             {/* Map Section */}
             {location.latitude && location.longitude && (
@@ -152,7 +162,7 @@ export default function LocationDetail() {
           </div>
 
           {/* Content Section */}
-          <div>
+          <div className="lg:col-span-1">
             <div className="flex items-center mb-4">
               <span className="text-heritage-gold mr-3 text-2xl">
                 {getCategoryIcon(location.category || '')}
@@ -199,15 +209,7 @@ export default function LocationDetail() {
               </Card>
             )}
 
-            {/* Photo Gallery */}
-            <Card className="mb-8 border-heritage-beige">
-              <CardContent className="p-6">
-                <LocationPhotoGallery 
-                  locationId={location.id} 
-                  locationName={location.name}
-                />
-              </CardContent>
-            </Card>
+
 
             {/* Submission Info */}
             <Card className="bg-heritage-beige">
