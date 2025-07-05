@@ -21,6 +21,107 @@ import { Lock, Clock, MapPin, Users, CheckCircle, XCircle, LogIn, Upload, FileTe
 import { formatDate, getCategoryColor } from "@/lib/utils";
 import type { Location, Feedback } from "@shared/schema";
 
+// Photo Manager Component
+function PhotoManager({ locationId }: { locationId: number }) {
+  const { toast } = useToast();
+  const { data: photos = [], isLoading, refetch } = useQuery({
+    queryKey: ["/api/locations", locationId, "photos"],
+    queryFn: async () => {
+      const response = await fetch(`/api/locations/${locationId}/photos`);
+      if (!response.ok) throw new Error('Failed to fetch photos');
+      return response.json();
+    },
+  });
+
+  const deletePhotoMutation = useMutation({
+    mutationFn: async (photoId: number) => {
+      const response = await fetch(`/api/admin/photos/${photoId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to delete photo: ${errorText}`);
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Photo Deleted",
+        description: "Photo has been removed from the gallery.",
+      });
+      refetch();
+    },
+    onError: (error) => {
+      toast({
+        title: "Delete Failed",
+        description: error.message || "Failed to delete photo.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  if (isLoading) return <div className="text-sm text-gray-500">Loading photos...</div>;
+  
+  if (photos.length === 0) {
+    return <div className="text-sm text-gray-500">No photos uploaded yet</div>;
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium">Gallery Photos ({photos.length})</span>
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => refetch()}
+          disabled={isLoading}
+        >
+          <RefreshCw className="w-4 h-4 mr-1" />
+          Refresh
+        </Button>
+      </div>
+      
+      <div className="grid grid-cols-6 gap-2">
+        {photos.map((photo: any) => (
+          <div key={photo.id} className="relative group">
+            <img
+              src={photo.filename}
+              alt={photo.caption || 'Gallery photo'}
+              className="w-full h-16 object-cover rounded border"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&w=200&h=150&fit=crop';
+              }}
+            />
+            
+            {/* Delete Button */}
+            <button
+              onClick={() => {
+                if (confirm('Are you sure you want to delete this photo?')) {
+                  deletePhotoMutation.mutate(photo.id);
+                }
+              }}
+              disabled={deletePhotoMutation.isPending}
+              className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <X className="w-3 h-3" />
+            </button>
+            
+            {/* Photo Info */}
+            <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="truncate" title={photo.caption}>
+                {photo.caption || 'No caption'}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 interface LoginForm {
   email: string;
   password: string;
@@ -896,9 +997,7 @@ export default function Admin() {
             </div>
             
             {/* Photos Display */}
-            <div className="text-sm text-gray-500">
-              Gallery photos will appear here after upload. View them on the location detail page.
-            </div>
+            <PhotoManager locationId={location.id} />
           </div>
 
           {/* Book Recommendations Section */}

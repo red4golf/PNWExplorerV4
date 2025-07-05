@@ -285,6 +285,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete photo (admin only)
+  app.delete("/api/admin/photos/:id", async (req, res) => {
+    try {
+      const photoId = parseInt(req.params.id);
+      console.log('Deleting photo with ID:', photoId);
+      
+      const success = await storage.deletePhoto(photoId);
+      if (!success) {
+        return res.status(404).json({ message: "Photo not found" });
+      }
+      
+      res.json({ message: "Photo deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting photo:", error);
+      res.status(500).json({ message: "Failed to delete photo" });
+    }
+  });
+
   // Admin login
   app.post("/api/admin/login", async (req, res) => {
     try {

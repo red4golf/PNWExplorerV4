@@ -15,6 +15,7 @@ export interface IStorage {
   // Photo methods
   getPhotosByLocationId(locationId: number): Promise<Photo[]>;
   createPhoto(photo: InsertPhoto): Promise<Photo>;
+  deletePhoto(photoId: number): Promise<boolean>;
   
   // Admin methods
   getAdminByEmail(email: string): Promise<Admin | undefined>;
@@ -90,6 +91,11 @@ export class DatabaseStorage implements IStorage {
       .values(insertPhoto)
       .returning();
     return photo;
+  }
+
+  async deletePhoto(photoId: number): Promise<boolean> {
+    const result = await db.delete(photos).where(eq(photos.id, photoId));
+    return result.rowCount > 0;
   }
 
   async getAdminByEmail(email: string): Promise<Admin | undefined> {
