@@ -175,7 +175,8 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
   useEffect(() => {
     const getUserLocation = async () => {
       if (!navigator.geolocation) {
-
+        console.log("Geolocation not supported");
+        setLocationError("Geolocation is not supported by this browser");
         return;
       }
 
@@ -183,17 +184,30 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
         const position = await new Promise<GeolocationPosition>((resolve, reject) => {
           navigator.geolocation.getCurrentPosition(resolve, reject, {
             enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 300000
+            timeout: 15000, // Increased timeout
+            maximumAge: 60000 // Reduced cache time for fresh location
           });
         });
 
         const { latitude, longitude } = position.coords;
         const userLoc = { lat: latitude, lng: longitude };
         setUserLocation(userLoc);
-      } catch (error) {
+        console.log("User location detected:", userLoc);
+      } catch (error: any) {
         console.log("Geolocation failed:", error);
-        setLocationError("Unable to get your location. Showing full Pacific Northwest view.");
+        let errorMessage = "Unable to get your location. ";
+        
+        if (error.code === 1) {
+          errorMessage += "Location access denied. Please enable location permissions.";
+        } else if (error.code === 2) {
+          errorMessage += "Location information unavailable.";
+        } else if (error.code === 3) {
+          errorMessage += "Location request timed out.";
+        } else {
+          errorMessage += "Showing full Pacific Northwest view.";
+        }
+        
+        setLocationError(errorMessage);
       }
     };
 
@@ -389,6 +403,15 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
                     <MapPin className="w-3 h-3" />
                     {isWithinPNW(userLocation.lat, userLocation.lng) ? "In Pacific Northwest" : "Outside Region"}
                   </Badge>
+                )}
+                
+                {locationError && (
+                  <div className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                      <span>{locationError}</span>
+                    </div>
+                  </div>
                 )}
               </div>
               

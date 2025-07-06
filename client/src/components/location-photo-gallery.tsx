@@ -21,6 +21,8 @@ export default function LocationPhotoGallery({ locationId, locationName }: Locat
       if (!response.ok) throw new Error('Failed to fetch photos');
       return response.json() as Promise<Photo[]>;
     },
+    staleTime: 30000, // 30 seconds cache
+    refetchOnWindowFocus: false, // Don't refetch when window regains focus
   });
 
   if (isLoading) {
