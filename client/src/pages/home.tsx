@@ -45,6 +45,13 @@ export default function Home() {
   if (showMap) {
     return (
       <div className="bg-heritage-cream min-h-screen">
+        {/* Beta Ribbon */}
+        <div className="absolute top-0 right-0 z-50">
+          <div className="bg-gradient-to-r from-heritage-gold to-yellow-500 text-white px-6 py-2 transform rotate-12 translate-x-4 -translate-y-2 shadow-lg">
+            <span className="font-semibold text-sm tracking-wide">BETA VERSION</span>
+          </div>
+        </div>
+        
         {/* Map Navigation Header */}
         <div className="bg-white shadow-sm sticky top-0 z-10 relative">
           <div className="container mx-auto px-4 py-3">
@@ -110,6 +117,13 @@ export default function Home() {
   // Show intro screen by default
   return (
     <div className="bg-heritage-cream min-h-screen">
+      {/* Beta Ribbon */}
+      <div className="absolute top-0 right-0 z-50">
+        <div className="bg-gradient-to-r from-heritage-gold to-yellow-500 text-white px-6 py-2 transform rotate-12 translate-x-4 -translate-y-2 shadow-lg">
+          <span className="font-semibold text-sm tracking-wide">BETA VERSION</span>
+        </div>
+      </div>
+      
       {/* Hero/Intro Section - Responsive Heights */}
       <section className="relative min-h-screen md:min-h-[85vh] lg:min-h-screen flex items-center justify-center overflow-hidden">
         <div 
