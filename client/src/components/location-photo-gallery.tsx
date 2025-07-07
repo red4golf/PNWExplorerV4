@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Camera, X } from "lucide-react";
+import { Camera, ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
 import type { Photo } from "@shared/schema";
 
@@ -13,6 +13,7 @@ interface LocationPhotoGalleryProps {
 
 export default function LocationPhotoGallery({ locationId, locationName }: LocationPhotoGalleryProps) {
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const { data: photos = [], isLoading } = useQuery({
     queryKey: ["/api/locations", locationId, "photos"],
@@ -45,17 +46,45 @@ export default function LocationPhotoGallery({ locationId, locationName }: Locat
 
 
 
+  // Show preview photos (first 2) and remaining count
+  const previewPhotos = photos.slice(0, 2);
+  const remainingCount = photos.length - 2;
+  const photosToShow = isExpanded ? photos : previewPhotos;
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center space-x-2">
-        <Camera className="w-5 h-5 text-heritage-gold" />
-        <h3 className="font-semibold text-heritage-brown">Photo Gallery</h3>
-        <Badge variant="secondary">{photos.length} photos</Badge>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Camera className="w-5 h-5 text-heritage-gold" />
+          <h3 className="font-semibold text-heritage-brown">Photo Gallery</h3>
+          <Badge variant="secondary">{photos.length} photos</Badge>
+        </div>
+        
+        {photos.length > 2 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="text-heritage-brown hover:text-heritage-gold"
+          >
+            {isExpanded ? (
+              <>
+                <ChevronUp className="w-4 h-4 mr-1" />
+                Show Less
+              </>
+            ) : (
+              <>
+                <ChevronDown className="w-4 h-4 mr-1" />
+                Show All ({photos.length})
+              </>
+            )}
+          </Button>
+        )}
       </div>
 
       {/* Photo Grid - Responsive Layout */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
-        {photos.map((photo) => (
+        {photosToShow.map((photo) => (
           <Dialog key={photo.id}>
             <DialogTrigger asChild>
               <div className="relative cursor-pointer group">
@@ -100,6 +129,20 @@ export default function LocationPhotoGallery({ locationId, locationName }: Locat
           </Dialog>
         ))}
       </div>
+
+      {/* Show remaining count when collapsed */}
+      {!isExpanded && remainingCount > 0 && (
+        <div className="text-center">
+          <Button
+            variant="outline"
+            onClick={() => setIsExpanded(true)}
+            className="text-heritage-brown border-heritage-beige hover:bg-heritage-beige"
+          >
+            <Camera className="w-4 h-4 mr-2" />
+            View {remainingCount} more photo{remainingCount !== 1 ? 's' : ''}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
