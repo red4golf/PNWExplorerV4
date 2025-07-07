@@ -33,10 +33,10 @@ async function seed() {
   try {
     console.log("Seeding database...");
 
-    // Create default admin
+    // Create default admin for beta release
     await db.insert(admins).values({
       email: "admin@pnwhistory.org",
-      password: "admin123", // In production, this would be hashed
+      password: "PNWHistoryBeta2025!", // Secure password for beta release
     }).onConflictDoNothing();
 
     // Insert sample historical locations

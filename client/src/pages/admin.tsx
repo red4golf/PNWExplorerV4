@@ -1249,32 +1249,24 @@ export default function Admin() {
                   <Button
                     type="submit"
                     disabled={loginMutation.isPending}
-                    className="w-full bg-heritage-brown hover:bg-heritage-brown/90"
+                    className="w-full bg-heritage-brown hover:bg-heritage-brown/90 text-white"
                   >
                     {loginMutation.isPending ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                        Signing In...
+                        <span className="text-white">Signing In...</span>
                       </>
                     ) : (
                       <>
-                        <LogIn className="w-4 h-4 mr-2" />
-                        Sign In
+                        <LogIn className="w-4 h-4 mr-2 text-white" />
+                        <span className="text-white">Sign In</span>
                       </>
                     )}
                   </Button>
                 </form>
               </Form>
 
-              <div className="mt-6 p-4 bg-white rounded-lg">
-                <p className="text-sm text-gray-600 mb-2">
-                  <strong>Demo Credentials:</strong>
-                </p>
-                <p className="text-sm text-gray-600">
-                  Email: admin@pnwhistory.org<br />
-                  Password: admin123
-                </p>
-              </div>
+
             </CardContent>
           </Card>
         </div>
