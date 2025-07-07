@@ -94,28 +94,28 @@ export default function LocationDetail() {
   const imageUrl = location.heroImage || placeholderImage;
 
   return (
-    <div className="min-h-screen bg-heritage-cream py-8">
-      <div className="container mx-auto px-4">
+    <div className="min-h-screen bg-heritage-cream py-4 sm:py-8">
+      <div className="container mx-auto px-3 sm:px-4 max-w-7xl">
         {/* Back Button */}
         <Link href="/#map">
-          <Button variant="ghost" className="mb-6 text-heritage-brown hover:text-heritage-gold">
+          <Button variant="ghost" className="mb-4 sm:mb-6 text-heritage-brown hover:text-heritage-gold">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Map
           </Button>
         </Link>
 
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {/* Image and Map Section */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 overflow-hidden">
             <img
               src={imageUrl}
               alt={location.name}
-              className="w-full h-64 sm:h-80 md:h-96 object-cover rounded-lg shadow-lg"
+              className="w-full h-48 sm:h-64 md:h-80 lg:h-96 object-cover rounded-lg shadow-lg"
             />
             
             {/* Photo Gallery - Moved to top for better mobile/tablet experience */}
-            <Card className="mt-6 border-heritage-beige">
-              <CardContent className="p-4 md:p-6">
+            <Card className="mt-4 sm:mt-6 border-heritage-beige">
+              <CardContent className="p-3 sm:p-4 md:p-6">
                 <LocationPhotoGallery 
                   locationId={location.id} 
                   locationName={location.name}
@@ -162,20 +162,20 @@ export default function LocationDetail() {
           </div>
 
           {/* Content Section */}
-          <div className="lg:col-span-1">
-            <div className="flex items-center mb-4">
-              <span className="text-heritage-gold mr-3 text-2xl">
+          <div className="lg:col-span-1 overflow-hidden">
+            <div className="flex items-center mb-3 sm:mb-4">
+              <span className="text-heritage-gold mr-2 sm:mr-3 text-xl sm:text-2xl">
                 {getCategoryIcon(location.category || '')}
               </span>
               <Badge 
                 variant="secondary" 
-                className={`${getCategoryColor(location.category || '')}`}
+                className={`${getCategoryColor(location.category || '')} text-xs sm:text-sm`}
               >
                 {location.category}
               </Badge>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-heritage-brown mb-4 break-words leading-tight">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-heritage-brown mb-3 sm:mb-4 break-words leading-tight">
               {location.name}
             </h1>
 
@@ -186,21 +186,21 @@ export default function LocationDetail() {
               </div>
             )}
 
-            <div className="prose prose-lg max-w-none mb-8">
-              <p className="text-gray-700 leading-relaxed">
+            <div className="prose prose-sm sm:prose-base lg:prose-lg max-w-none mb-6 sm:mb-8">
+              <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
                 {location.description}
               </p>
             </div>
 
             {/* Extended Story Section */}
             {location.content && (
-              <Card className="mb-8 border-heritage-beige">
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-semibold text-heritage-brown mb-4 flex items-center">
-                    <FileText className="w-5 h-5 mr-2" />
+              <Card className="mb-6 sm:mb-8 border-heritage-beige">
+                <CardContent className="p-4 sm:p-6">
+                  <h3 className="text-lg sm:text-xl font-semibold text-heritage-brown mb-3 sm:mb-4 flex items-center">
+                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                     The Story
                   </h3>
-                  <div className="prose prose-lg max-w-none text-gray-700">
+                  <div className="prose prose-sm sm:prose-base lg:prose-lg max-w-none text-gray-700">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {location.content}
                     </ReactMarkdown>
@@ -213,11 +213,11 @@ export default function LocationDetail() {
 
             {/* Submission Info */}
             <Card className="bg-heritage-beige">
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-heritage-brown mb-4">
+              <CardContent className="p-4 sm:p-6">
+                <h3 className="text-sm sm:text-base font-semibold text-heritage-brown mb-3 sm:mb-4">
                   Contribution Information
                 </h3>
-                <div className="space-y-2 text-sm">
+                <div className="space-y-2 text-xs sm:text-sm">
                   {location.submitterName && (
                     <div className="flex items-center">
                       <User className="w-4 h-4 mr-2 text-heritage-olive" />

@@ -47,6 +47,17 @@ body {
     word-spacing: normal;
     letter-spacing: normal;
   }
+  
+  /* Ensure cards and containers fit properly */
+  .card, [data-radix-card], .prose {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  
+  /* Fix location detail page spacing */
+  .grid {
+    gap: 1rem !important;
+  }
 }
 
 :root {
