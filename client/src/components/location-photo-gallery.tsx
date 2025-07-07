@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Camera, X } from "lucide-react";
@@ -75,6 +75,9 @@ export default function LocationPhotoGallery({ locationId, locationName }: Locat
               </div>
             </DialogTrigger>
             <DialogContent className="max-w-4xl">
+              <DialogTitle className="sr-only">
+                {photo.caption || `Photo of ${locationName}`}
+              </DialogTitle>
               <div className="relative">
                 <img
                   src={photo.filename}
