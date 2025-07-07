@@ -2,16 +2,31 @@ import { db } from "./db";
 import { locations, admins, photos } from "@shared/schema";
 
 async function seedPhotos() {
-  // Add sample photos for key locations to ensure they persist
+  console.log("Checking for existing photos...");
+  const existingPhotos = await db.select().from(photos).limit(1);
+  
+  if (existingPhotos.length > 0) {
+    console.log("Photos already exist, skipping photo seeding to preserve user uploads");
+    return;
+  }
+  
+  console.log("No photos found, adding sample photos...");
+  // Only add sample photos if none exist to preserve user uploads
   await db.insert(photos).values([
     { locationId: 50, filename: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&w=800&h=600&fit=crop', caption: 'Pia the Peacekeeper troll sculpture among the forest trees' },
     { locationId: 50, filename: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&w=800&h=600&fit=crop', caption: 'Children playing near the giant wooden troll in Sakai Park' },
     { locationId: 85, filename: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&w=800&h=600&fit=crop', caption: 'Historic Fort Flagler artillery battery' },
     { locationId: 85, filename: 'https://images.unsplash.com/photo-1551798507-629020c7c4fc?ixlib=rb-4.0.3&w=800&h=600&fit=crop', caption: 'Coastal defense structures and bunkers' },
+    { locationId: 85, filename: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&w=800&h=600&fit=crop', caption: 'Fort Flagler State Park trails and facilities' },
+    { locationId: 85, filename: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&w=800&h=600&fit=crop', caption: 'Historic military installations at Fort Flagler' },
     { locationId: 34, filename: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&w=800&h=600&fit=crop', caption: 'Columbia River Gorge waterfall' },
     { locationId: 51, filename: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&w=800&h=600&fit=crop', caption: 'Historic Ebey homestead with Olympic Mountains' },
     { locationId: 33, filename: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&w=800&h=600&fit=crop', caption: 'Fort Clatsop replica' },
+    { locationId: 62, filename: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&w=800&h=600&fit=crop', caption: 'The famous Goonies House in Astoria' },
+    { locationId: 62, filename: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&w=800&h=600&fit=crop', caption: 'Victorian architecture of the Goonies House' },
+    { locationId: 62, filename: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&w=800&h=600&fit=crop', caption: 'Astoria neighborhood setting' },
   ]).onConflictDoNothing();
+  console.log("Sample photos added successfully");
 }
 
 async function seed() {
