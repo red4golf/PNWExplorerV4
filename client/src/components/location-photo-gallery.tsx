@@ -17,12 +17,12 @@ export default function LocationPhotoGallery({ locationId, locationName }: Locat
   const { data: photos = [], isLoading } = useQuery({
     queryKey: ["/api/locations", locationId, "photos"],
     queryFn: async () => {
-      const response = await fetch(`/api/locations/${locationId}/photos`);
+      const response = await fetch(`/api/locations/${locationId}/photos?t=${Date.now()}`);
       if (!response.ok) throw new Error('Failed to fetch photos');
       return response.json() as Promise<Photo[]>;
     },
-    staleTime: 30000, // 30 seconds cache
-    refetchOnWindowFocus: false, // Don't refetch when window regains focus
+    staleTime: 1000, // 1 second cache
+    refetchOnWindowFocus: true, // Refetch when window regains focus for testing
   });
 
   if (isLoading) {
@@ -43,6 +43,8 @@ export default function LocationPhotoGallery({ locationId, locationName }: Locat
     );
   }
 
+  console.log('Photos to display:', photos);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center space-x-2">
@@ -61,7 +63,9 @@ export default function LocationPhotoGallery({ locationId, locationName }: Locat
                   src={photo.filename}
                   alt={photo.caption || `Photo of ${locationName}`}
                   className="w-full h-24 sm:h-28 md:h-32 lg:h-36 object-cover rounded-lg shadow-md hover:shadow-lg transition-all group-hover:scale-105"
+                  onLoad={() => console.log('Image loaded successfully:', photo.filename)}
                   onError={(e) => {
+                    console.error('Image failed to load:', photo.filename);
                     const target = e.target as HTMLImageElement;
                     target.src = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&w=400&h=300&fit=crop';
                   }}
