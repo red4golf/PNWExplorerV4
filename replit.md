@@ -89,6 +89,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Future Feature Ideas
 
+### Content Completion Priority
+- **Missing Stories (23 locations)**: Complete historical narratives needed for locations without content
+  - Natural Heritage: Bonneville Dam, Columbia River Gorge, Crater Lake, Craters of the Moon, Glacier National Park, Mount Rainier, Multnomah Falls, Snoqualmie Falls
+  - Historic Landmarks: Fort Clatsop Memorial, Hanford Site, Oregon Trail Center, Oregon State Capitol
+  - Indigenous Heritage: Celilo Falls, Nez Perce Historical Park, Suquamish Tribal Grounds
+  - Cultural Sites: Coeur d'Alene Mission, Pike Place Market
+  - Other categories: Port Blakely Mill, Point No Point Lighthouse, Historic Strawberry Fields, Skagit Valley Tulip Fields, Japanese American Exclusion Memorial, Winslow Ferry Terminal
+
 ### Location Discovery Wizard
 - Interest-based questionnaire (Military History, Native Heritage, Natural Disasters, Pioneer Stories)
 - Time and transportation constraints assessment
