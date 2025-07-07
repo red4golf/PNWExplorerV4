@@ -175,7 +175,7 @@ export default function LocationDetail() {
               </Badge>
             </div>
 
-            <h1 className="text-4xl font-bold text-heritage-brown mb-4">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-heritage-brown mb-4 break-words leading-tight">
               {location.name}
             </h1>
 

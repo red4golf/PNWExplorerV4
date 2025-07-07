@@ -370,18 +370,18 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
         {/* Enhanced Controls */}
         <div className="mt-4 bg-white rounded-lg shadow-md p-4">
           <Tabs defaultValue="controls" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="controls" className="flex items-center gap-2">
+            <TabsList className="grid w-full grid-cols-3 text-xs sm:text-sm">
+              <TabsTrigger value="controls" className="flex items-center gap-1">
                 <MapPin className="w-4 h-4" />
-                Controls
+                <span className="hidden sm:inline">Controls</span>
               </TabsTrigger>
-              <TabsTrigger value="search" className="flex items-center gap-2">
+              <TabsTrigger value="search" className="flex items-center gap-1">
                 <Search className="w-4 h-4" />
-                Search & Filter
+                <span className="hidden sm:inline">Search &</span> Filter
               </TabsTrigger>
-              <TabsTrigger value="list" className="flex items-center gap-2">
+              <TabsTrigger value="list" className="flex items-center gap-1">
                 <List className="w-4 h-4" />
-                Location List
+                <span className="hidden sm:inline">Location</span> List
               </TabsTrigger>
             </TabsList>
             

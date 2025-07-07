@@ -46,9 +46,9 @@ export default function Home() {
     return (
       <div className="bg-heritage-cream min-h-screen">
         {/* Beta Ribbon */}
-        <div className="absolute top-0 right-0 z-50">
-          <div className="bg-gradient-to-r from-heritage-gold to-yellow-500 text-white px-6 py-2 transform rotate-12 translate-x-4 -translate-y-2 shadow-lg">
-            <span className="font-semibold text-sm tracking-wide">BETA VERSION</span>
+        <div className="absolute top-0 right-0 z-50 overflow-hidden w-32 h-16">
+          <div className="bg-gradient-to-r from-heritage-gold to-yellow-500 text-white px-4 sm:px-6 py-1 sm:py-2 transform rotate-12 translate-x-2 sm:translate-x-4 -translate-y-1 sm:-translate-y-2 shadow-lg">
+            <span className="font-semibold text-xs sm:text-sm tracking-wide whitespace-nowrap">BETA VERSION</span>
           </div>
         </div>
         
@@ -64,7 +64,7 @@ export default function Home() {
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
               </Button>
-              <h1 className="text-lg font-semibold text-heritage-brown">Pacific Northwest Historical Explorer</h1>
+              <h1 className="text-sm sm:text-lg font-semibold text-heritage-brown break-words max-w-xs sm:max-w-none text-center">Pacific Northwest Historical Explorer</h1>
               
               {/* Navigation Menu */}
               <div className="relative z-[2000]">
@@ -118,9 +118,9 @@ export default function Home() {
   return (
     <div className="bg-heritage-cream min-h-screen">
       {/* Beta Ribbon */}
-      <div className="absolute top-0 right-0 z-50">
-        <div className="bg-gradient-to-r from-heritage-gold to-yellow-500 text-white px-6 py-2 transform rotate-12 translate-x-4 -translate-y-2 shadow-lg">
-          <span className="font-semibold text-sm tracking-wide">BETA VERSION</span>
+      <div className="absolute top-0 right-0 z-50 overflow-hidden w-32 h-16">
+        <div className="bg-gradient-to-r from-heritage-gold to-yellow-500 text-white px-4 sm:px-6 py-1 sm:py-2 transform rotate-12 translate-x-2 sm:translate-x-4 -translate-y-1 sm:-translate-y-2 shadow-lg">
+          <span className="font-semibold text-xs sm:text-sm tracking-wide whitespace-nowrap">BETA VERSION</span>
         </div>
       </div>
       
@@ -134,12 +134,12 @@ export default function Home() {
         />
         <div className="absolute inset-0 bg-heritage-brown bg-opacity-50" />
         
-        <div className="relative container mx-auto px-4 md:px-6 text-center text-white max-w-4xl">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 md:mb-6 leading-tight">
+        <div className="relative container mx-auto px-4 md:px-6 text-center text-white max-w-4xl w-full">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 md:mb-6 leading-tight break-words">
             Discover the Pacific Northwest's{" "}
             <span className="text-heritage-gold">Rich History</span>
           </h1>
-          <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-6 md:mb-8 leading-relaxed px-2 md:px-0">
+          <p className="text-sm sm:text-base md:text-lg lg:text-xl mb-6 md:mb-8 leading-relaxed px-2 md:px-0 max-w-3xl mx-auto">
             Explore the stories, landmarks, and heritage across Washington, Oregon, Northern California, Idaho, Montana, and Southern British Columbia through interactive maps and historical narratives.
           </p>
           
