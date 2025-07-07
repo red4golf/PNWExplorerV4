@@ -43,7 +43,7 @@ export default function LocationPhotoGallery({ locationId, locationName }: Locat
     );
   }
 
-  console.log('Photos to display:', photos);
+
 
   return (
     <div className="space-y-4">
@@ -63,9 +63,7 @@ export default function LocationPhotoGallery({ locationId, locationName }: Locat
                   src={photo.filename}
                   alt={photo.caption || `Photo of ${locationName}`}
                   className="w-full h-24 sm:h-28 md:h-32 lg:h-36 object-cover rounded-lg shadow-md hover:shadow-lg transition-all group-hover:scale-105"
-                  onLoad={() => console.log('Image loaded successfully:', photo.filename)}
                   onError={(e) => {
-                    console.error('Image failed to load:', photo.filename);
                     const target = e.target as HTMLImageElement;
                     target.src = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&w=400&h=300&fit=crop';
                   }}
