@@ -3,6 +3,7 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import "./ensure-uploads";
 import { preservePhotos, restorePhotos } from "./migrations/preserve-photos";
+import { photoGuardian } from "./photo-guardian";
 import path from "path";
 
 const app = express();
@@ -13,6 +14,7 @@ app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 (async () => {
   await preservePhotos();
   await restorePhotos();
+  await photoGuardian.initialize();
 })();
 
 // Serve uploaded files
