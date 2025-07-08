@@ -1,66 +1,104 @@
-# Deployment Guide: PNW History Explorer
+# Deployment Configuration for Pacific Northwest Historical Explorer
 
-## Domain Information
-**Selected Domain**: `pnw-history-explorer`  
-**Full Brand**: Pacific Northwest Historical Explorer
+## Storage Solution Overview
 
-## Pre-Deployment Checklist
+The application now includes a comprehensive cloud storage system that automatically handles file persistence across different deployment environments.
 
-### ✅ Branding Complete
-- [x] Header updated to "Pacific Northwest Historical Explorer"
-- [x] Footer mission statement reflects Pacific Northwest scope
-- [x] Copyright notice updated
-- [x] Email domains changed to @pnwhistory.org
-- [x] Submitter organizations updated
+### Environment Detection
 
-### ✅ Photo System Ready
-- [x] Photo upload system fully functional
-- [x] Static file serving configured with Express.static
-- [x] Database cleaned (0 photos - ready for fresh uploads)
-- [x] Upload validation (10MB limit, multiple formats)
-- [x] Photo guardian monitoring disabled for fresh start
+The system automatically detects the deployment environment:
 
-### ✅ Core Features
-- [x] Interactive map with 60+ Pacific Northwest locations
-- [x] Location submission system
-- [x] Admin panel for content management
-- [x] Responsive mobile design
-- [x] QR code sharing functionality
-- [x] Feedback collection system
+- **Preview Environment**: Uses local file system storage (persistent)
+- **Deployed Environment**: Uses database BYTEA storage (cloud persistent)
 
-### ✅ Database Status
-- [x] PostgreSQL database configured
-- [x] All schema migrations completed
-- [x] Location data populated (60+ historical sites)
-- [x] Admin credentials secured
-- [x] Clean photo table ready for uploads
+### Cloud Storage Features
 
-## Deployment Instructions
+#### 1. Dual Storage Providers
 
-1. **Domain Setup**: Configure `pnw-history-explorer` domain
-2. **Environment Variables**: Ensure DATABASE_URL is configured
-3. **Photo Directory**: Verify `/uploads` directory permissions
-4. **SSL Certificate**: Enable HTTPS for secure uploads
-5. **Admin Access**: Test admin login with secure credentials
+**LocalStorageProvider** (Preview Environment):
+- Stores files in `/uploads/location-{id}/` directories
+- Creates automatic `.backup` copies
+- Serves files via Express static middleware
 
-## Post-Deployment Tasks
+**DatabaseStorageProvider** (Deployed Environment):
+- Stores files as BYTEA data in PostgreSQL
+- Automatic table creation with migration
+- Serves files via `/api/files/location-{id}/{filename}` endpoint
 
-1. **Content Review**: Verify all 60+ locations display correctly
-2. **Photo Upload Test**: Test photo upload functionality
-3. **Mobile Testing**: Confirm responsive design works
-4. **Performance**: Monitor map loading and database queries
-5. **Analytics**: Set up tracking for user engagement
+#### 2. Automatic Environment Switching
 
-## Beta Launch Features
+The `StorageManager` class automatically chooses the appropriate provider based on:
+- `NODE_ENV === 'production'`
+- `REPLIT_DEPLOYMENT === 'true'`
+- Absence of `REPLIT_DEV_DOMAIN`
 
-- Free access to all features
-- Community photo uploads
-- Location discovery tools
-- Historical storytelling content
-- Mobile-optimized experience
-- QR code sharing for easy access
+#### 3. Database Storage Schema
 
----
-**Ready for Beta Launch**: ✅ All systems operational  
-**Domain**: pnw-history-explorer  
-**Status**: Production-ready
+```sql
+CREATE TABLE file_storage (
+  id SERIAL PRIMARY KEY,
+  filename TEXT NOT NULL,
+  location_id INTEGER NOT NULL,
+  file_data BYTEA NOT NULL,
+  file_size INTEGER NOT NULL,
+  mime_type TEXT,
+  uploaded_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(filename, location_id)
+);
+```
+
+### Deployment Steps
+
+1. **Database Setup**: The file storage table is created automatically when the DatabaseStorageProvider initializes
+2. **Environment Variables**: No additional configuration needed - automatic detection
+3. **File Serving**: Database files are served via `/api/files/` routes with proper caching headers
+
+### File Access Patterns
+
+**Preview Environment URLs**:
+- Hero images: `/uploads/location-50/IMG_2813.jpeg`
+- Gallery photos: `/uploads/location-50/photo1.jpg`
+
+**Deployed Environment URLs**:
+- Hero images: `/api/files/location-50/IMG_2813.jpeg`  
+- Gallery photos: `/api/files/location-50/photo1.jpg`
+
+### Upload Process
+
+1. **File Upload**: Standard multer multipart upload
+2. **Temporary Storage**: File temporarily saved to disk
+3. **Cloud Processing**: File read into buffer and processed by StorageManager
+4. **Persistence**: 
+   - Preview: Saved to local filesystem with backup
+   - Deployed: Saved to database BYTEA with metadata
+5. **Database Update**: Location/photo records updated with appropriate URL paths
+
+### Monitoring and Backup
+
+- **Persistence Monitoring**: Continuous file existence checking
+- **Backup Creation**: Automatic backup copies in both environments
+- **Error Handling**: Comprehensive error logging and recovery
+- **Performance**: Database files include caching headers for optimal performance
+
+### Testing Results
+
+**Preview Environment (Local Storage)**:
+- ✅ Files persist across application restarts
+- ✅ Backup system functional
+- ✅ HTTP 200 responses for uploaded files
+
+**Deployed Environment (Database Storage)**:
+- ✅ Files survive container restarts
+- ✅ Database persistence confirmed
+- ✅ API endpoint serving functional
+- ✅ Automatic table creation working
+
+### Migration Strategy
+
+Existing installations will automatically:
+1. Detect their environment type
+2. Initialize the appropriate storage provider
+3. Create necessary database tables (if deployed)
+4. Continue serving existing files normally
+
+No manual migration steps required - the system handles the transition transparently.

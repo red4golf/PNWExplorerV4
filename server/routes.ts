@@ -10,6 +10,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { uploadPersistenceFix } from "./upload-persistence-fix";
+import { storageManager, DatabaseStorageProvider } from "./cloud-storage";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure multer for file uploads with location-specific folders
@@ -221,25 +222,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
               timestamp: new Date().toISOString()
             });
             
-            // Create immediate backup for persistence
+            // Use cloud storage manager for persistent storage
             if (fileExists) {
               try {
-                const backupPath = file.path + '.backup';
-                fs.copyFileSync(file.path, backupPath);
-                console.log('💾 BACKUP: Created backup copy for photo ID:', photo.id);
+                const fileBuffer = fs.readFileSync(file.path);
+                const cloudPath = await storageManager.uploadFile(fileBuffer, file.originalname, locationId);
                 
-                // Additional verification - check file size consistency
-                const originalSize = fs.statSync(file.path).size;
-                const backupSize = fs.statSync(backupPath).size;
-                if (originalSize !== backupSize) {
-                  console.error('❌ BACKUP: Size mismatch between original and backup!');
-                  errors.push(`${file.originalname}: Backup integrity check failed`);
-                } else {
-                  console.log('✅ BACKUP: Size verified for photo ID:', photo.id);
-                }
+                // Update photo record with cloud path
+                photo.filename = cloudPath;
+                console.log('💾 CLOUD STORAGE: File uploaded to:', cloudPath);
+                console.log('✅ BACKUP: Photo ID', photo.id, 'stored in cloud');
               } catch (error) {
-                console.error('❌ BACKUP: Failed to create backup for photo ID:', photo.id, error);
-                errors.push(`${file.originalname}: Backup creation failed`);
+                console.error('❌ CLOUD STORAGE: Failed to upload for photo ID:', photo.id, error);
+                errors.push(`${file.originalname}: Cloud storage upload failed`);
               }
             } else {
               console.error('❌ CRITICAL: Photo file missing immediately after upload!');
@@ -323,29 +318,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log('✅ File successfully saved to disk:', req.file.path);
         
-        // Create immediate backup for persistence (same as photo gallery)
-        const fileExists = fs.existsSync(req.file.path);
+        // Use cloud storage manager for persistent storage
+        const fileBuffer = fs.readFileSync(req.file.path);
+        const cloudPath = await storageManager.uploadFile(fileBuffer, req.file.filename, locationId);
+        
         console.log('📸 HERO UPLOAD SUCCESS: File created:', {
           filename: req.file.filename,
-          fileExists,
-          path: req.file.path,
+          cloudPath,
+          size: fileBuffer.length,
           timestamp: new Date().toISOString()
         });
         
-        if (fileExists) {
-          try {
-            const backupPath = req.file.path + '.backup';
-            fs.copyFileSync(req.file.path, backupPath);
-            console.log('💾 HERO BACKUP: Created backup copy for hero image');
-          } catch (error) {
-            console.error('❌ HERO BACKUP: Failed to create backup:', error);
-          }
-        } else {
-          console.error('❌ CRITICAL: Hero image file missing immediately after upload!');
-          return res.status(500).json({ message: "File upload failed - file not persisted" });
-        }
-        
-        const heroImagePath = `/uploads/location-${locationId}/${req.file.filename}`;
+        const heroImagePath = cloudPath;
         console.log('🔍 Setting hero image path:', heroImagePath);
         
         // Add post-update verification
@@ -671,6 +655,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error getting affiliate clicks:", error);
       res.status(500).json({ message: "Failed to get clicks" });
+    }
+  });
+
+  // Add file serving route for database storage
+  app.get("/api/files/location-:locationId/:filename", async (req, res) => {
+    try {
+      const { locationId, filename } = req.params;
+      const provider = storageManager.getProvider();
+      
+      if (provider instanceof DatabaseStorageProvider) {
+        const fileData = await (provider as any).getFileData(filename, parseInt(locationId));
+        
+        if (fileData) {
+          res.setHeader('Content-Type', 'image/jpeg');
+          res.setHeader('Cache-Control', 'public, max-age=86400');
+          res.send(fileData);
+        } else {
+          res.status(404).json({ error: 'File not found' });
+        }
+      } else {
+        res.status(404).json({ error: 'File not found' });
+      }
+    } catch (error) {
+      console.error('Error serving file:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
   });
 
