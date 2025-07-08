@@ -88,6 +88,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/admin/locations/:id/upload-photos", (req, res) => {
     console.log('📸 Photo upload request received for location:', req.params.id);
     console.log('📸 Files in request:', req.files ? 'present' : 'none');
+    console.log('📸 CRITICAL: Request method:', req.method);
+    console.log('📸 CRITICAL: Request path:', req.path);
+    console.log('📸 CRITICAL: Request headers:', JSON.stringify(req.headers, null, 2));
     
     upload.array('photos', 10)(req, res, async (err) => {
       if (err) {
