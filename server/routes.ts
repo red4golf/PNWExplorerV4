@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertLocationSchema, insertFeedbackSchema, insertAffiliateClickSchema, locations } from "@shared/schema";
@@ -71,13 +72,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Serve uploaded images
-  app.use('/uploads', (req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    next();
-  });
+  // Serve uploaded images statically
+  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads'), {
+    maxAge: '1d', // Cache for 1 day
+    etag: true,
+    lastModified: true,
+    setHeaders: (res) => {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    }
+  }));
   
   // Upload multiple photos for location
   app.post("/api/admin/locations/:id/upload-photos", (req, res) => {
@@ -125,10 +130,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             // Verify file was actually saved to disk
             if (!fs.existsSync(file.path)) {
-              console.error('File not saved to disk:', file.path);
+              console.error('❌ File not saved to disk:', file.path);
+              console.error('Upload directory contents:', fs.readdirSync(path.join(process.cwd(), 'uploads')));
               errors.push(`${file.originalname}: File not saved to disk`);
               continue;
             }
+            
+            console.log('✅ File successfully saved to disk:', file.path);
             
             const photoPath = `/uploads/${file.filename}`;
             console.log('Creating photo database entry:', {

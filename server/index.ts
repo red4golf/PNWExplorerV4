@@ -4,6 +4,8 @@ import { setupVite, serveStatic, log } from "./vite";
 import "./ensure-uploads";
 import { preservePhotos, restorePhotos } from "./migrations/preserve-photos";
 import { photoGuardian } from "./photo-guardian";
+import { photoPersistenceManager } from "./photo-persistence";
+import { photoBackupScheduler } from "./photo-backup-scheduler";
 import "./photo-recovery";
 import path from "path";
 
@@ -19,6 +21,12 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
   await preservePhotos();
   await restorePhotos();
   await photoGuardian.initialize();
+  
+  // Run photo integrity check
+  await photoPersistenceManager.validatePhotosIntegrity();
+  
+  // Start automated backup system
+  photoBackupScheduler.startScheduledBackups();
 })();
 
 app.use((req, res, next) => {
