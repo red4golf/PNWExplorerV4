@@ -18,6 +18,14 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 // Photo system completely disabled to prevent interference
 console.log('📸 Photo monitoring systems disabled for stable uploads');
 
+// Initialize upload persistence fix
+import { uploadPersistenceFix } from './upload-persistence-fix';
+uploadPersistenceFix.startMonitoring().then(() => {
+  console.log('✅ Upload persistence monitoring initialized');
+}).catch(error => {
+  console.error('❌ Failed to initialize upload persistence monitoring:', error);
+});
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;

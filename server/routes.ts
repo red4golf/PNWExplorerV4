@@ -9,6 +9,7 @@ import { eq } from "drizzle-orm";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { uploadPersistenceFix } from "./upload-persistence-fix";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure multer for file uploads with location-specific folders
@@ -226,11 +227,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 const backupPath = file.path + '.backup';
                 fs.copyFileSync(file.path, backupPath);
                 console.log('💾 BACKUP: Created backup copy for photo ID:', photo.id);
+                
+                // Additional verification - check file size consistency
+                const originalSize = fs.statSync(file.path).size;
+                const backupSize = fs.statSync(backupPath).size;
+                if (originalSize !== backupSize) {
+                  console.error('❌ BACKUP: Size mismatch between original and backup!');
+                  errors.push(`${file.originalname}: Backup integrity check failed`);
+                } else {
+                  console.log('✅ BACKUP: Size verified for photo ID:', photo.id);
+                }
               } catch (error) {
                 console.error('❌ BACKUP: Failed to create backup for photo ID:', photo.id, error);
+                errors.push(`${file.originalname}: Backup creation failed`);
               }
             } else {
               console.error('❌ CRITICAL: Photo file missing immediately after upload!');
+              errors.push(`${file.originalname}: File not found after upload`);
             }
             uploadedPhotos.push(photo);
           } catch (error) {
@@ -310,14 +323,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log('✅ File successfully saved to disk:', req.file.path);
         
+        // Create immediate backup for persistence (same as photo gallery)
+        const fileExists = fs.existsSync(req.file.path);
+        console.log('📸 HERO UPLOAD SUCCESS: File created:', {
+          filename: req.file.filename,
+          fileExists,
+          path: req.file.path,
+          timestamp: new Date().toISOString()
+        });
+        
+        if (fileExists) {
+          try {
+            const backupPath = req.file.path + '.backup';
+            fs.copyFileSync(req.file.path, backupPath);
+            console.log('💾 HERO BACKUP: Created backup copy for hero image');
+          } catch (error) {
+            console.error('❌ HERO BACKUP: Failed to create backup:', error);
+          }
+        } else {
+          console.error('❌ CRITICAL: Hero image file missing immediately after upload!');
+          return res.status(500).json({ message: "File upload failed - file not persisted" });
+        }
+        
         const heroImagePath = `/uploads/location-${locationId}/${req.file.filename}`;
         console.log('🔍 Setting hero image path:', heroImagePath);
+        
+        // Add post-update verification
         const updatedLocation = await storage.updateLocationHeroImage(locationId, heroImagePath);
         
         if (!updatedLocation) {
           return res.status(404).json({ message: "Location not found" });
         }
         
+        // Final verification that file still exists after database update
+        if (!fs.existsSync(req.file.path)) {
+          console.error('❌ CRITICAL: Hero image disappeared after database update!');
+          console.error('Expected path:', req.file.path);
+          console.error('Directory contents:', fs.readdirSync(path.dirname(req.file.path)));
+          return res.status(500).json({ message: "File upload failed - file lost after database update" });
+        }
+        
+        console.log('✅ HERO UPLOAD COMPLETE: File persisted successfully');
         res.json({ 
           message: "Hero image uploaded successfully", 
           location: updatedLocation,
@@ -625,6 +671,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error getting affiliate clicks:", error);
       res.status(500).json({ message: "Failed to get clicks" });
+    }
+  });
+
+  // Add upload persistence status endpoint
+  app.get("/api/admin/upload-status", async (req, res) => {
+    try {
+      const status = await uploadPersistenceFix.getUploadStatus();
+      res.json(status);
+    } catch (error) {
+      console.error("Error getting upload status:", error);
+      res.status(500).json({ message: "Failed to get upload status" });
+    }
+  });
+
+  // Add emergency backup endpoint
+  app.post("/api/admin/emergency-backup", async (req, res) => {
+    try {
+      await uploadPersistenceFix.emergencyBackupAll();
+      res.json({ message: "Emergency backup completed" });
+    } catch (error) {
+      console.error("Error during emergency backup:", error);
+      res.status(500).json({ message: "Emergency backup failed" });
     }
   });
 
