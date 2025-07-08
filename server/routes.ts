@@ -113,7 +113,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const locationId = parseInt(req.params.id);
         
+        // Enhanced logging to debug mobile vs test file difference
+        console.log('🔍 UPLOAD DEBUG: Request details:', {
+          locationId,
+          contentType: req.get('content-type'),
+          contentLength: req.get('content-length'),
+          userAgent: req.get('user-agent'),
+          hasFiles: !!req.files,
+          fileCount: req.files ? req.files.length : 0,
+          body: Object.keys(req.body),
+          timestamp: new Date().toISOString()
+        });
+        
         if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
+          console.log('❌ MOBILE DEBUG: No files received');
+          console.log('🔍 req.files:', req.files);
+          console.log('🔍 req.body:', req.body);
           return res.status(400).json({ message: "No files uploaded" });
         }
         
@@ -154,7 +169,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
               caption: file.originalname // Use filename as default caption
             });
             
-            console.log('Photo created successfully:', photo);
+            console.log('📸 MOBILE DEBUG: Photo created successfully:', {
+              id: photo.id,
+              filename: photo.filename,
+              fileExists: fs.existsSync(file.path),
+              timestamp: new Date().toISOString()
+            });
             uploadedPhotos.push(photo);
           } catch (error) {
             console.error('Error processing file:', file.originalname, error);
