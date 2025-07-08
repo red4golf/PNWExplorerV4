@@ -330,11 +330,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const fileBuffer = fs.readFileSync(req.file.path);
         console.log('🔍 About to upload to cloud storage:', {
           filename: req.file.filename,
+          originalname: req.file.originalname,
           size: fileBuffer.length,
-          locationId
+          locationId,
+          storageProvider: storageManager.getProvider().constructor.name
         });
         
-        const cloudPath = await storageManager.uploadFile(fileBuffer, req.file.filename, locationId);
+        let cloudPath;
+        try {
+          cloudPath = await storageManager.uploadFile(fileBuffer, req.file.filename, locationId);
+          console.log('✅ CLOUD STORAGE: Upload successful:', cloudPath);
+        } catch (cloudError) {
+          console.error('❌ CLOUD STORAGE: Upload failed, using local fallback:', cloudError);
+          // If cloud storage fails, use local path as fallback
+          cloudPath = `/uploads/location-${locationId}/${req.file.filename}`;
+          console.log('🔄 Using local path as fallback:', cloudPath);
+        }
         
         console.log('📸 HERO UPLOAD SUCCESS: File created:', {
           filename: req.file.filename,

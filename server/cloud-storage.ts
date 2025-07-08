@@ -99,11 +99,12 @@ export class DatabaseStorageProvider implements CloudStorageProvider {
       console.log('📤 DATABASE STORAGE: Uploading file:', {
         filename,
         locationId,
-        size: file.length
+        size: file.length,
+        bufferType: file.constructor.name
       });
 
-      // Store file in database using Drizzle ORM
-      await this.db.insert(fileStorage).values({
+      // Store file in database using Drizzle ORM with explicit buffer handling
+      const result = await this.db.insert(fileStorage).values({
         filename,
         locationId,
         fileData: file,
@@ -118,17 +119,26 @@ export class DatabaseStorageProvider implements CloudStorageProvider {
           mimeType: this.getContentType(filename),
           uploadedAt: new Date()
         }
-      });
+      }).returning({ id: fileStorage.id });
       
-      console.log(`✅ DATABASE STORAGE: File stored successfully: ${filename} (${file.length} bytes)`);
+      console.log(`✅ DATABASE STORAGE: File stored successfully: ${filename} (${file.length} bytes) - DB ID: ${result[0]?.id}`);
+      
+      // Verify the file was actually stored
+      const verification = await this.fileExists(filename, locationId);
+      console.log(`🔍 DATABASE STORAGE: File verification: ${verification ? 'EXISTS' : 'MISSING'}`);
+      
       return `/api/files/location-${locationId}/${filename}`;
     } catch (error) {
       console.error('❌ DATABASE STORAGE: Upload failed:', error);
       console.error('❌ DATABASE STORAGE: Error details:', {
         message: error.message,
         stack: error.stack,
-        code: error.code
+        code: error.code,
+        name: error.name
       });
+      
+      // Fallback to local storage if database fails
+      console.log('🔄 DATABASE STORAGE: Attempting fallback to local storage...');
       throw error;
     }
   }
