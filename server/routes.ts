@@ -11,31 +11,61 @@ import path from "path";
 import fs from "fs";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Configure multer for file uploads
+  // Configure multer for file uploads with location-specific folders
   const storage_config = multer.diskStorage({
     destination: (req, file, cb) => {
-      const uploadsDir = path.join(process.cwd(), 'uploads');
-      console.log('Multer destination check:', { 
+      const locationId = req.params.id;
+      const baseUploadsDir = path.join(process.cwd(), 'uploads');
+      const locationDir = path.join(baseUploadsDir, `location-${locationId}`);
+      
+      console.log('Multer destination setup:', { 
         cwd: process.cwd(), 
-        uploadsDir, 
-        exists: fs.existsSync(uploadsDir) 
+        locationId,
+        baseUploadsDir, 
+        locationDir,
+        baseExists: fs.existsSync(baseUploadsDir),
+        locationExists: fs.existsSync(locationDir)
       });
       
-      if (!fs.existsSync(uploadsDir)) {
+      // Create base uploads directory if needed
+      if (!fs.existsSync(baseUploadsDir)) {
         try {
-          fs.mkdirSync(uploadsDir, { recursive: true });
-          console.log('Created uploads directory:', uploadsDir);
+          fs.mkdirSync(baseUploadsDir, { recursive: true });
+          console.log('Created base uploads directory:', baseUploadsDir);
         } catch (error) {
-          console.error('Failed to create uploads directory:', error);
-          return cb(new Error(`Failed to create uploads directory: ${error}`), uploadsDir);
+          console.error('Failed to create base uploads directory:', error);
+          return cb(new Error(`Failed to create base uploads directory: ${error}`), baseUploadsDir);
         }
       }
-      cb(null, uploadsDir);
+      
+      // Create location-specific directory
+      if (!fs.existsSync(locationDir)) {
+        try {
+          fs.mkdirSync(locationDir, { recursive: true });
+          console.log('Created location directory:', locationDir);
+        } catch (error) {
+          console.error('Failed to create location directory:', error);
+          return cb(new Error(`Failed to create location directory: ${error}`), locationDir);
+        }
+      }
+      
+      // Test write permissions
+      const testFile = path.join(locationDir, 'test-write.tmp');
+      try {
+        fs.writeFileSync(testFile, 'test');
+        fs.unlinkSync(testFile);
+        console.log('Write permissions confirmed for:', locationDir);
+      } catch (error) {
+        console.error('Write permission test failed:', error);
+        return cb(new Error(`No write permissions: ${error}`), locationDir);
+      }
+      
+      cb(null, locationDir);
     },
     filename: (req, file, cb) => {
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      const filename = 'location-' + uniqueSuffix + path.extname(file.originalname);
-      console.log('Multer filename generated:', filename);
+      const filename = 'photo-' + uniqueSuffix + path.extname(file.originalname);
+      console.log('Multer filename generated:', filename, 'for location:', req.params.id);
       cb(null, filename);
     }
   });
@@ -72,17 +102,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Serve uploaded images statically
+  // Serve uploaded images statically with better error handling
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads'), {
     maxAge: '1d', // Cache for 1 day
     etag: true,
     lastModified: true,
-    setHeaders: (res) => {
+    dotfiles: 'deny',
+    setHeaders: (res, path) => {
+      console.log('Serving static file:', path);
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'GET');
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     }
   }));
+  
+  // Handle 404s for missing images gracefully
+  app.use('/uploads', (req, res) => {
+    console.error('Image not found:', req.path);
+    res.status(404).json({ error: 'Image not found' });
+  });
   
   // Upload multiple photos for location
   app.post("/api/admin/locations/:id/upload-photos", (req, res) => {
@@ -159,7 +197,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             console.log('✅ File successfully saved to disk:', file.path);
             
-            const photoPath = `/uploads/${file.filename}`;
+            const photoPath = `/uploads/location-${locationId}/${file.filename}`;
             console.log('Creating photo database entry:', {
               locationId,
               filename: photoPath,
