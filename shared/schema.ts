@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, real } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, real, unique } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -58,6 +58,18 @@ export const affiliateClicks = pgTable("affiliate_clicks", {
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
 });
+
+export const fileStorage = pgTable("file_storage", {
+  id: serial("id").primaryKey(),
+  filename: text("filename").notNull(),
+  locationId: integer("location_id").notNull(),
+  fileData: text("file_data").notNull(), // Using text for base64 encoding
+  fileSize: integer("file_size").notNull(),
+  mimeType: text("mime_type"),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+}, (table) => ({
+  uniqueFilename: unique().on(table.filename, table.locationId),
+}));
 
 export const insertLocationSchema = createInsertSchema(locations).omit({
   id: true,

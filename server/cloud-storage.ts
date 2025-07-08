@@ -1,6 +1,8 @@
 import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { nanoid } from 'nanoid';
+import { fileStorage } from '../shared/schema';
+import { eq, and } from 'drizzle-orm';
 
 // Cloud Storage Interface for handling persistent uploads
 export interface CloudStorageProvider {
@@ -76,33 +78,24 @@ export class DatabaseStorageProvider implements CloudStorageProvider {
 
   constructor(db: any) {
     this.db = db;
-    this.initializeStorage();
+    this.initializeStorage().catch(error => {
+      console.error('❌ Critical: Database storage initialization failed:', error);
+    });
   }
 
   private async initializeStorage() {
     try {
-      // Create file storage table if it doesn't exist
-      await this.db.execute(`
-        CREATE TABLE IF NOT EXISTS file_storage (
-          id SERIAL PRIMARY KEY,
-          filename TEXT NOT NULL,
-          location_id INTEGER NOT NULL,
-          file_data BYTEA NOT NULL,
-          file_size INTEGER NOT NULL,
-          mime_type TEXT,
-          uploaded_at TIMESTAMP DEFAULT NOW(),
-          UNIQUE(filename, location_id)
-        )
-      `);
+      // Initialize database storage - table will be created via migrations
       console.log('✅ Database file storage initialized');
     } catch (error) {
       console.error('❌ Failed to initialize database storage:', error);
+      throw error;
     }
   }
 
   async uploadFile(file: Buffer, filename: string, locationId: number): Promise<string> {
     try {
-      // Store file in database
+      // Store file in database using raw SQL for bytea compatibility
       await this.db.execute(`
         INSERT INTO file_storage (filename, location_id, file_data, file_size, mime_type)
         VALUES ($1, $2, $3, $4, $5)
@@ -114,9 +107,10 @@ export class DatabaseStorageProvider implements CloudStorageProvider {
       `, [filename, locationId, file, file.length, 'image/jpeg']);
       
       console.log(`✅ File stored in database: ${filename} (${file.length} bytes)`);
-      return `/uploads/location-${locationId}/${filename}`;
+      return `/api/files/location-${locationId}/${filename}`;
     } catch (error) {
       console.error('❌ Failed to store file in database:', error);
+      console.error('Error details:', error);
       throw error;
     }
   }
@@ -143,6 +137,7 @@ export class DatabaseStorageProvider implements CloudStorageProvider {
       const result = await this.db.execute(`
         SELECT 1 FROM file_storage 
         WHERE filename = $1 AND location_id = $2
+        LIMIT 1
       `, [filename, locationId]);
       return result.rows.length > 0;
     } catch (error) {
@@ -156,6 +151,7 @@ export class DatabaseStorageProvider implements CloudStorageProvider {
       const result = await this.db.execute(`
         SELECT file_data FROM file_storage 
         WHERE filename = $1 AND location_id = $2
+        LIMIT 1
       `, [filename, locationId]);
       
       if (result.rows.length > 0) {
@@ -182,8 +178,13 @@ export class StorageManager {
     
     if (isDeployed) {
       console.log('🌐 Using database storage for deployed environment');
-      const { db } = require('./db');
-      this.provider = new DatabaseStorageProvider(db);
+      try {
+        const { db } = require('./db');
+        this.provider = new DatabaseStorageProvider(db);
+      } catch (error) {
+        console.error('❌ Failed to initialize database storage, falling back to local storage:', error);
+        this.provider = new LocalStorageProvider();
+      }
     } else {
       console.log('💾 Using local storage for preview environment');
       this.provider = new LocalStorageProvider();
