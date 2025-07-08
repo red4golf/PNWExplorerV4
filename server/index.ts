@@ -16,17 +16,17 @@ app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
-// Initialize photo preservation system
-(async () => {
-  // Skip photo restoration - starting fresh
-  await photoGuardian.initialize();
-  
-  // Run photo integrity check
-  await photoPersistenceManager.validatePhotosIntegrity();
-  
-  // Start automated backup system
-  photoBackupScheduler.startScheduledBackups();
-})();
+// Photo system disabled for fresh start
+// (async () => {
+//   // Skip photo restoration - starting fresh
+//   await photoGuardian.initialize();
+//   
+//   // Run photo integrity check
+//   await photoPersistenceManager.validatePhotosIntegrity();
+//   
+//   // Start automated backup system
+//   photoBackupScheduler.startScheduledBackups();
+// })();
 
 app.use((req, res, next) => {
   const start = Date.now();

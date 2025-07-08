@@ -41,7 +41,7 @@ async function seed() {
         category: "Transportation Hub",
         period: "Established 1951",
         submitterName: "Island Historical Society",
-        submitterEmail: "info@bainbridgehistory.org",
+        submitterEmail: "info@pnwhistory.org",
         status: "approved",
       },
       {
@@ -76,8 +76,8 @@ async function seed() {
         longitude: -122.5651,
         category: "Agricultural Heritage",
         period: "1900s-1940s",
-        submitterName: "Bainbridge Island Historical Museum",
-        submitterEmail: "curator@bainbridgehistory.org",
+        submitterName: "Pacific Northwest Historical Museum",
+        submitterEmail: "curator@pnwhistory.org",
         status: "approved",
       },
       {

@@ -12,7 +12,7 @@ export default function Footer() {
               <h3 className="text-xl font-bold">Historical Explorer</h3>
             </div>
             <p className="text-gray-300 mb-4">
-              Preserving and sharing the rich history of Bainbridge Island for future generations.
+              Preserving and sharing the rich history of the Pacific Northwest for future generations.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-heritage-gold hover:text-white transition-colors">
@@ -108,7 +108,7 @@ export default function Footer() {
         
         <div className="border-t border-heritage-olive mt-12 pt-8 text-center">
           <p className="text-gray-300">
-            &copy; 2024 Bainbridge Island Historical Places Explorer. All rights reserved.
+            &copy; 2024 Pacific Northwest Historical Explorer. All rights reserved.
           </p>
         </div>
       </div>
