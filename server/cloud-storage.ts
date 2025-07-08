@@ -3,6 +3,7 @@ import { join } from 'path';
 import { nanoid } from 'nanoid';
 import { fileStorage } from '../shared/schema';
 import { eq, and } from 'drizzle-orm';
+import { db } from './db';
 
 // Cloud Storage Interface for handling persistent uploads
 export interface CloudStorageProvider {
@@ -95,23 +96,57 @@ export class DatabaseStorageProvider implements CloudStorageProvider {
 
   async uploadFile(file: Buffer, filename: string, locationId: number): Promise<string> {
     try {
-      // Store file in database using raw SQL for bytea compatibility
-      await this.db.execute(`
-        INSERT INTO file_storage (filename, location_id, file_data, file_size, mime_type)
-        VALUES ($1, $2, $3, $4, $5)
-        ON CONFLICT (filename, location_id) 
-        DO UPDATE SET 
-          file_data = EXCLUDED.file_data,
-          file_size = EXCLUDED.file_size,
-          uploaded_at = NOW()
-      `, [filename, locationId, file, file.length, 'image/jpeg']);
+      console.log('📤 DATABASE STORAGE: Uploading file:', {
+        filename,
+        locationId,
+        size: file.length
+      });
+
+      // Store file in database using Drizzle ORM
+      await this.db.insert(fileStorage).values({
+        filename,
+        locationId,
+        fileData: file,
+        fileSize: file.length,
+        mimeType: this.getContentType(filename),
+        uploadedAt: new Date()
+      }).onConflictDoUpdate({
+        target: [fileStorage.filename, fileStorage.locationId],
+        set: {
+          fileData: file,
+          fileSize: file.length,
+          mimeType: this.getContentType(filename),
+          uploadedAt: new Date()
+        }
+      });
       
-      console.log(`✅ File stored in database: ${filename} (${file.length} bytes)`);
+      console.log(`✅ DATABASE STORAGE: File stored successfully: ${filename} (${file.length} bytes)`);
       return `/api/files/location-${locationId}/${filename}`;
     } catch (error) {
-      console.error('❌ Failed to store file in database:', error);
-      console.error('Error details:', error);
+      console.error('❌ DATABASE STORAGE: Upload failed:', error);
+      console.error('❌ DATABASE STORAGE: Error details:', {
+        message: error.message,
+        stack: error.stack,
+        code: error.code
+      });
       throw error;
+    }
+  }
+
+  private getContentType(filename: string): string {
+    const ext = filename.toLowerCase().split('.').pop();
+    switch (ext) {
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'webp':
+        return 'image/webp';
+      default:
+        return 'application/octet-stream';
     }
   }
 
@@ -121,10 +156,11 @@ export class DatabaseStorageProvider implements CloudStorageProvider {
 
   async deleteFile(filename: string, locationId: number): Promise<boolean> {
     try {
-      await this.db.execute(`
-        DELETE FROM file_storage 
-        WHERE filename = $1 AND location_id = $2
-      `, [filename, locationId]);
+      await this.db.delete(fileStorage)
+        .where(and(
+          eq(fileStorage.filename, filename),
+          eq(fileStorage.locationId, locationId)
+        ));
       return true;
     } catch (error) {
       console.error('Error deleting file from database:', error);
@@ -134,12 +170,16 @@ export class DatabaseStorageProvider implements CloudStorageProvider {
 
   async fileExists(filename: string, locationId: number): Promise<boolean> {
     try {
-      const result = await this.db.execute(`
-        SELECT 1 FROM file_storage 
-        WHERE filename = $1 AND location_id = $2
-        LIMIT 1
-      `, [filename, locationId]);
-      return result.rows.length > 0;
+      const result = await this.db.select({
+        id: fileStorage.id
+      })
+      .from(fileStorage)
+      .where(and(
+        eq(fileStorage.filename, filename),
+        eq(fileStorage.locationId, locationId)
+      ))
+      .limit(1);
+      return result.length > 0;
     } catch (error) {
       console.error('Error checking file existence:', error);
       return false;
@@ -148,14 +188,18 @@ export class DatabaseStorageProvider implements CloudStorageProvider {
 
   async getFileData(filename: string, locationId: number): Promise<Buffer | null> {
     try {
-      const result = await this.db.execute(`
-        SELECT file_data FROM file_storage 
-        WHERE filename = $1 AND location_id = $2
-        LIMIT 1
-      `, [filename, locationId]);
+      const result = await this.db.select({
+        file_data: fileStorage.fileData
+      })
+      .from(fileStorage)
+      .where(and(
+        eq(fileStorage.filename, filename),
+        eq(fileStorage.locationId, locationId)
+      ))
+      .limit(1);
       
-      if (result.rows.length > 0) {
-        return Buffer.from(result.rows[0].file_data);
+      if (result.length > 0) {
+        return Buffer.from(result[0].file_data);
       }
       return null;
     } catch (error) {
@@ -174,21 +218,24 @@ export class StorageManager {
     // Detect environment and choose appropriate provider
     const isDeployed = process.env.NODE_ENV === 'production' || 
                       process.env.REPLIT_DEPLOYMENT === 'true' ||
+                      process.env.REPLIT_ENVIRONMENT === 'production' ||
                       !process.env.REPLIT_DEV_DOMAIN ||
                       process.env.FORCE_DATABASE_STORAGE === 'true';
     
     console.log('🔍 Environment detection:', {
       NODE_ENV: process.env.NODE_ENV,
       REPLIT_DEPLOYMENT: process.env.REPLIT_DEPLOYMENT,
+      REPLIT_ENVIRONMENT: process.env.REPLIT_ENVIRONMENT,
       REPLIT_DEV_DOMAIN: process.env.REPLIT_DEV_DOMAIN,
+      FORCE_DATABASE_STORAGE: process.env.FORCE_DATABASE_STORAGE,
       isDeployed
     });
     
     if (isDeployed) {
       console.log('🌐 Using database storage for deployed environment');
       try {
-        const { db } = require('./db');
         this.provider = new DatabaseStorageProvider(db);
+        console.log('✅ Database storage provider initialized');
       } catch (error) {
         console.error('❌ Failed to initialize database storage, falling back to local storage:', error);
         this.provider = new LocalStorageProvider();

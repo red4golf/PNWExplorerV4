@@ -676,23 +676,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/files/location-:locationId/:filename", async (req, res) => {
     try {
       const { locationId, filename } = req.params;
+      console.log('📁 FILE REQUEST:', { locationId, filename });
+      
       const provider = storageManager.getProvider();
       
       if (provider instanceof DatabaseStorageProvider) {
         const fileData = await (provider as any).getFileData(filename, parseInt(locationId));
         
         if (fileData) {
-          res.setHeader('Content-Type', 'image/jpeg');
-          res.setHeader('Cache-Control', 'public, max-age=86400');
+          // Get content type based on file extension
+          const ext = filename.toLowerCase().split('.').pop();
+          let contentType = 'application/octet-stream';
+          switch (ext) {
+            case 'jpg':
+            case 'jpeg':
+              contentType = 'image/jpeg';
+              break;
+            case 'png':
+              contentType = 'image/png';
+              break;
+            case 'gif':
+              contentType = 'image/gif';
+              break;
+            case 'webp':
+              contentType = 'image/webp';
+              break;
+          }
+          
+          res.setHeader('Content-Type', contentType);
+          res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year cache
           res.send(fileData);
+          console.log('✅ FILE SERVED:', { filename, size: fileData.length, contentType });
         } else {
+          console.log('❌ FILE NOT FOUND:', { filename, locationId });
           res.status(404).json({ error: 'File not found' });
         }
       } else {
-        res.status(404).json({ error: 'File not found' });
+        console.log('❌ LOCAL STORAGE PROVIDER - FILE NOT SERVED:', { filename, locationId });
+        res.status(404).json({ error: 'File not found in database storage' });
       }
     } catch (error) {
-      console.error('Error serving file:', error);
+      console.error('❌ ERROR SERVING FILE:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
