@@ -82,15 +82,39 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPhotosByLocationId(locationId: number): Promise<Photo[]> {
-    return await db.select().from(photos).where(eq(photos.locationId, locationId));
+    console.log('🔍 STORAGE: Fetching photos for location:', locationId);
+    const result = await db.select().from(photos).where(eq(photos.locationId, locationId));
+    console.log('📊 STORAGE: Found photos count:', result.length);
+    if (result.length > 0) {
+      console.log('📸 STORAGE: Photo filenames:', result.map(p => p.filename));
+    }
+    return result;
   }
 
   async createPhoto(insertPhoto: InsertPhoto): Promise<Photo> {
-    const [photo] = await db
-      .insert(photos)
-      .values(insertPhoto)
-      .returning();
-    return photo;
+    console.log('💾 STORAGE: Creating photo record:', insertPhoto);
+    
+    try {
+      const [photo] = await db
+        .insert(photos)
+        .values(insertPhoto)
+        .returning();
+      
+      console.log('✅ STORAGE: Photo created successfully:', { 
+        id: photo.id, 
+        locationId: photo.locationId, 
+        filename: photo.filename 
+      });
+      
+      // Verify the photo was actually saved
+      const verification = await db.select().from(photos).where(eq(photos.id, photo.id));
+      console.log('🔍 STORAGE: Verification check:', verification.length > 0 ? 'FOUND' : 'NOT FOUND');
+      
+      return photo;
+    } catch (error) {
+      console.error('❌ STORAGE: Failed to create photo:', error);
+      throw error;
+    }
   }
 
   async deletePhoto(photoId: number): Promise<boolean> {
