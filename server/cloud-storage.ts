@@ -174,7 +174,8 @@ export class StorageManager {
     // Detect environment and choose appropriate provider
     const isDeployed = process.env.NODE_ENV === 'production' || 
                       process.env.REPLIT_DEPLOYMENT === 'true' ||
-                      !process.env.REPLIT_DEV_DOMAIN;
+                      !process.env.REPLIT_DEV_DOMAIN ||
+                      process.env.FORCE_DATABASE_STORAGE === 'true';
     
     console.log('🔍 Environment detection:', {
       NODE_ENV: process.env.NODE_ENV,
