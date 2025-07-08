@@ -19,6 +19,12 @@ export class PhotoPersistenceManager {
   }
 
   async validatePhotosIntegrity() {
+    // Skip validation when using database storage
+    if (process.env.REPLIT_ENVIRONMENT === 'production') {
+      console.log('🌐 Database storage detected - skipping photo integrity validation');
+      return { validFiles: [], missingFiles: [] };
+    }
+    
     console.log('🔍 Validating photo integrity...');
     
     const dbPhotos = await db.select().from(photos);

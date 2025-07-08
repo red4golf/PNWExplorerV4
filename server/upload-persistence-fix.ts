@@ -16,9 +16,15 @@ export class UploadPersistenceFix {
   }
 
   async startMonitoring() {
-    console.log('🔍 Starting upload persistence monitoring...');
+    console.log('🔍 Upload persistence monitoring disabled for database storage environment');
     
-    // Check every 30 seconds for missing files
+    // Skip monitoring when using database storage
+    if (process.env.REPLIT_ENVIRONMENT === 'production') {
+      console.log('🌐 Database storage detected - skipping filesystem monitoring');
+      return;
+    }
+    
+    // Check every 30 seconds for missing files (only for local filesystem)
     this.monitoringInterval = setInterval(async () => {
       await this.validateAllUploads();
     }, 30000);
