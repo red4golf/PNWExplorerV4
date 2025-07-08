@@ -102,17 +102,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Serve uploaded images statically with better error handling
+  // Enhanced static file serving with better persistence
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads'), {
     maxAge: '1d', // Cache for 1 day
     etag: true,
     lastModified: true,
     dotfiles: 'deny',
-    setHeaders: (res, path) => {
-      console.log('Serving static file:', path);
+    immutable: false, // Allow file updates
+    setHeaders: (res, filePath) => {
+      console.log('📸 Serving photo:', filePath);
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'GET');
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      res.setHeader('Cache-Control', 'public, max-age=86400'); // 1 day cache
     }
   }));
   

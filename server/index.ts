@@ -3,11 +3,9 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import "./ensure-uploads";
 import { preservePhotos, restorePhotos } from "./migrations/preserve-photos";
-// Photo systems disabled for stable uploads
-// import { photoGuardian } from "./photo-guardian";
-// import { photoPersistenceManager } from "./photo-persistence";
-// import { photoBackupScheduler } from "./photo-backup-scheduler";
-// import "./photo-recovery"; // Disabled for stable uploads
+// Enhanced static file serving for photo persistence
+import { photoPersistenceManager } from "./photo-persistence";
+import { photoBackupScheduler } from "./photo-backup-scheduler";
 import path from "path";
 
 const app = express();
@@ -78,7 +76,16 @@ app.use((req, res, next) => {
     port,
     host: "0.0.0.0",
     reusePort: true,
-  }, () => {
+  }, async () => {
     log(`serving on port ${port}`);
+    
+    // Initialize photo persistence validation and backup scheduler
+    try {
+      await photoPersistenceManager.validatePhotosIntegrity();
+      photoBackupScheduler.startScheduledBackups();
+      log('Photo persistence and backup systems initialized');
+    } catch (error) {
+      log(`Photo persistence warning: ${error}`);
+    }
   });
 })();

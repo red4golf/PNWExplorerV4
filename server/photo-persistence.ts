@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { db } from './db';
-import { photos } from '@shared/schema';
+import { photos } from '../shared/schema';
 
 export class PhotoPersistenceManager {
   private uploadsDir: string;
@@ -14,130 +14,134 @@ export class PhotoPersistenceManager {
   private ensureUploadsDirectory() {
     if (!fs.existsSync(this.uploadsDir)) {
       fs.mkdirSync(this.uploadsDir, { recursive: true });
-      console.log('✓ Created uploads directory');
+      console.log('📁 Created uploads directory:', this.uploadsDir);
     }
   }
 
   async validatePhotosIntegrity() {
     console.log('🔍 Validating photo integrity...');
     
-    const allPhotos = await db.select().from(photos);
-    const missingFiles: string[] = [];
-    const validPhotos: number = 0;
+    const dbPhotos = await db.select().from(photos);
+    const missingFiles = [];
+    const validFiles = [];
     
-    for (const photo of allPhotos) {
-      if (photo.filename.startsWith('/uploads/')) {
-        const filePath = path.join(process.cwd(), photo.filename.substring(1));
-        if (!fs.existsSync(filePath)) {
-          missingFiles.push(`${photo.filename} (ID: ${photo.id})`);
-          console.warn(`⚠️ Missing file: ${photo.filename}`);
-        }
+    for (const photo of dbPhotos) {
+      const fullPath = path.join(process.cwd(), photo.filename.replace(/^\//, ''));
+      
+      if (fs.existsSync(fullPath)) {
+        validFiles.push(photo);
+      } else {
+        missingFiles.push(photo);
+        console.log(`❌ Missing file: ${photo.filename} (ID: ${photo.id})`);
       }
     }
     
-    const report = {
-      totalPhotos: allPhotos.length,
-      localPhotos: allPhotos.filter(p => p.filename.startsWith('/uploads/')).length,
-      externalPhotos: allPhotos.filter(p => p.filename.startsWith('http')).length,
-      missingFiles: missingFiles.length,
-      missingFilesList: missingFiles
-    };
+    console.log(`✅ Valid files: ${validFiles.length}`);
+    console.log(`❌ Missing files: ${missingFiles.length}`);
     
-    console.log('📊 Photo Integrity Report:', report);
-    return report;
+    return { validFiles, missingFiles };
   }
 
   async createBackupSnapshot() {
-    console.log('📸 Creating photo backup snapshot...');
+    console.log('💾 Creating backup snapshot...');
     
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const backupDir = path.join(this.uploadsDir, 'backups', timestamp);
-    
+    const backupDir = path.join(this.uploadsDir, 'backups');
     if (!fs.existsSync(backupDir)) {
       fs.mkdirSync(backupDir, { recursive: true });
     }
     
-    // Copy all files in uploads to backup
-    const files = fs.readdirSync(this.uploadsDir);
-    let copiedFiles = 0;
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const backupPath = path.join(backupDir, `backup-${timestamp}.json`);
     
-    for (const file of files) {
-      const sourcePath = path.join(this.uploadsDir, file);
-      const destPath = path.join(backupDir, file);
-      
-      if (fs.statSync(sourcePath).isFile()) {
-        fs.copyFileSync(sourcePath, destPath);
-        copiedFiles++;
-      }
-    }
+    const dbPhotos = await db.select().from(photos);
+    const backupData = {
+      timestamp: new Date().toISOString(),
+      photoCount: dbPhotos.length,
+      photos: dbPhotos
+    };
     
-    console.log(`✅ Backup created: ${copiedFiles} files backed up to ${backupDir}`);
-    return backupDir;
+    fs.writeFileSync(backupPath, JSON.stringify(backupData, null, 2));
+    console.log('💾 Backup created:', backupPath);
+    
+    return backupPath;
   }
 
   async purgeTemporaryFiles() {
-    console.log('🧹 Cleaning temporary files...');
+    const tempFiles = fs.readdirSync(this.uploadsDir).filter(file => 
+      file.includes('temp') || file.includes('tmp') || file.startsWith('.')
+    );
     
-    const tempPatterns = [
-      /^temp-/,
-      /\.tmp$/,
-      /\.temp$/,
-      /~$/
-    ];
-    
-    const files = fs.readdirSync(this.uploadsDir);
-    let cleanedFiles = 0;
-    
-    for (const file of files) {
+    for (const file of tempFiles) {
       const filePath = path.join(this.uploadsDir, file);
-      
-      if (tempPatterns.some(pattern => pattern.test(file))) {
-        try {
-          fs.unlinkSync(filePath);
-          cleanedFiles++;
-          console.log(`🗑️ Removed temporary file: ${file}`);
-        } catch (error) {
-          console.error(`❌ Failed to remove ${file}:`, error);
-        }
+      try {
+        fs.unlinkSync(filePath);
+        console.log('🗑️ Purged temp file:', file);
+      } catch (error) {
+        console.error('❌ Failed to purge temp file:', file, error);
       }
     }
-    
-    console.log(`✅ Cleanup complete: ${cleanedFiles} temporary files removed`);
   }
 
   async generateFileReport() {
-    const uploadsFiles = fs.readdirSync(this.uploadsDir)
-      .filter(file => fs.statSync(path.join(this.uploadsDir, file)).isFile());
+    console.log('📊 Generating file report...');
     
-    const dbPhotos = await db.select().from(photos);
-    const dbFilenames = dbPhotos
-      .filter(p => p.filename.startsWith('/uploads/'))
-      .map(p => p.filename.replace('/uploads/', ''));
+    const { validFiles, missingFiles } = await this.validatePhotosIntegrity();
     
-    const orphanedFiles = uploadsFiles.filter(file => !dbFilenames.includes(file));
-    const missingFiles = dbFilenames.filter(filename => !uploadsFiles.includes(filename));
-    
-    return {
-      filesOnDisk: uploadsFiles.length,
-      filesInDatabase: dbFilenames.length,
-      orphanedFiles,
-      missingFiles,
-      diskUsage: this.calculateDiskUsage()
+    const report = {
+      timestamp: new Date().toISOString(),
+      diskUsage: this.calculateDiskUsage(),
+      database: {
+        totalPhotos: validFiles.length + missingFiles.length,
+        validPhotos: validFiles.length,
+        missingPhotos: missingFiles.length
+      },
+      filesystem: {
+        totalFiles: this.countFiles(),
+        totalSize: this.calculateTotalSize()
+      }
     };
+    
+    console.log('📊 File Report:', JSON.stringify(report, null, 2));
+    return report;
   }
 
   private calculateDiskUsage(): string {
-    let totalSize = 0;
-    const files = fs.readdirSync(this.uploadsDir);
-    
-    for (const file of files) {
-      const filePath = path.join(this.uploadsDir, file);
-      if (fs.statSync(filePath).isFile()) {
-        totalSize += fs.statSync(filePath).size;
-      }
+    try {
+      const stats = fs.statSync(this.uploadsDir);
+      const sizeInMB = Math.round(stats.size / 1024 / 1024 * 100) / 100;
+      return `${sizeInMB}MB`;
+    } catch (error) {
+      return 'unknown';
     }
-    
-    return `${(totalSize / 1024 / 1024).toFixed(2)} MB`;
+  }
+
+  private countFiles(): number {
+    try {
+      const files = fs.readdirSync(this.uploadsDir, { recursive: true });
+      return files.filter(file => typeof file === 'string' && !file.includes('/')).length;
+    } catch (error) {
+      return 0;
+    }
+  }
+
+  private calculateTotalSize(): string {
+    try {
+      let totalSize = 0;
+      const files = fs.readdirSync(this.uploadsDir, { recursive: true });
+      
+      for (const file of files) {
+        if (typeof file === 'string' && !file.includes('/')) {
+          const filePath = path.join(this.uploadsDir, file);
+          const stats = fs.statSync(filePath);
+          totalSize += stats.size;
+        }
+      }
+      
+      const sizeInMB = Math.round(totalSize / 1024 / 1024 * 100) / 100;
+      return `${sizeInMB}MB`;
+    } catch (error) {
+      return 'unknown';
+    }
   }
 }
 
