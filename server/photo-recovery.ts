@@ -3,17 +3,21 @@ import { photos } from "@shared/schema";
 
 // Emergency photo recovery system
 export async function emergencyPhotoRecovery() {
-  console.log("🚨 EMERGENCY PHOTO RECOVERY STARTING...");
-  
   try {
     // Check current photo count
     const currentPhotos = await db.select().from(photos);
-    console.log(`Current photos: ${currentPhotos.length}`);
     
     if (currentPhotos.length >= 40) {
-      console.log("✅ Photos look good, recovery not needed");
+      // Only log once per hour when photos are good
+      const now = new Date();
+      if (now.getMinutes() === 0) {
+        console.log("✅ Photos stable, recovery monitoring active");
+      }
       return;
     }
+    
+    console.log("🚨 EMERGENCY PHOTO RECOVERY STARTING...");
+    console.log(`Current photos: ${currentPhotos.length}`);
     
     // Restore from backup
     const restored = await db.execute(`
@@ -52,5 +56,5 @@ export async function emergencyPhotoRecovery() {
   }
 }
 
-// Run recovery every 5 seconds
-setInterval(emergencyPhotoRecovery, 5000);
+// Run recovery every 60 seconds (reduced frequency)
+setInterval(emergencyPhotoRecovery, 60000);

@@ -126,11 +126,15 @@ export class PhotoGuardian {
   }
 
   private startMonitoring() {
-    // Monitor every 10 seconds and restore if needed
+    // Monitor every 2 minutes (reduced frequency)
     this.backupInterval = setInterval(async () => {
       await this.backupAllPhotos();
-      await this.emergencyRestore();
-    }, 10000);
+      // Only restore if photos are actually missing
+      const currentPhotos = await db.select().from(photos).limit(1);
+      if (currentPhotos.length === 0) {
+        await this.emergencyRestore();
+      }
+    }, 120000);
   }
 
   async stop() {
