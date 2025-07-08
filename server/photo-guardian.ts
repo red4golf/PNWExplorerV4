@@ -126,15 +126,16 @@ export class PhotoGuardian {
   }
 
   private startMonitoring() {
-    // Monitor every 2 minutes (reduced frequency)
-    this.backupInterval = setInterval(async () => {
-      await this.backupAllPhotos();
-      // Only restore if photos are actually missing
-      const currentPhotos = await db.select().from(photos).limit(1);
-      if (currentPhotos.length === 0) {
-        await this.emergencyRestore();
-      }
-    }, 120000);
+    // Monitoring disabled for fresh start - no automatic photo restoration
+    console.log('🔍 Photo monitoring disabled - fresh start mode');
+    // this.backupInterval = setInterval(async () => {
+    //   await this.backupAllPhotos();
+    //   // Only restore if photos are actually missing
+    //   const currentPhotos = await db.select().from(photos).limit(1);
+    //   if (currentPhotos.length === 0) {
+    //     await this.emergencyRestore();
+    //   }
+    // }, 120000);
   }
 
   async stop() {
