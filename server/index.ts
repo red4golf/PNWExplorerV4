@@ -18,8 +18,7 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // Initialize photo preservation system
 (async () => {
-  await preservePhotos();
-  await restorePhotos();
+  // Skip photo restoration - starting fresh
   await photoGuardian.initialize();
   
   // Run photo integrity check
