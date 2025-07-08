@@ -289,9 +289,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/locations/:id/photos", async (req, res) => {
     try {
       const locationId = parseInt(req.params.id);
+      console.log('📸 DIAGNOSTIC: Fetching photos for location:', locationId);
       const photos = await storage.getPhotosByLocationId(locationId);
+      console.log('📸 DIAGNOSTIC: Found photos:', photos.length);
+      if (photos.length > 0) {
+        console.log('📸 DIAGNOSTIC: Photo details:', photos.map(p => ({ id: p.id, filename: p.filename })));
+      }
       res.json(photos);
     } catch (error) {
+      console.error('📸 DIAGNOSTIC: Error fetching photos:', error);
       res.status(500).json({ message: "Failed to fetch photos" });
     }
   });
