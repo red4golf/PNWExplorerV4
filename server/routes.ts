@@ -212,12 +212,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
               caption: file.originalname // Use filename as default caption
             });
             
-            console.log('📸 MOBILE DEBUG: Photo created successfully:', {
+            // Enhanced persistence validation and backup
+            const fileExists = fs.existsSync(file.path);
+            console.log('📸 UPLOAD SUCCESS: Photo created:', {
               id: photo.id,
               filename: photo.filename,
-              fileExists: fs.existsSync(file.path),
+              fileExists,
               timestamp: new Date().toISOString()
             });
+            
+            // Create immediate backup for persistence
+            if (fileExists) {
+              try {
+                const backupPath = file.path + '.backup';
+                fs.copyFileSync(file.path, backupPath);
+                console.log('💾 BACKUP: Created backup copy for photo ID:', photo.id);
+              } catch (error) {
+                console.error('❌ BACKUP: Failed to create backup for photo ID:', photo.id, error);
+              }
+            } else {
+              console.error('❌ CRITICAL: Photo file missing immediately after upload!');
+            }
             uploadedPhotos.push(photo);
           } catch (error) {
             console.error('Error processing file:', file.originalname, error);
