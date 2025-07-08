@@ -264,6 +264,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Upload hero image for location
   app.post("/api/admin/locations/:id/upload-hero", (req, res) => {
+    console.log('📸 Hero image upload request received for location:', req.params.id);
     upload.single('heroImage')(req, res, async (err) => {
       if (err) {
         console.error("Multer upload error:", err);
@@ -303,10 +304,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Verify file was actually saved to disk
         if (!fs.existsSync(req.file.path)) {
           console.error('Hero image not saved to disk:', req.file.path);
+          console.error('Expected path:', req.file.path);
+          console.error('Directory contents:', fs.readdirSync(path.dirname(req.file.path)));
           return res.status(500).json({ message: "File upload failed - file not saved" });
         }
         
+        console.log('✅ File successfully saved to disk:', req.file.path);
+        
         const heroImagePath = `/uploads/location-${locationId}/${req.file.filename}`;
+        console.log('🔍 Setting hero image path:', heroImagePath);
         const updatedLocation = await storage.updateLocationHeroImage(locationId, heroImagePath);
         
         if (!updatedLocation) {
