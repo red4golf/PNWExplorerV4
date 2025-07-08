@@ -176,6 +176,13 @@ export class StorageManager {
                       process.env.REPLIT_DEPLOYMENT === 'true' ||
                       !process.env.REPLIT_DEV_DOMAIN;
     
+    console.log('🔍 Environment detection:', {
+      NODE_ENV: process.env.NODE_ENV,
+      REPLIT_DEPLOYMENT: process.env.REPLIT_DEPLOYMENT,
+      REPLIT_DEV_DOMAIN: process.env.REPLIT_DEV_DOMAIN,
+      isDeployed
+    });
+    
     if (isDeployed) {
       console.log('🌐 Using database storage for deployed environment');
       try {

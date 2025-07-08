@@ -226,6 +226,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (fileExists) {
               try {
                 const fileBuffer = fs.readFileSync(file.path);
+                console.log('🔍 About to upload gallery photo to cloud storage:', {
+                  filename: file.originalname,
+                  size: fileBuffer.length,
+                  locationId,
+                  photoId: photo.id
+                });
+                
                 const cloudPath = await storageManager.uploadFile(fileBuffer, file.originalname, locationId);
                 
                 // Update photo record with cloud path
@@ -234,7 +241,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 console.log('✅ BACKUP: Photo ID', photo.id, 'stored in cloud');
               } catch (error) {
                 console.error('❌ CLOUD STORAGE: Failed to upload for photo ID:', photo.id, error);
-                errors.push(`${file.originalname}: Cloud storage upload failed`);
+                console.error('❌ CLOUD STORAGE Error details:', error.message, error.stack);
+                errors.push(`${file.originalname}: Cloud storage upload failed - ${error.message}`);
               }
             } else {
               console.error('❌ CRITICAL: Photo file missing immediately after upload!');
@@ -320,6 +328,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Use cloud storage manager for persistent storage
         const fileBuffer = fs.readFileSync(req.file.path);
+        console.log('🔍 About to upload to cloud storage:', {
+          filename: req.file.filename,
+          size: fileBuffer.length,
+          locationId
+        });
+        
         const cloudPath = await storageManager.uploadFile(fileBuffer, req.file.filename, locationId);
         
         console.log('📸 HERO UPLOAD SUCCESS: File created:', {
