@@ -2,7 +2,7 @@ import type { Express } from "express";
 import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertLocationSchema, insertFeedbackSchema, insertAffiliateClickSchema, locations } from "@shared/schema";
+import { insertLocationSchema, insertFeedbackSchema, insertAffiliateClickSchema, insertUserAnalyticsSchema, locations } from "@shared/schema";
 import { z } from "zod";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -751,6 +751,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error during emergency backup:", error);
       res.status(500).json({ message: "Emergency backup failed" });
+    }
+  });
+
+  // Analytics tracking endpoints
+  app.post("/api/analytics", async (req, res) => {
+    try {
+      const analyticsData = insertUserAnalyticsSchema.parse({
+        ...req.body,
+        userAgent: req.get('User-Agent'),
+        ipAddress: req.ip || req.connection.remoteAddress || "unknown",
+        referrer: req.get('Referer')
+      });
+      
+      const analytics = await storage.createAnalyticsEvent(analyticsData);
+      res.json(analytics);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid analytics data", errors: error.errors });
+      }
+      console.error("Error creating analytics event:", error);
+      res.status(500).json({ message: "Failed to track analytics" });
+    }
+  });
+
+  // Get analytics stats (admin only)
+  app.get("/api/admin/analytics/stats", async (req, res) => {
+    try {
+      const stats = await storage.getAnalyticsStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error getting analytics stats:", error);
+      res.status(500).json({ message: "Failed to get analytics stats" });
+    }
+  });
+
+  // Get analytics by event type (admin only)
+  app.get("/api/admin/analytics/events/:eventType", async (req, res) => {
+    try {
+      const { eventType } = req.params;
+      const events = await storage.getAnalyticsByEventType(eventType);
+      res.json(events);
+    } catch (error) {
+      console.error("Error getting analytics by event type:", error);
+      res.status(500).json({ message: "Failed to get analytics events" });
+    }
+  });
+
+  // Get analytics by location (admin only)
+  app.get("/api/admin/analytics/locations/:locationId", async (req, res) => {
+    try {
+      const locationId = parseInt(req.params.locationId);
+      const events = await storage.getAnalyticsByLocation(locationId);
+      res.json(events);
+    } catch (error) {
+      console.error("Error getting analytics by location:", error);
+      res.status(500).json({ message: "Failed to get location analytics" });
     }
   });
 

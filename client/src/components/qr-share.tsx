@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Share2, Copy, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "../lib/queryClient";
 
 interface QRShareProps {
   url?: string;
@@ -16,9 +17,23 @@ export default function QRShare({ url = window.location.href, title = "Pacific N
   // Generate QR code URL using QR Server API (free service)
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
 
+  // Track analytics events
+  const trackAnalytics = async (eventType: string, metadata?: any) => {
+    try {
+      await apiRequest("POST", "/api/analytics", {
+        eventType,
+        metadata,
+        sessionId: sessionStorage.getItem('sessionId') || `session_${Date.now()}`
+      });
+    } catch (error) {
+      console.log("Analytics tracking failed:", error);
+    }
+  };
+
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(url);
+      await trackAnalytics("share_link", { method: "copy" });
       toast({
         title: "Link copied",
         description: "The app link has been copied to your clipboard.",
@@ -32,7 +47,8 @@ export default function QRShare({ url = window.location.href, title = "Pacific N
     }
   };
 
-  const downloadQR = () => {
+  const downloadQR = async () => {
+    await trackAnalytics("qr_scan", { method: "download" });
     const link = document.createElement('a');
     link.download = 'pnw-historical-explorer-qr.png';
     link.href = qrCodeUrl;
@@ -47,6 +63,7 @@ export default function QRShare({ url = window.location.href, title = "Pacific N
           text: "Explore historical locations throughout the Pacific Northwest",
           url: url,
         });
+        await trackAnalytics("share_link", { method: "native" });
       } catch (error) {
         // User cancelled or sharing failed
         copyToClipboard();
@@ -63,6 +80,7 @@ export default function QRShare({ url = window.location.href, title = "Pacific N
           variant="ghost" 
           size="sm"
           className="text-white/80 hover:text-white hover:bg-white/10 border border-white/20"
+          onClick={() => trackAnalytics("share_link", { method: "dialog_open" })}
         >
           <Share2 className="w-4 h-4 mr-2" />
           Share App

@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, real, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, real, unique, varchar, jsonb } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -71,6 +71,18 @@ export const fileStorage = pgTable("file_storage", {
   uniqueFilename: unique().on(table.filename, table.locationId),
 }));
 
+export const userAnalytics = pgTable("user_analytics", {
+  id: serial("id").primaryKey(),
+  eventType: varchar("event_type", { length: 50 }).notNull(), // 'qr_scan', 'share_link', 'page_view', 'location_view'
+  locationId: integer("location_id").references(() => locations.id),
+  referrer: text("referrer"),
+  userAgent: text("user_agent"),
+  ipAddress: varchar("ip_address", { length: 45 }),
+  sessionId: varchar("session_id", { length: 255 }),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  metadata: jsonb("metadata"), // Additional data like shared_via, qr_location, etc.
+});
+
 export const insertLocationSchema = createInsertSchema(locations).omit({
   id: true,
   createdAt: true,
@@ -95,6 +107,11 @@ export const insertFeedbackSchema = createInsertSchema(feedback).omit({
 export const insertAffiliateClickSchema = createInsertSchema(affiliateClicks).omit({
   id: true,
   clickedAt: true,
+});
+
+export const insertUserAnalyticsSchema = createInsertSchema(userAnalytics).omit({
+  id: true,
+  timestamp: true,
 });
 
 // Relations
@@ -135,3 +152,5 @@ export type InsertFeedback = z.infer<typeof insertFeedbackSchema>;
 export type Feedback = typeof feedback.$inferSelect;
 export type InsertAffiliateClick = z.infer<typeof insertAffiliateClickSchema>;
 export type AffiliateClick = typeof affiliateClicks.$inferSelect;
+export type InsertUserAnalytics = z.infer<typeof insertUserAnalyticsSchema>;
+export type UserAnalytics = typeof userAnalytics.$inferSelect;

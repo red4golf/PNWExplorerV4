@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, MapPin, Calendar, User, Navigation, ExternalLink, FileText, BookOpen } from "lucide-react";
 import { Link } from "wouter";
 import { getCategoryIcon, getCategoryColor, formatDate, getDirectionsUrl, calculateDistance } from "@/lib/utils";
+import { useAnalytics } from "@/hooks/use-analytics";
 import type { Location } from "@shared/schema";
 import { useState, useEffect } from "react";
 import ReactMarkdown from 'react-markdown';
@@ -19,6 +20,7 @@ export default function LocationDetail() {
   const [, params] = useRoute("/location/:id");
   const locationId = params?.id ? parseInt(params.id) : 0;
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const { trackLocationView } = useAnalytics();
 
   const { data: location, isLoading, error } = useQuery<Location>({
     queryKey: [`/api/locations/${locationId}`],
@@ -42,6 +44,13 @@ export default function LocationDetail() {
       );
     }
   }, []);
+
+  // Track location view when location data is loaded
+  useEffect(() => {
+    if (location) {
+      trackLocationView(location.id, location.name);
+    }
+  }, [location, trackLocationView]);
 
   if (isLoading) {
     return (

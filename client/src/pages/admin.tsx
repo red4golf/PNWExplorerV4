@@ -274,6 +274,11 @@ export default function Admin() {
     enabled: isAuthenticated,
   });
 
+  const { data: analyticsStats } = useQuery({
+    queryKey: ['/api/admin/analytics/stats'],
+    enabled: isAuthenticated,
+  });
+
   const loginMutation = useMutation({
     mutationFn: async (data: LoginForm) => {
       const response = await apiRequest("POST", "/api/admin/login", data);
@@ -1737,34 +1742,34 @@ export default function Admin() {
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <Card className="bg-blue-50 border-blue-200">
                     <CardContent className="p-4 text-center">
-                      <h4 className="font-semibold text-blue-900 mb-1">Total Locations</h4>
-                      <p className="text-2xl font-bold text-blue-700">{allLocations?.length || 0}</p>
+                      <h4 className="font-semibold text-blue-900 mb-1">Total Events</h4>
+                      <p className="text-2xl font-bold text-blue-700">{analyticsStats?.totalEvents || 0}</p>
                     </CardContent>
                   </Card>
                   
                   <Card className="bg-green-50 border-green-200">
                     <CardContent className="p-4 text-center">
-                      <h4 className="font-semibold text-green-900 mb-1">Approved</h4>
+                      <h4 className="font-semibold text-green-900 mb-1">QR Scans</h4>
                       <p className="text-2xl font-bold text-green-700">
-                        {allLocations?.filter(l => l.status === 'approved').length || 0}
+                        {analyticsStats?.qrScans || 0}
                       </p>
                     </CardContent>
                   </Card>
                   
                   <Card className="bg-yellow-50 border-yellow-200">
                     <CardContent className="p-4 text-center">
-                      <h4 className="font-semibold text-yellow-900 mb-1">Pending</h4>
+                      <h4 className="font-semibold text-yellow-900 mb-1">Share Links</h4>
                       <p className="text-2xl font-bold text-yellow-700">
-                        {allLocations?.filter(l => l.status === 'pending').length || 0}
+                        {analyticsStats?.shareLinks || 0}
                       </p>
                     </CardContent>
                   </Card>
                   
                   <Card className="bg-purple-50 border-purple-200">
                     <CardContent className="p-4 text-center">
-                      <h4 className="font-semibold text-purple-900 mb-1">With Stories</h4>
+                      <h4 className="font-semibold text-purple-900 mb-1">Location Views</h4>
                       <p className="text-2xl font-bold text-purple-700">
-                        {allLocations?.filter(l => l.content && l.content.length > 100).length || 0}
+                        {analyticsStats?.locationViews || 0}
                       </p>
                     </CardContent>
                   </Card>

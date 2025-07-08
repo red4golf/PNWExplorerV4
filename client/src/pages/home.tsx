@@ -11,12 +11,17 @@ import LocationCard from "@/components/location-card";
 import PhotoGallery from "@/components/photo-gallery";
 import FeedbackForm from "@/components/feedback-form";
 import QRShare from "@/components/qr-share";
+import { usePageView } from "@/hooks/use-analytics";
 import { MapPin, BookOpen, ArrowLeft, Menu, Plus, Settings, Users, Calendar, Mountain, Waves, TreePine, Factory, MessageCircle } from "lucide-react";
 import type { Location } from "@shared/schema";
 
 export default function Home() {
   const [showMap, setShowMap] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  
+  // Track page views
+  usePageView("home", { showMap });
+  
   const { data: locations, isLoading } = useQuery<Location[]>({
     queryKey: ["/api/locations"],
   });

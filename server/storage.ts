@@ -1,4 +1,4 @@
-import { locations, photos, admins, feedback, affiliateClicks, type Location, type InsertLocation, type Photo, type InsertPhoto, type Admin, type InsertAdmin, type Feedback, type InsertFeedback, type AffiliateClick, type InsertAffiliateClick } from "@shared/schema";
+import { locations, photos, admins, feedback, affiliateClicks, userAnalytics, type Location, type InsertLocation, type Photo, type InsertPhoto, type Admin, type InsertAdmin, type Feedback, type InsertFeedback, type AffiliateClick, type InsertAffiliateClick, type UserAnalytics, type InsertUserAnalytics } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
 
@@ -32,6 +32,12 @@ export interface IStorage {
   getAffiliateClicksByLocationId(locationId: number): Promise<AffiliateClick[]>;
   getAllAffiliateClicks(): Promise<AffiliateClick[]>;
   getAffiliateClicksStats(): Promise<{ totalClicks: number; clicksByLocation: { locationId: number; locationName: string; clicks: number; }[] }>;
+  
+  // Analytics methods
+  createAnalyticsEvent(analytics: InsertUserAnalytics): Promise<UserAnalytics>;
+  getAnalyticsStats(): Promise<{ totalEvents: number; qrScans: number; shareLinks: number; pageViews: number; locationViews: number; }>;
+  getAnalyticsByEventType(eventType: string): Promise<UserAnalytics[]>;
+  getAnalyticsByLocation(locationId: number): Promise<UserAnalytics[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -198,6 +204,48 @@ export class DatabaseStorage implements IStorage {
     }, [] as { locationId: number; locationName: string; clicks: number; }[]);
     
     return { totalClicks, clicksByLocation };
+  }
+
+  async createAnalyticsEvent(insertAnalytics: InsertUserAnalytics): Promise<UserAnalytics> {
+    const [analytics] = await db
+      .insert(userAnalytics)
+      .values(insertAnalytics)
+      .returning();
+    return analytics;
+  }
+
+  async getAnalyticsStats(): Promise<{ totalEvents: number; qrScans: number; shareLinks: number; pageViews: number; locationViews: number; }> {
+    const allEvents = await db.select().from(userAnalytics);
+    
+    const totalEvents = allEvents.length;
+    const qrScans = allEvents.filter(event => event.eventType === 'qr_scan').length;
+    const shareLinks = allEvents.filter(event => event.eventType === 'share_link').length;
+    const pageViews = allEvents.filter(event => event.eventType === 'page_view').length;
+    const locationViews = allEvents.filter(event => event.eventType === 'location_view').length;
+
+    return {
+      totalEvents,
+      qrScans,
+      shareLinks,
+      pageViews,
+      locationViews
+    };
+  }
+
+  async getAnalyticsByEventType(eventType: string): Promise<UserAnalytics[]> {
+    return await db
+      .select()
+      .from(userAnalytics)
+      .where(eq(userAnalytics.eventType, eventType))
+      .orderBy(desc(userAnalytics.timestamp));
+  }
+
+  async getAnalyticsByLocation(locationId: number): Promise<UserAnalytics[]> {
+    return await db
+      .select()
+      .from(userAnalytics)
+      .where(eq(userAnalytics.locationId, locationId))
+      .orderBy(desc(userAnalytics.timestamp));
   }
 }
 
