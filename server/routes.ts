@@ -306,7 +306,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json({ message: "File upload failed - file not saved" });
         }
         
-        const heroImagePath = `/uploads/${req.file.filename}`;
+        const heroImagePath = `/uploads/location-${locationId}/${req.file.filename}`;
         const updatedLocation = await storage.updateLocationHeroImage(locationId, heroImagePath);
         
         if (!updatedLocation) {
