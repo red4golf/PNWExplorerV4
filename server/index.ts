@@ -3,10 +3,11 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import "./ensure-uploads";
 import { preservePhotos, restorePhotos } from "./migrations/preserve-photos";
-import { photoGuardian } from "./photo-guardian";
-import { photoPersistenceManager } from "./photo-persistence";
-import { photoBackupScheduler } from "./photo-backup-scheduler";
-import "./photo-recovery";
+// Photo systems disabled for stable uploads
+// import { photoGuardian } from "./photo-guardian";
+// import { photoPersistenceManager } from "./photo-persistence";
+// import { photoBackupScheduler } from "./photo-backup-scheduler";
+// import "./photo-recovery"; // Disabled for stable uploads
 import path from "path";
 
 const app = express();
@@ -16,17 +17,8 @@ app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
-// Photo system disabled for fresh start
-// (async () => {
-//   // Skip photo restoration - starting fresh
-//   await photoGuardian.initialize();
-//   
-//   // Run photo integrity check
-//   await photoPersistenceManager.validatePhotosIntegrity();
-//   
-//   // Start automated backup system
-//   photoBackupScheduler.startScheduledBackups();
-// })();
+// Photo system completely disabled to prevent interference
+console.log('📸 Photo monitoring systems disabled for stable uploads');
 
 app.use((req, res, next) => {
   const start = Date.now();

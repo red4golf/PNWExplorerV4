@@ -86,6 +86,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Upload multiple photos for location
   app.post("/api/admin/locations/:id/upload-photos", (req, res) => {
+    console.log('📸 Photo upload request received for location:', req.params.id);
+    console.log('📸 Files in request:', req.files ? 'present' : 'none');
+    
     upload.array('photos', 10)(req, res, async (err) => {
       if (err) {
         console.error("Multer upload error:", err);

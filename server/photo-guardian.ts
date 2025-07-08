@@ -5,6 +5,7 @@ import { photos } from "@shared/schema";
 export class PhotoGuardian {
   private static instance: PhotoGuardian;
   private backupInterval: NodeJS.Timeout | null = null;
+  private isDisabled = true; // DISABLED for stable uploads
   
   static getInstance(): PhotoGuardian {
     if (!PhotoGuardian.instance) {
