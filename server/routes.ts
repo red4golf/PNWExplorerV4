@@ -63,9 +63,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       cb(null, locationDir);
     },
     filename: (req, file, cb) => {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      const filename = 'photo-' + uniqueSuffix + path.extname(file.originalname);
-      console.log('Multer filename generated:', filename, 'for location:', req.params.id);
+      const filename = file.originalname;
+      console.log('Multer filename (original):', filename, 'for location:', req.params.id);
       cb(null, filename);
     }
   });
