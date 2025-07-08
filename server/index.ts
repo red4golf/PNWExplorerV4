@@ -4,6 +4,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import "./ensure-uploads";
 import { preservePhotos, restorePhotos } from "./migrations/preserve-photos";
 import { photoGuardian } from "./photo-guardian";
+import "./photo-recovery";
 import path from "path";
 
 const app = express();

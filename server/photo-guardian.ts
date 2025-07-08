@@ -126,10 +126,11 @@ export class PhotoGuardian {
   }
 
   private startMonitoring() {
-    // Monitor every 30 seconds
+    // Monitor every 10 seconds and restore if needed
     this.backupInterval = setInterval(async () => {
       await this.backupAllPhotos();
-    }, 30000);
+      await this.emergencyRestore();
+    }, 10000);
   }
 
   async stop() {
