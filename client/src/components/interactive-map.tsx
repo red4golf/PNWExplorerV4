@@ -81,6 +81,9 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
     }
   }) || [];
 
+  // Only show filtered locations on the map for cleaner visual experience
+  const mapDisplayLocations = filteredLocations;
+
   // Get unique categories and periods for filters
   const categories = Array.from(new Set(locations?.map(l => l.category) || []));
   const periods = Array.from(new Set(locations?.map(l => l.period).filter(Boolean) || []));
@@ -256,8 +259,8 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
         .bindPopup(`<div class="text-center"><strong>Your Location</strong><br/><small>Lat: ${userLocation.lat.toFixed(4)}, Lng: ${userLocation.lng.toFixed(4)}</small></div>`);
     }
 
-    // Add markers for each location
-    locations.forEach((location) => {
+    // Add markers for filtered locations only (cleaner visual experience)
+    mapDisplayLocations.forEach((location) => {
       if (location.latitude && location.longitude) {
         const icon = L.divIcon({
           html: `<div class="custom-marker ${location.category?.toLowerCase().replace(/\s+/g, '-')}" style="background-color: var(--heritage-gold); border: 2px solid var(--heritage-brown); border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">${getCategoryIcon(location.category || '')}</div>`,
@@ -316,7 +319,7 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
       }
     });
 
-    // Add global functions to handle location selection and directions
+    // Add global functions to handle location selection and directions (use full locations array)
     (window as any).selectLocation = (locationId: number) => {
       const location = locations.find(l => l.id === locationId);
       if (location && onLocationSelect) {
@@ -339,7 +342,7 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
         userMarkerRef.current = null;
       }
     };
-  }, [L, locations, onLocationSelect, userLocation]);
+  }, [L, locations, mapDisplayLocations, onLocationSelect, userLocation]);
 
   if (isLoading) {
     return (
@@ -411,35 +414,27 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
             />
           </div>
 
-          {/* Quick Filter Chips */}
+          {/* Category Filter Dropdown */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Category</span>
+              <label className="text-sm font-medium text-gray-700">Category Filter</label>
               <span className="text-xs text-gray-500">
                 {filteredLocations.length} of {locations?.length || 0} locations
               </span>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant={selectedCategory === "all" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedCategory("all")}
-                className="text-xs"
-              >
-                All
-              </Button>
-              {categories.map(category => (
-                <Button
-                  key={category}
-                  variant={selectedCategory === category ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedCategory(category)}
-                  className="text-xs"
-                >
-                  {category} ({locations?.filter(l => l.category === category).length || 0})
-                </Button>
-              ))}
-            </div>
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="text-sm">
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories ({locations?.length || 0})</SelectItem>
+                {categories.map(category => (
+                  <SelectItem key={category} value={category}>
+                    {category} ({locations?.filter(l => l.category === category).length || 0})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Advanced Filters - Collapsible */}
