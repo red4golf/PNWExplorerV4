@@ -40,10 +40,12 @@ export default function Home() {
 
   const handleStartExploring = () => {
     setShowMap(true);
+    window.location.hash = '#map';
   };
 
   const handleBackToIntro = () => {
     setShowMap(false);
+    window.location.hash = '';
   };
 
   // Show map view if user clicked Start Exploring

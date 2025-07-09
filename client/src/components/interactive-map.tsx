@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Filter, List, MapPin, Navigation, AlertCircle, Clock, Star, Users, Info, Calendar } from "lucide-react";
+import { Search, Filter, List, MapPin, Navigation, AlertCircle, Clock, Star, Users, Info, Calendar, ChevronDown } from "lucide-react";
 import { getCategoryIcon, getCategoryColor, calculateDistance, getDirectionsUrl } from "@/lib/utils";
 import type { Location } from "@shared/schema";
 
@@ -367,107 +367,103 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
           className="h-96 rounded-lg overflow-hidden bg-gray-300 relative"
         />
         
-        {/* Enhanced Controls */}
-        <div className="mt-4 bg-white rounded-lg shadow-md p-4">
-          <Tabs defaultValue="controls" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 text-xs sm:text-sm">
-              <TabsTrigger value="controls" className="flex items-center gap-1">
-                <MapPin className="w-4 h-4" />
-                <span className="hidden sm:inline">Controls</span>
-              </TabsTrigger>
-              <TabsTrigger value="search" className="flex items-center gap-1">
-                <Search className="w-4 h-4" />
-                <span className="hidden sm:inline">Search &</span> Filter
-              </TabsTrigger>
-              <TabsTrigger value="list" className="flex items-center gap-1">
-                <List className="w-4 h-4" />
-                <span className="hidden sm:inline">Location</span> List
-              </TabsTrigger>
-            </TabsList>
+        {/* Redesigned Controls */}
+        <div className="mt-4 bg-white rounded-lg shadow-md p-4 space-y-4">
+          {/* Primary Actions */}
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            <Button
+              onClick={getCurrentLocation}
+              disabled={isLocating}
+              variant="outline"
+              className="flex items-center gap-2 text-sm font-medium"
+            >
+              <Navigation className="w-4 h-4" />
+              {isLocating ? "Locating..." : "Find My Location"}
+            </Button>
             
-            <TabsContent value="controls" className="space-y-4">
-              <div className="flex flex-wrap gap-2">
+            {userLocation && (
+              <Badge variant="secondary" className="flex items-center gap-1 self-start">
+                <MapPin className="w-3 h-3" />
+                {isWithinPNW(userLocation.lat, userLocation.lng) ? "In Pacific Northwest" : "Outside Region"}
+              </Badge>
+            )}
+          </div>
+
+          {/* Location Error */}
+          {locationError && (
+            <div className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{locationError}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              type="text"
+              placeholder="Search locations by name or description..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 text-sm"
+            />
+          </div>
+
+          {/* Quick Filter Chips */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-700">Category</span>
+              <span className="text-xs text-gray-500">
+                {filteredLocations.length} of {locations?.length || 0} locations
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={selectedCategory === "all" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory("all")}
+                className="text-xs"
+              >
+                All
+              </Button>
+              {categories.map(category => (
                 <Button
-                  onClick={getCurrentLocation}
-                  disabled={isLocating}
-                  variant="outline"
+                  key={category}
+                  variant={selectedCategory === category ? "default" : "outline"}
                   size="sm"
-                  className="flex items-center gap-2"
+                  onClick={() => setSelectedCategory(category)}
+                  className="text-xs"
                 >
-                  <Navigation className="w-4 h-4" />
-                  {isLocating ? "Locating..." : "Find My Location"}
+                  {category} ({locations?.filter(l => l.category === category).length || 0})
                 </Button>
-                
-                {userLocation && (
-                  <Badge variant="secondary" className="flex items-center gap-1">
-                    <MapPin className="w-3 h-3" />
-                    {isWithinPNW(userLocation.lat, userLocation.lng) ? "In Pacific Northwest" : "Outside Region"}
-                  </Badge>
-                )}
-                
-                {locationError && (
-                  <div className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                      <span>{locationError}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              {/* Map Legend */}
-              <div>
-                <h5 className="font-semibold text-heritage-brown mb-2">Map Legend</h5>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-heritage-gold rounded-full mr-2"></div>
-                    <span>Historical ({locations?.filter(l => l.category === 'Historical').length || 0})</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-heritage-olive rounded-full mr-2"></div>
-                    <span>Cultural ({locations?.filter(l => l.category === 'Cultural').length || 0})</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-heritage-brown rounded-full mr-2"></div>
-                    <span>Natural ({locations?.filter(l => l.category === 'Natural').length || 0})</span>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
+              ))}
+            </div>
+          </div>
+
+          {/* Advanced Filters - Collapsible */}
+          <div className="border-t pt-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="w-full justify-between text-sm"
+            >
+              <span className="flex items-center gap-2">
+                <Filter className="w-4 h-4" />
+                Advanced Filters
+              </span>
+              <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+            </Button>
             
-            <TabsContent value="search" className="space-y-4">
-              <div className="space-y-3">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    type="text"
-                    placeholder="Search locations by name or description..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-1 block">Category</label>
-                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="All Categories" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Categories</SelectItem>
-                        {categories.map(category => (
-                          <SelectItem key={category} value={category}>{category}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
+            {showFilters && (
+              <div className="mt-3 space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="text-sm font-medium text-gray-700 mb-1 block">Time Period</label>
                     <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-                      <SelectTrigger>
+                      <SelectTrigger className="text-sm">
                         <SelectValue placeholder="All Periods" />
                       </SelectTrigger>
                       <SelectContent>
@@ -483,7 +479,7 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
                   <div>
                     <label className="text-sm font-medium text-gray-700 mb-1 block">Sort By</label>
                     <Select value={sortBy} onValueChange={setSortBy}>
-                      <SelectTrigger>
+                      <SelectTrigger className="text-sm">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -496,52 +492,93 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
                   </div>
                 </div>
                 
-                <div className="flex items-center justify-between text-sm text-gray-600">
-                  <span>Showing {filteredLocations.length} of {locations?.length || 0} locations</span>
-                  {(searchTerm || selectedCategory !== "all" || selectedPeriod !== "all") && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setSearchTerm("");
-                        setSelectedCategory("all");
-                        setSelectedPeriod("all");
-                      }}
-                    >
-                      Clear Filters
-                    </Button>
-                  )}
-                </div>
+                {(searchTerm || selectedCategory !== "all" || selectedPeriod !== "all") && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSearchTerm("");
+                      setSelectedCategory("all");
+                      setSelectedPeriod("all");
+                    }}
+                    className="w-full text-sm"
+                  >
+                    Clear All Filters
+                  </Button>
+                )}
               </div>
-            </TabsContent>
+            )}
+          </div>
+
+          {/* Location List - Collapsible */}
+          <div className="border-t pt-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowListView(!showListView)}
+              className="w-full justify-between text-sm"
+            >
+              <span className="flex items-center gap-2">
+                <List className="w-4 h-4" />
+                Location List
+              </span>
+              <ChevronDown className={`w-4 h-4 transition-transform ${showListView ? 'rotate-180' : ''}`} />
+            </Button>
             
-            <TabsContent value="list" className="space-y-3">
-              <div className="max-h-64 overflow-y-auto space-y-2">
+            {showListView && (
+              <div className="mt-3 max-h-64 overflow-y-auto space-y-2">
                 {filteredLocations.map((location) => (
                   <div
                     key={location.id}
-                    className="flex items-center justify-between p-2 hover:bg-gray-50 rounded cursor-pointer"
+                    className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg cursor-pointer border border-gray-100"
                     onClick={() => onLocationSelect?.(location)}
                   >
-                    <div>
-                      <span className="font-medium">{location.name}</span>
-                      <Badge variant="secondary" className="ml-2 text-xs">
-                        {location.category}
-                      </Badge>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-medium text-sm truncate">{location.name}</span>
+                        <Badge variant="secondary" className="text-xs shrink-0">
+                          {location.category}
+                        </Badge>
+                      </div>
                       {userLocation && location.latitude && location.longitude && (
-                        <span className="text-xs text-gray-500 ml-2">
+                        <div className="text-xs text-gray-500">
                           {calculateDistance(userLocation, { lat: location.latitude as number, lng: location.longitude as number }).toFixed(1)} miles away
-                        </span>
+                        </div>
                       )}
                     </div>
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" className="shrink-0">
                       <MapPin className="w-4 h-4" />
                     </Button>
                   </div>
                 ))}
+                {filteredLocations.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <MapPin className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No locations found matching your criteria</p>
+                  </div>
+                )}
               </div>
-            </TabsContent>
-          </Tabs>
+            )}
+          </div>
+
+          {/* Map Legend */}
+          <div className="border-t pt-3">
+            <h5 className="font-semibold text-heritage-brown mb-2 text-sm">Map Legend</h5>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-heritage-gold rounded-full mr-2"></div>
+                <span>Historical ({locations?.filter(l => l.category === 'Historical').length || 0})</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-heritage-olive rounded-full mr-2"></div>
+                <span>Cultural ({locations?.filter(l => l.category === 'Cultural').length || 0})</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-heritage-brown rounded-full mr-2"></div>
+                <span>Natural ({locations?.filter(l => l.category === 'Natural').length || 0})</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Location Status */}
