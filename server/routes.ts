@@ -11,6 +11,7 @@ import path from "path";
 import fs from "fs";
 import { uploadPersistenceFix } from "./upload-persistence-fix";
 import { storageManager, DatabaseStorageProvider } from "./cloud-storage";
+import { generateSitemap, generateRobotsTxt } from "./sitemap";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure multer for file uploads with location-specific folders
@@ -795,6 +796,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error getting analytics by event type:", error);
       res.status(500).json({ message: "Failed to get analytics events" });
+    }
+  });
+
+  // SEO Routes
+  app.get("/sitemap.xml", async (req, res) => {
+    try {
+      const sitemap = await generateSitemap();
+      res.set('Content-Type', 'application/xml');
+      res.set('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+      res.send(sitemap);
+    } catch (error) {
+      console.error("Error generating sitemap:", error);
+      res.status(500).send("Error generating sitemap");
+    }
+  });
+
+  app.get("/robots.txt", async (req, res) => {
+    try {
+      const robots = await generateRobotsTxt();
+      res.set('Content-Type', 'text/plain');
+      res.set('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
+      res.send(robots);
+    } catch (error) {
+      console.error("Error generating robots.txt:", error);
+      res.status(500).send("Error generating robots.txt");
     }
   });
 

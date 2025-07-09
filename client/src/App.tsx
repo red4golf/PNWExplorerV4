@@ -10,7 +10,7 @@ import LearnMore from "@/pages/learn-more";
 import LocationDetail from "@/pages/location-detail";
 import SubmitLocation from "@/pages/submit-location";
 import Admin from "@/pages/admin";
-import NotFound from "@/pages/not-found";
+import NotFoundSEO from "@/pages/not-found-seo";
 
 function Router() {
   const [location] = useLocation();
@@ -54,13 +54,7 @@ function Router() {
           </div>
         </Route>
         <Route>
-          <div className="min-h-screen flex flex-col">
-            <Header />
-            <main className="flex-1">
-              <NotFound />
-            </main>
-            <Footer />
-          </div>
+          <NotFoundSEO />
         </Route>
       </Switch>
     </div>

@@ -12,6 +12,7 @@ import PhotoGallery from "@/components/photo-gallery";
 import FeedbackForm from "@/components/feedback-form";
 import QRShare from "@/components/qr-share";
 import { usePageView } from "@/hooks/use-analytics";
+import { generateHomeSEO, updatePageSEO } from "@/lib/seo";
 import { MapPin, BookOpen, ArrowLeft, Menu, Plus, Settings, Users, Calendar, Mountain, Waves, TreePine, Factory, MessageCircle } from "lucide-react";
 import type { Location } from "@shared/schema";
 
@@ -26,11 +27,15 @@ export default function Home() {
     queryKey: ["/api/locations"],
   });
 
-  // Check for hash to show map directly
+  // Check for hash to show map directly and update SEO
   useEffect(() => {
     if (window.location.hash === '#map') {
       setShowMap(true);
     }
+    
+    // Update SEO metadata for home page
+    const seoData = generateHomeSEO();
+    updatePageSEO(seoData);
   }, []);
 
   const handleLocationSelect = (location: Location) => {

@@ -8,6 +8,7 @@ import { ArrowLeft, MapPin, Calendar, User, Navigation, ExternalLink, FileText, 
 import { Link } from "wouter";
 import { getCategoryIcon, getCategoryColor, formatDate, getDirectionsUrl, calculateDistance } from "@/lib/utils";
 import { useAnalytics } from "@/hooks/use-analytics";
+import { generateLocationSEO, updatePageSEO } from "@/lib/seo";
 import type { Location } from "@shared/schema";
 import { useState, useEffect } from "react";
 import ReactMarkdown from 'react-markdown';
@@ -45,10 +46,14 @@ export default function LocationDetail() {
     }
   }, []);
 
-  // Track location view when location data is loaded
+  // Track location view and update SEO when location data is loaded
   useEffect(() => {
     if (location) {
       trackLocationView(location.id, location.name);
+      
+      // Update SEO metadata for this location
+      const seoData = generateLocationSEO(location);
+      updatePageSEO(seoData);
     }
   }, [location, trackLocationView]);
 
