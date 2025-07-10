@@ -32,7 +32,7 @@
 ```
 New feedback received from Pacific Northwest Historical Explorer:
 
-{{range(1.data.feedback)}}
+{{range(1.feedback)}}
 ---
 Message: {{message}}
 Email: {{userEmail}}
@@ -43,7 +43,7 @@ Time: {{createdAt}}
 ---
 {{/range}}
 
-Total feedback items: {{1.data.count}}
+Total feedback items: {{1.count}}
 
 View all feedback: https://3b04f476-ae81-4ed3-8be1-8a686cc097f7-00-w9co9q8683im.spock.replit.dev/admin
 ```
