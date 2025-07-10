@@ -215,13 +215,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAnalyticsStats(): Promise<{ totalEvents: number; qrScans: number; shareLinks: number; pageViews: number; locationViews: number; }> {
+    // Filter out developer IPs (172.31.128.x range and localhost)
     const allEvents = await db.select().from(userAnalytics);
+    const userEvents = allEvents.filter(event => {
+      const ip = event.ipAddress;
+      return ip && 
+             !ip.startsWith('172.31.128.') && 
+             !ip.startsWith('127.0.0.1') && 
+             !ip.startsWith('::1');
+    });
     
-    const totalEvents = allEvents.length;
-    const qrScans = allEvents.filter(event => event.eventType === 'qr_scan').length;
-    const shareLinks = allEvents.filter(event => event.eventType === 'share_link').length;
-    const pageViews = allEvents.filter(event => event.eventType === 'page_view').length;
-    const locationViews = allEvents.filter(event => event.eventType === 'location_view').length;
+    const totalEvents = userEvents.length;
+    const qrScans = userEvents.filter(event => event.eventType === 'qr_scan').length;
+    const shareLinks = userEvents.filter(event => event.eventType === 'share_link').length;
+    const pageViews = userEvents.filter(event => event.eventType === 'page_view').length;
+    const locationViews = userEvents.filter(event => event.eventType === 'location_view').length;
 
     return {
       totalEvents,
@@ -233,19 +241,37 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAnalyticsByEventType(eventType: string): Promise<UserAnalytics[]> {
-    return await db
+    const allEvents = await db
       .select()
       .from(userAnalytics)
       .where(eq(userAnalytics.eventType, eventType))
       .orderBy(desc(userAnalytics.timestamp));
+    
+    // Filter out developer IPs
+    return allEvents.filter(event => {
+      const ip = event.ipAddress;
+      return ip && 
+             !ip.startsWith('172.31.128.') && 
+             !ip.startsWith('127.0.0.1') && 
+             !ip.startsWith('::1');
+    });
   }
 
   async getAnalyticsByLocation(locationId: number): Promise<UserAnalytics[]> {
-    return await db
+    const allEvents = await db
       .select()
       .from(userAnalytics)
       .where(eq(userAnalytics.locationId, locationId))
       .orderBy(desc(userAnalytics.timestamp));
+    
+    // Filter out developer IPs
+    return allEvents.filter(event => {
+      const ip = event.ipAddress;
+      return ip && 
+             !ip.startsWith('172.31.128.') && 
+             !ip.startsWith('127.0.0.1') && 
+             !ip.startsWith('::1');
+    });
   }
 }
 
