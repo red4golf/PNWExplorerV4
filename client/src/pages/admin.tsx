@@ -17,9 +17,54 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Lock, Clock, MapPin, Users, CheckCircle, XCircle, LogIn, Upload, FileText, Database, Edit3, Search, Save, Filter, Eye, Trash2, Image, Calendar, BarChart3, Settings, RefreshCw, Download, ChevronDown, AlertCircle, X, MessageSquare, Bug, Lightbulb, BookOpen } from "lucide-react";
+import { useAnalytics } from "@/hooks/use-analytics";
+import { Lock, Clock, MapPin, Users, CheckCircle, XCircle, LogIn, Upload, FileText, Database, Edit3, Search, Save, Filter, Eye, Trash2, Image, Calendar, BarChart3, Settings, RefreshCw, Download, ChevronDown, AlertCircle, X, MessageSquare, Bug, Lightbulb, BookOpen, TestTube } from "lucide-react";
 import { formatDate, getCategoryColor } from "@/lib/utils";
 import type { Location, Feedback } from "@shared/schema";
+
+// Developer Mode Toggle Component
+function DeveloperModeToggle() {
+  const { isDeveloperMode, enableDeveloperMode, disableDeveloperMode } = useAnalytics();
+  const [isEnabled, setIsEnabled] = useState(isDeveloperMode());
+  const { toast } = useToast();
+
+  const toggleDeveloperMode = () => {
+    if (isEnabled) {
+      disableDeveloperMode();
+      setIsEnabled(false);
+      toast({
+        title: "Developer Mode Disabled",
+        description: "Your activity will now be tracked in analytics.",
+      });
+    } else {
+      enableDeveloperMode();
+      setIsEnabled(true);
+      toast({
+        title: "Developer Mode Enabled",
+        description: "Your activity will be excluded from analytics.",
+      });
+    }
+  };
+
+  return (
+    <div className="flex justify-between items-center py-3 border-b">
+      <div>
+        <h4 className="font-semibold">Developer Mode</h4>
+        <p className="text-sm text-gray-600">
+          Exclude your activity from analytics tracking
+        </p>
+      </div>
+      <Button 
+        variant={isEnabled ? "default" : "outline"}
+        size="sm"
+        onClick={toggleDeveloperMode}
+      >
+        <TestTube className="w-4 h-4 mr-2" />
+        {isEnabled ? "Enabled" : "Disabled"}
+      </Button>
+    </div>
+  );
+}
 
 // Photo Manager Component
 function PhotoManager({ locationId }: { locationId: number }) {
@@ -2050,6 +2095,50 @@ export default function Admin() {
                       View Stats
                     </Button>
                   </div>
+                </CardContent>
+              </Card>
+
+              {/* Developer Tools */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-heritage-brown flex items-center">
+                    <TestTube className="w-5 h-5 mr-2" />
+                    Developer Tools
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <DeveloperModeToggle />
+                  
+                  <div className="flex justify-between items-center py-3 border-b">
+                    <div>
+                      <h4 className="font-semibold">Analytics Data</h4>
+                      <p className="text-sm text-gray-600">
+                        View raw analytics data for debugging
+                      </p>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        // This would show raw analytics data
+                        toast({
+                          title: "Feature Coming Soon",
+                          description: "This will show raw analytics data for debugging.",
+                        });
+                      }}
+                    >
+                      <Settings className="w-4 h-4 mr-2" />
+                      View Raw Data
+                    </Button>
+                  </div>
+
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      Developer mode prevents your activity from being tracked in analytics. 
+                      Enable it when testing to keep user data clean.
+                    </AlertDescription>
+                  </Alert>
                 </CardContent>
               </Card>
 

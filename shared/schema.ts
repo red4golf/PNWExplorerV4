@@ -79,6 +79,7 @@ export const userAnalytics = pgTable("user_analytics", {
   userAgent: text("user_agent"),
   ipAddress: varchar("ip_address", { length: 45 }),
   sessionId: varchar("session_id", { length: 255 }),
+  isDeveloper: boolean("is_developer").default(false),
   timestamp: timestamp("timestamp").defaultNow().notNull(),
   metadata: jsonb("metadata"), // Additional data like shared_via, qr_location, etc.
 });

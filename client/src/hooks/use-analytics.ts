@@ -11,14 +11,26 @@ const getSessionId = () => {
   return sessionId;
 };
 
+// Check if we're in developer mode
+const isDeveloperMode = () => {
+  return localStorage.getItem('dev-mode') === 'true';
+};
+
 export const useAnalytics = () => {
   const trackEvent = async (eventType: string, metadata?: any, locationId?: number) => {
+    // Skip tracking in developer mode
+    if (isDeveloperMode()) {
+      console.log("🔍 Developer mode - skipping analytics:", eventType, metadata);
+      return;
+    }
+
     try {
       await apiRequest("POST", "/api/analytics", {
         eventType,
         locationId,
         metadata,
-        sessionId: getSessionId()
+        sessionId: getSessionId(),
+        isDeveloper: false
       });
     } catch (error) {
       console.log("Analytics tracking failed:", error);
@@ -46,7 +58,16 @@ export const useAnalytics = () => {
     trackPageView,
     trackLocationView,
     trackQRScan,
-    trackShareLink
+    trackShareLink,
+    isDeveloperMode,
+    enableDeveloperMode: () => {
+      localStorage.setItem('dev-mode', 'true');
+      console.log("🔧 Developer mode enabled - analytics disabled");
+    },
+    disableDeveloperMode: () => {
+      localStorage.setItem('dev-mode', 'false');
+      console.log("👥 Developer mode disabled - analytics enabled");
+    }
   };
 };
 
