@@ -836,6 +836,314 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AUTOMATION API ENDPOINTS
+  // These endpoints are designed for Make.com integration
+
+  // Recent feedback for automation triggers
+  app.get("/api/automation/recent-feedback", async (req, res) => {
+    try {
+      const since = req.query.since ? new Date(req.query.since as string) : new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const allFeedback = await storage.getAllFeedback();
+      
+      const recentFeedback = allFeedback
+        .filter(f => new Date(f.createdAt) > since)
+        .map(f => {
+          // Categorize feedback based on keywords
+          const message = f.message.toLowerCase();
+          let category = 'general';
+          let priority = 'medium';
+          let keywords: string[] = [];
+          
+          // Bug detection
+          if (message.includes('broken') || message.includes('error') || message.includes('won\'t load') || 
+              message.includes('not working') || message.includes('can\'t') || message.includes('doesn\'t work')) {
+            category = 'bug';
+            priority = 'high';
+            keywords.push('bug');
+          }
+          
+          // Critical issues
+          if (message.includes('crashed') || message.includes('down') || message.includes('server error')) {
+            category = 'bug';
+            priority = 'critical';
+            keywords.push('critical');
+          }
+          
+          // Feature requests
+          if (message.includes('wish') || message.includes('would be nice') || message.includes('suggestion') || 
+              message.includes('feature') || message.includes('add') || message.includes('improve')) {
+            category = 'feature_request';
+            priority = 'low';
+            keywords.push('feature_request');
+          }
+          
+          // Content suggestions
+          if (message.includes('story') || message.includes('history') || message.includes('photo') || 
+              message.includes('information') || message.includes('details')) {
+            category = 'content_suggestion';
+            priority = 'medium';
+            keywords.push('content');
+          }
+          
+          // Praise detection
+          if (message.includes('great') || message.includes('love') || message.includes('amazing') || 
+              message.includes('excellent') || message.includes('thank')) {
+            category = 'praise';
+            priority = 'low';
+            keywords.push('praise');
+          }
+          
+          return {
+            id: f.id,
+            message: f.message,
+            email: f.email,
+            locationId: f.locationId,
+            locationName: f.locationName,
+            createdAt: f.createdAt,
+            priority,
+            category,
+            keywords
+          };
+        });
+      
+      res.json({
+        feedback: recentFeedback,
+        count: recentFeedback.length
+      });
+    } catch (error) {
+      console.error("Error fetching recent feedback:", error);
+      res.status(500).json({ message: "Failed to fetch recent feedback" });
+    }
+  });
+
+  // Feedback categorization stats
+  app.get("/api/automation/feedback-stats", async (req, res) => {
+    try {
+      const allFeedback = await storage.getAllFeedback();
+      const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      
+      const categories = { bug: 0, feature_request: 0, content_suggestion: 0, praise: 0 };
+      const priority_distribution = { critical: 0, high: 0, medium: 0, low: 0 };
+      let bugs_last_24h = 0;
+      let requests_last_24h = 0;
+      
+      allFeedback.forEach(f => {
+        const message = f.message.toLowerCase();
+        const isRecent = new Date(f.createdAt) > last24h;
+        
+        // Categorize
+        if (message.includes('broken') || message.includes('error') || message.includes('won\'t load')) {
+          categories.bug++;
+          priority_distribution.high++;
+          if (isRecent) bugs_last_24h++;
+        } else if (message.includes('wish') || message.includes('suggestion') || message.includes('feature')) {
+          categories.feature_request++;
+          priority_distribution.low++;
+          if (isRecent) requests_last_24h++;
+        } else if (message.includes('story') || message.includes('photo') || message.includes('information')) {
+          categories.content_suggestion++;
+          priority_distribution.medium++;
+        } else if (message.includes('great') || message.includes('love') || message.includes('amazing')) {
+          categories.praise++;
+          priority_distribution.low++;
+        }
+      });
+      
+      res.json({
+        categories,
+        priority_distribution,
+        recent_trends: {
+          bugs_last_24h,
+          requests_last_24h
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching feedback stats:", error);
+      res.status(500).json({ message: "Failed to fetch feedback stats" });
+    }
+  });
+
+  // Location-specific feedback
+  app.get("/api/automation/location-feedback/:locationId", async (req, res) => {
+    try {
+      const locationId = parseInt(req.params.locationId);
+      const location = await storage.getLocation(locationId);
+      
+      if (!location) {
+        return res.status(404).json({ message: "Location not found" });
+      }
+      
+      const allFeedback = await storage.getAllFeedback();
+      const locationFeedback = allFeedback.filter(f => f.locationId === locationId);
+      
+      // Analyze sentiment and themes
+      const themes = new Map<string, number>();
+      let positiveCount = 0;
+      let negativeCount = 0;
+      
+      locationFeedback.forEach(f => {
+        const message = f.message.toLowerCase();
+        
+        // Simple sentiment analysis
+        if (message.includes('great') || message.includes('love') || message.includes('amazing')) {
+          positiveCount++;
+        } else if (message.includes('bad') || message.includes('terrible') || message.includes('hate')) {
+          negativeCount++;
+        }
+        
+        // Theme extraction
+        if (message.includes('photo')) themes.set('photos', (themes.get('photos') || 0) + 1);
+        if (message.includes('story') || message.includes('history')) themes.set('historical context', (themes.get('historical context') || 0) + 1);
+        if (message.includes('directions') || message.includes('location')) themes.set('directions', (themes.get('directions') || 0) + 1);
+      });
+      
+      const avg_sentiment = locationFeedback.length > 0 ? 
+        (positiveCount > negativeCount ? 'positive' : 
+         negativeCount > positiveCount ? 'negative' : 'neutral') : 'neutral';
+      
+      res.json({
+        location: {
+          id: location.id,
+          name: location.name
+        },
+        feedback: locationFeedback.map(f => ({
+          id: f.id,
+          message: f.message,
+          priority: f.message.toLowerCase().includes('broken') ? 'high' : 'medium',
+          category: f.message.toLowerCase().includes('suggestion') ? 'content_suggestion' : 'general',
+          createdAt: f.createdAt
+        })),
+        summary: {
+          total_feedback: locationFeedback.length,
+          avg_sentiment,
+          common_themes: Array.from(themes.entries()).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([theme]) => theme)
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching location feedback:", error);
+      res.status(500).json({ message: "Failed to fetch location feedback" });
+    }
+  });
+
+  // Random location for spotlight series
+  app.get("/api/automation/spotlight-location", async (req, res) => {
+    try {
+      const approvedLocations = await storage.getApprovedLocations();
+      
+      // Filter locations with good content (prioritize those with hero image, but include all approved locations)
+      const spotlightCandidates = approvedLocations.filter(location => 
+        location.name && 
+        location.description && 
+        location.description.length > 50 // Ensure basic content
+      );
+      
+      if (spotlightCandidates.length === 0) {
+        return res.json({ message: "No locations available for spotlight" });
+      }
+      
+      // Select random location
+      const randomIndex = Math.floor(Math.random() * spotlightCandidates.length);
+      const selectedLocation = spotlightCandidates[randomIndex];
+      
+      // Get photos for the location
+      const photos = await storage.getPhotosByLocationId(selectedLocation.id);
+      
+      // Extract key facts from story or description
+      const storyPreview = selectedLocation.story 
+        ? selectedLocation.story.substring(0, 200) + '...' 
+        : selectedLocation.description;
+      
+      // Generate social media content
+      const socialContent = {
+        instagram: {
+          caption: `🏛️ Hidden History: ${selectedLocation.name}\n\n${storyPreview}\n\n📍 ${selectedLocation.address}\n\n#PNWHistory #${selectedLocation.category.replace(/\s+/g, '')} #${selectedLocation.period.replace(/\s+/g, '')}`,
+          hashtags: ['PNWHistory', selectedLocation.category.replace(/\s+/g, ''), selectedLocation.period.replace(/\s+/g, '')]
+        },
+        twitter: {
+          tweet: `🏛️ ${selectedLocation.name}: ${storyPreview}\n\nLearn more: [LINK]\n\n#PNWHistory #${selectedLocation.category.replace(/\s+/g, '')}`,
+          hashtags: ['PNWHistory', selectedLocation.category.replace(/\s+/g, '')]
+        },
+        facebook: {
+          post: `Discover the fascinating history of ${selectedLocation.name}!\n\n${selectedLocation.story ? selectedLocation.story.substring(0, 400) + '...' : selectedLocation.description}\n\nExplore this location and 60+ others in our Pacific Northwest Historical Explorer.`,
+          call_to_action: 'Learn More'
+        }
+      };
+      
+      res.json({
+        location: {
+          id: selectedLocation.id,
+          name: selectedLocation.name,
+          description: selectedLocation.description,
+          address: selectedLocation.address,
+          category: selectedLocation.category,
+          period: selectedLocation.period,
+          heroImage: selectedLocation.heroImage,
+          story: selectedLocation.story,
+          latitude: selectedLocation.latitude,
+          longitude: selectedLocation.longitude
+        },
+        photos: photos.map(p => ({
+          id: p.id,
+          filename: p.filename,
+          caption: p.caption,
+          url: `/api/files/location-${selectedLocation.id}/${p.filename}`
+        })),
+        social_content: socialContent,
+        spotlight_date: new Date().toISOString(),
+        app_url: `${req.protocol}://${req.get('host')}/location/${selectedLocation.id}`
+      });
+    } catch (error) {
+      console.error("Error generating spotlight location:", error);
+      res.status(500).json({ message: "Failed to generate spotlight location" });
+    }
+  });
+
+  // Location analytics for automation
+  app.get("/api/automation/location-analytics", async (req, res) => {
+    try {
+      const allLocations = await storage.getApprovedLocations();
+      const analyticsStats = await storage.getAnalyticsStats();
+      
+      // Get location view counts
+      const locationViews = await Promise.all(
+        allLocations.map(async (location) => {
+          const events = await storage.getAnalyticsByLocation(location.id);
+          return {
+            id: location.id,
+            name: location.name,
+            category: location.category,
+            views: events.filter(e => e.eventType === 'location_view').length,
+            has_photos: location.heroImage ? true : false,
+            story_length: location.story ? location.story.length : 0
+          };
+        })
+      );
+      
+      // Sort by popularity
+      locationViews.sort((a, b) => b.views - a.views);
+      
+      res.json({
+        total_locations: allLocations.length,
+        total_views: analyticsStats.locationViews,
+        most_popular: locationViews.slice(0, 10),
+        least_popular: locationViews.slice(-10).reverse(),
+        categories: {
+          'Natural Wonder': locationViews.filter(l => l.category === 'Natural Wonder').length,
+          'Historical Site': locationViews.filter(l => l.category === 'Historical Site').length,
+          'Cultural Heritage': locationViews.filter(l => l.category === 'Cultural Heritage').length
+        },
+        content_completeness: {
+          with_photos: locationViews.filter(l => l.has_photos).length,
+          without_photos: locationViews.filter(l => !l.has_photos).length,
+          rich_stories: locationViews.filter(l => l.story_length > 1000).length
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching location analytics:", error);
+      res.status(500).json({ message: "Failed to fetch location analytics" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

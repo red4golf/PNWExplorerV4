@@ -1,0 +1,513 @@
+{
+  "weekly_location_spotlight": {
+    "name": "PNW History - Weekly Location Spotlight",
+    "description": "Automatically post a featured historical location across all social media platforms every week",
+    "blueprint": {
+      "scenario": {
+        "dstOffset": 0,
+        "modules": [
+          {
+            "id": 1,
+            "module": "http:ActionSendData",
+            "version": 1,
+            "parameters": {
+              "url": "https://YOUR_DOMAIN.com/api/automation/spotlight-location",
+              "method": "GET",
+              "headers": [],
+              "qs": []
+            },
+            "mapper": {},
+            "metadata": {
+              "designer": {
+                "x": 0,
+                "y": 0
+              },
+              "restore": {}
+            }
+          },
+          {
+            "id": 2,
+            "module": "instagram:ActionCreatePost",
+            "version": 1,
+            "parameters": {
+              "account": "YOUR_INSTAGRAM_ACCOUNT"
+            },
+            "mapper": {
+              "image": "https://YOUR_DOMAIN.com{{1.data.location.heroImage}}",
+              "caption": "{{1.data.social_content.instagram.caption}}\n\n🔗 Explore: {{1.data.app_url}}\n\n#PacificNorthwest #History #Travel #Education",
+              "alt_text": "Historical photo of {{1.data.location.name}}"
+            },
+            "metadata": {
+              "designer": {
+                "x": 300,
+                "y": -100
+              },
+              "restore": {}
+            }
+          },
+          {
+            "id": 3,
+            "module": "twitter:ActionCreateTweet",
+            "version": 1,
+            "parameters": {
+              "account": "YOUR_TWITTER_ACCOUNT"
+            },
+            "mapper": {
+              "text": "{{1.data.social_content.twitter.tweet}}\n\n🔗 {{1.data.app_url}}",
+              "media": "https://YOUR_DOMAIN.com{{1.data.location.heroImage}}"
+            },
+            "metadata": {
+              "designer": {
+                "x": 300,
+                "y": 0
+              },
+              "restore": {}
+            }
+          },
+          {
+            "id": 4,
+            "module": "facebook:ActionCreatePost",
+            "version": 1,
+            "parameters": {
+              "page": "YOUR_FACEBOOK_PAGE"
+            },
+            "mapper": {
+              "message": "{{1.data.social_content.facebook.post}}\n\n🔗 {{1.data.app_url}}",
+              "image": "https://YOUR_DOMAIN.com{{1.data.location.heroImage}}"
+            },
+            "metadata": {
+              "designer": {
+                "x": 300,
+                "y": 100
+              },
+              "restore": {}
+            }
+          },
+          {
+            "id": 5,
+            "module": "googlesheets:ActionAddRow",
+            "version": 2,
+            "parameters": {
+              "spreadsheet": "YOUR_TRACKING_SPREADSHEET_ID",
+              "sheet": "Spotlight Tracking"
+            },
+            "mapper": {
+              "values": [
+                "{{1.data.spotlight_date}}",
+                "{{1.data.location.name}}",
+                "{{1.data.location.category}}",
+                "{{1.data.location.period}}",
+                "{{1.data.app_url}}",
+                "Posted",
+                "{{2.data.id}}",
+                "{{3.data.id}}",
+                "{{4.data.id}}"
+              ]
+            },
+            "metadata": {
+              "designer": {
+                "x": 600,
+                "y": 0
+              },
+              "restore": {}
+            }
+          },
+          {
+            "id": 6,
+            "module": "email:ActionSendEmail",
+            "version": 3,
+            "parameters": {
+              "to": "YOUR_EMAIL@example.com",
+              "subject": "Weekly Spotlight Posted: {{1.data.location.name}}"
+            },
+            "mapper": {
+              "html": "<h2>🏛️ Weekly Spotlight Posted!</h2>\n<p><strong>Location:</strong> {{1.data.location.name}}</p>\n<p><strong>Category:</strong> {{1.data.location.category}}</p>\n<p><strong>Period:</strong> {{1.data.location.period}}</p>\n<p><strong>Address:</strong> {{1.data.location.address}}</p>\n\n<h3>Social Media Posts:</h3>\n<ul>\n<li>Instagram: {{2.data.permalink}}</li>\n<li>Twitter: {{3.data.url}}</li>\n<li>Facebook: {{4.data.permalink}}</li>\n</ul>\n\n<p><strong>App Link:</strong> <a href=\"{{1.data.app_url}}\">{{1.data.app_url}}</a></p>\n\n<p><em>This automated spotlight helps drive traffic to your historical locations!</em></p>"
+            },
+            "metadata": {
+              "designer": {
+                "x": 600,
+                "y": 100
+              },
+              "restore": {}
+            }
+          }
+        ],
+        "connections": [
+          {
+            "id": 7,
+            "srcModuleId": 1,
+            "srcId": "data",
+            "dstModuleId": 2,
+            "dstId": "data"
+          },
+          {
+            "id": 8,
+            "srcModuleId": 1,
+            "srcId": "data",
+            "dstModuleId": 3,
+            "dstId": "data"
+          },
+          {
+            "id": 9,
+            "srcModuleId": 1,
+            "srcId": "data",
+            "dstModuleId": 4,
+            "dstId": "data"
+          },
+          {
+            "id": 10,
+            "srcModuleId": 2,
+            "srcId": "data",
+            "dstModuleId": 5,
+            "dstId": "data"
+          },
+          {
+            "id": 11,
+            "srcModuleId": 3,
+            "srcId": "data",
+            "dstModuleId": 5,
+            "dstId": "data"
+          },
+          {
+            "id": 12,
+            "srcModuleId": 4,
+            "srcId": "data",
+            "dstModuleId": 5,
+            "dstId": "data"
+          },
+          {
+            "id": 13,
+            "srcModuleId": 5,
+            "srcId": "data",
+            "dstModuleId": 6,
+            "dstId": "data"
+          }
+        ]
+      }
+    },
+    "schedule": {
+      "type": "weekly",
+      "day": "tuesday",
+      "time": "10:00"
+    },
+    "setup_instructions": [
+      "1. Replace 'YOUR_DOMAIN.com' with your actual domain",
+      "2. Replace all social media account placeholders with actual accounts",
+      "3. Replace 'YOUR_EMAIL@example.com' with your email address",
+      "4. Create Google Sheets tracking spreadsheet with columns: Date, Location, Category, Period, URL, Status, Instagram_ID, Twitter_ID, Facebook_ID",
+      "5. Connect all social media accounts to Make.com",
+      "6. Set schedule to run every Tuesday at 10 AM",
+      "7. Test manually first",
+      "8. Activate for weekly automated posting"
+    ]
+  },
+  "popular_location_booster": {
+    "name": "PNW History - Popular Location Booster",
+    "description": "Automatically boost posts about locations that are getting high engagement",
+    "blueprint": {
+      "scenario": {
+        "dstOffset": 0,
+        "modules": [
+          {
+            "id": 1,
+            "module": "http:ActionSendData",
+            "version": 1,
+            "parameters": {
+              "url": "https://YOUR_DOMAIN.com/api/automation/location-analytics",
+              "method": "GET",
+              "headers": [],
+              "qs": []
+            },
+            "mapper": {},
+            "metadata": {
+              "designer": {
+                "x": 0,
+                "y": 0
+              },
+              "restore": {}
+            }
+          },
+          {
+            "id": 2,
+            "module": "builtin:BasicRouter",
+            "version": 1,
+            "parameters": {},
+            "mapper": {
+              "array": "{{1.data.most_popular}}"
+            },
+            "metadata": {
+              "designer": {
+                "x": 300,
+                "y": 0
+              },
+              "restore": {}
+            }
+          },
+          {
+            "id": 3,
+            "module": "http:ActionSendData",
+            "version": 1,
+            "parameters": {
+              "url": "https://YOUR_DOMAIN.com/api/locations/{{2.id}}",
+              "method": "GET",
+              "headers": [],
+              "qs": []
+            },
+            "mapper": {},
+            "metadata": {
+              "designer": {
+                "x": 600,
+                "y": 0
+              },
+              "restore": {}
+            },
+            "filter": {
+              "name": "High Engagement Only",
+              "conditions": [
+                {
+                  "a": "{{2.views}}",
+                  "b": "20",
+                  "o": "number:greater"
+                }
+              ]
+            }
+          },
+          {
+            "id": 4,
+            "module": "twitter:ActionCreateTweet",
+            "version": 1,
+            "parameters": {
+              "account": "YOUR_TWITTER_ACCOUNT"
+            },
+            "mapper": {
+              "text": "🔥 TRENDING: {{3.data.name}} is one of our most popular locations!\n\n\"{{3.data.description}}\"\n\n📍 {{3.data.address}}\n🏛️ {{3.data.category}}\n⏰ {{3.data.period}}\n\n{{2.views}} people have explored this location!\n\n🔗 Learn more: https://YOUR_DOMAIN.com/location/{{3.data.id}}\n\n#PNWHistory #Trending #{{3.data.category}}"
+            },
+            "metadata": {
+              "designer": {
+                "x": 900,
+                "y": 0
+              },
+              "restore": {}
+            }
+          },
+          {
+            "id": 5,
+            "module": "facebook:ActionCreatePost",
+            "version": 1,
+            "parameters": {
+              "page": "YOUR_FACEBOOK_PAGE"
+            },
+            "mapper": {
+              "message": "🔥 {{3.data.name}} is trending with {{2.views}} explorers!\n\n{{3.data.description}}\n\nThis {{3.data.category}} from the {{3.data.period}} period continues to fascinate visitors. Here's why it's so popular:\n\n{{3.data.story}}\n\n📍 Visit: {{3.data.address}}\n🔗 Learn more: https://YOUR_DOMAIN.com/location/{{3.data.id}}\n\n#PNWHistory #PopularDestination #{{3.data.category}}"
+            },
+            "metadata": {
+              "designer": {
+                "x": 900,
+                "y": 100
+              },
+              "restore": {}
+            }
+          }
+        ],
+        "connections": [
+          {
+            "id": 6,
+            "srcModuleId": 1,
+            "srcId": "data",
+            "dstModuleId": 2,
+            "dstId": "array"
+          },
+          {
+            "id": 7,
+            "srcModuleId": 2,
+            "srcId": "bundle",
+            "dstModuleId": 3,
+            "dstId": "data"
+          },
+          {
+            "id": 8,
+            "srcModuleId": 3,
+            "srcId": "data",
+            "dstModuleId": 4,
+            "dstId": "data"
+          },
+          {
+            "id": 9,
+            "srcModuleId": 3,
+            "srcId": "data",
+            "dstModuleId": 5,
+            "dstId": "data"
+          }
+        ]
+      }
+    },
+    "schedule": {
+      "type": "weekly",
+      "day": "friday",
+      "time": "15:00"
+    },
+    "setup_instructions": [
+      "1. Replace 'YOUR_DOMAIN.com' with your actual domain",
+      "2. Replace social media account placeholders with actual accounts",
+      "3. Adjust the view count threshold (currently 20) based on your traffic",
+      "4. Set schedule to run every Friday at 3 PM",
+      "5. Test manually first",
+      "6. Activate for weekly trending posts"
+    ]
+  },
+  "underexplored_location_promo": {
+    "name": "PNW History - Underexplored Location Promotion",
+    "description": "Promote locations that haven't received much attention to balance discovery",
+    "blueprint": {
+      "scenario": {
+        "dstOffset": 0,
+        "modules": [
+          {
+            "id": 1,
+            "module": "http:ActionSendData",
+            "version": 1,
+            "parameters": {
+              "url": "https://YOUR_DOMAIN.com/api/automation/location-analytics",
+              "method": "GET",
+              "headers": [],
+              "qs": []
+            },
+            "mapper": {},
+            "metadata": {
+              "designer": {
+                "x": 0,
+                "y": 0
+              },
+              "restore": {}
+            }
+          },
+          {
+            "id": 2,
+            "module": "builtin:BasicRouter",
+            "version": 1,
+            "parameters": {},
+            "mapper": {
+              "array": "{{1.data.least_popular}}"
+            },
+            "metadata": {
+              "designer": {
+                "x": 300,
+                "y": 0
+              },
+              "restore": {}
+            }
+          },
+          {
+            "id": 3,
+            "module": "http:ActionSendData",
+            "version": 1,
+            "parameters": {
+              "url": "https://YOUR_DOMAIN.com/api/locations/{{2.id}}",
+              "method": "GET",
+              "headers": [],
+              "qs": []
+            },
+            "mapper": {},
+            "metadata": {
+              "designer": {
+                "x": 600,
+                "y": 0
+              },
+              "restore": {}
+            },
+            "filter": {
+              "name": "Good Content Only",
+              "conditions": [
+                {
+                  "a": "{{2.story_length}}",
+                  "b": "500",
+                  "o": "number:greater"
+                }
+              ]
+            }
+          },
+          {
+            "id": 4,
+            "module": "instagram:ActionCreatePost",
+            "version": 1,
+            "parameters": {
+              "account": "YOUR_INSTAGRAM_ACCOUNT"
+            },
+            "mapper": {
+              "image": "https://YOUR_DOMAIN.com{{3.data.heroImage}}",
+              "caption": "💎 HIDDEN GEM: {{3.data.name}}\n\nThis {{3.data.category}} is one of our most underexplored locations - and it's incredible!\n\n{{3.data.description}}\n\nWhy you should visit:\n📍 {{3.data.address}}\n🕐 {{3.data.period}}\n🏛️ Rich history waiting to be discovered\n\n🔗 Learn more: https://YOUR_DOMAIN.com/location/{{3.data.id}}\n\n#HiddenGem #PNWHistory #{{3.data.category}} #UnderExplored #PacificNorthwest"
+            },
+            "metadata": {
+              "designer": {
+                "x": 900,
+                "y": 0
+              },
+              "restore": {}
+            }
+          },
+          {
+            "id": 5,
+            "module": "twitter:ActionCreateTweet",
+            "version": 1,
+            "parameters": {
+              "account": "YOUR_TWITTER_ACCOUNT"
+            },
+            "mapper": {
+              "text": "💎 HIDDEN GEM: {{3.data.name}}\n\nThis {{3.data.category}} from the {{3.data.period}} is incredibly underexplored!\n\n{{3.data.description}}\n\nDon't miss: {{3.data.address}}\n\n🔗 https://YOUR_DOMAIN.com/location/{{3.data.id}}\n\n#HiddenGem #PNWHistory #{{3.data.category}}"
+            },
+            "metadata": {
+              "designer": {
+                "x": 900,
+                "y": 100
+              },
+              "restore": {}
+            }
+          }
+        ],
+        "connections": [
+          {
+            "id": 6,
+            "srcModuleId": 1,
+            "srcId": "data",
+            "dstModuleId": 2,
+            "dstId": "array"
+          },
+          {
+            "id": 7,
+            "srcModuleId": 2,
+            "srcId": "bundle",
+            "dstModuleId": 3,
+            "dstId": "data"
+          },
+          {
+            "id": 8,
+            "srcModuleId": 3,
+            "srcId": "data",
+            "dstModuleId": 4,
+            "dstId": "data"
+          },
+          {
+            "id": 9,
+            "srcModuleId": 3,
+            "srcId": "data",
+            "dstModuleId": 5,
+            "dstId": "data"
+          }
+        ]
+      }
+    },
+    "schedule": {
+      "type": "weekly",
+      "day": "thursday",
+      "time": "14:00"
+    },
+    "setup_instructions": [
+      "1. Replace 'YOUR_DOMAIN.com' with your actual domain",
+      "2. Replace social media account placeholders with actual accounts",
+      "3. Adjust story length threshold (currently 500 characters) if needed",
+      "4. Set schedule to run every Thursday at 2 PM",
+      "5. Test manually first",
+      "6. Activate for weekly hidden gem promotion"
+    ]
+  }
+}

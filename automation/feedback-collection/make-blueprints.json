@@ -1,0 +1,529 @@
+{
+  "feedback_triage_system": {
+    "name": "PNW History - Feedback Triage System",
+    "description": "Automatically categorize and route feedback to appropriate channels with instant critical alerts",
+    "blueprint": {
+      "scenario": {
+        "dstOffset": 0,
+        "modules": [
+          {
+            "id": 1,
+            "module": "http:ActionSendData",
+            "version": 1,
+            "parameters": {
+              "url": "https://YOUR_DOMAIN.com/api/automation/recent-feedback",
+              "method": "GET",
+              "headers": [],
+              "qs": []
+            },
+            "mapper": {},
+            "metadata": {
+              "designer": {
+                "x": 0,
+                "y": 0
+              },
+              "restore": {},
+              "parameters": []
+            }
+          },
+          {
+            "id": 2,
+            "module": "builtin:BasicRouter",
+            "version": 1,
+            "parameters": {},
+            "mapper": {
+              "array": "{{1.data.feedback}}"
+            },
+            "metadata": {
+              "designer": {
+                "x": 300,
+                "y": 0
+              },
+              "restore": {}
+            }
+          },
+          {
+            "id": 3,
+            "module": "builtin:BasicRouter",
+            "version": 1,
+            "parameters": {},
+            "mapper": {
+              "array": "{{2.feedback}}"
+            },
+            "metadata": {
+              "designer": {
+                "x": 600,
+                "y": 0
+              },
+              "restore": {}
+            }
+          },
+          {
+            "id": 4,
+            "module": "slack:ActionPostMessage",
+            "version": 1,
+            "parameters": {
+              "channel": "critical-bugs"
+            },
+            "mapper": {
+              "text": "🚨 CRITICAL FEEDBACK ALERT 🚨\n\nLocation: {{3.locationName}}\nMessage: {{3.message}}\nEmail: {{3.email}}\nPriority: {{3.priority}}\n\nImmediate action required!",
+              "attachments": []
+            },
+            "metadata": {
+              "designer": {
+                "x": 900,
+                "y": -200
+              },
+              "restore": {}
+            },
+            "filter": {
+              "name": "Critical Priority",
+              "conditions": [
+                {
+                  "a": "{{3.priority}}",
+                  "b": "critical",
+                  "o": "text:equal"
+                }
+              ]
+            }
+          },
+          {
+            "id": 5,
+            "module": "slack:ActionPostMessage",
+            "version": 1,
+            "parameters": {
+              "channel": "bug-reports"
+            },
+            "mapper": {
+              "text": "🐛 Bug Report\n\nLocation: {{3.locationName}}\nMessage: {{3.message}}\nEmail: {{3.email}}\nCategory: {{3.category}}\n\nPlease investigate.",
+              "attachments": []
+            },
+            "metadata": {
+              "designer": {
+                "x": 900,
+                "y": -100
+              },
+              "restore": {}
+            },
+            "filter": {
+              "name": "Bug Category",
+              "conditions": [
+                {
+                  "a": "{{3.category}}",
+                  "b": "bug",
+                  "o": "text:equal"
+                }
+              ]
+            }
+          },
+          {
+            "id": 6,
+            "module": "slack:ActionPostMessage",
+            "version": 1,
+            "parameters": {
+              "channel": "feature-requests"
+            },
+            "mapper": {
+              "text": "💡 Feature Request\n\nLocation: {{3.locationName}}\nMessage: {{3.message}}\nEmail: {{3.email}}\n\nConsider for future development.",
+              "attachments": []
+            },
+            "metadata": {
+              "designer": {
+                "x": 900,
+                "y": 0
+              },
+              "restore": {}
+            },
+            "filter": {
+              "name": "Feature Request",
+              "conditions": [
+                {
+                  "a": "{{3.category}}",
+                  "b": "feature_request",
+                  "o": "text:equal"
+                }
+              ]
+            }
+          },
+          {
+            "id": 7,
+            "module": "slack:ActionPostMessage",
+            "version": 1,
+            "parameters": {
+              "channel": "content-suggestions"
+            },
+            "mapper": {
+              "text": "📝 Content Suggestion\n\nLocation: {{3.locationName}}\nMessage: {{3.message}}\nEmail: {{3.email}}\n\nReview for content improvements.",
+              "attachments": []
+            },
+            "metadata": {
+              "designer": {
+                "x": 900,
+                "y": 100
+              },
+              "restore": {}
+            },
+            "filter": {
+              "name": "Content Suggestion",
+              "conditions": [
+                {
+                  "a": "{{3.category}}",
+                  "b": "content_suggestion",
+                  "o": "text:equal"
+                }
+              ]
+            }
+          },
+          {
+            "id": 8,
+            "module": "slack:ActionPostMessage",
+            "version": 1,
+            "parameters": {
+              "channel": "praise"
+            },
+            "mapper": {
+              "text": "🎉 Positive Feedback!\n\nLocation: {{3.locationName}}\nMessage: {{3.message}}\nEmail: {{3.email}}\n\nGreat job team!",
+              "attachments": []
+            },
+            "metadata": {
+              "designer": {
+                "x": 900,
+                "y": 200
+              },
+              "restore": {}
+            },
+            "filter": {
+              "name": "Praise",
+              "conditions": [
+                {
+                  "a": "{{3.category}}",
+                  "b": "praise",
+                  "o": "text:equal"
+                }
+              ]
+            }
+          },
+          {
+            "id": 9,
+            "module": "email:ActionSendEmail",
+            "version": 3,
+            "parameters": {
+              "to": "YOUR_EMAIL@example.com",
+              "subject": "CRITICAL: App Issue Reported"
+            },
+            "mapper": {
+              "text": "A critical issue has been reported in the PNW History app:\n\nLocation: {{3.locationName}}\nMessage: {{3.message}}\nUser Email: {{3.email}}\nReported: {{3.createdAt}}\n\nPlease address immediately."
+            },
+            "metadata": {
+              "designer": {
+                "x": 1200,
+                "y": -200
+              },
+              "restore": {}
+            },
+            "filter": {
+              "name": "Critical Email Alert",
+              "conditions": [
+                {
+                  "a": "{{3.priority}}",
+                  "b": "critical",
+                  "o": "text:equal"
+                }
+              ]
+            }
+          },
+          {
+            "id": 10,
+            "module": "email:ActionSendEmail",
+            "version": 3,
+            "parameters": {
+              "to": "{{3.email}}",
+              "subject": "Thank you for your feedback!"
+            },
+            "mapper": {
+              "text": "Hi there,\n\nThank you for your feedback about {{3.locationName}}!\n\nWe've received your message: \"{{3.message}}\"\n\nOur team will review your feedback and respond within 24-48 hours if needed.\n\nWe appreciate you helping us improve the Pacific Northwest Historical Explorer!\n\nBest regards,\nThe PNW History Team"
+            },
+            "metadata": {
+              "designer": {
+                "x": 1200,
+                "y": 0
+              },
+              "restore": {}
+            }
+          }
+        ],
+        "connections": [
+          {
+            "id": 11,
+            "srcModuleId": 1,
+            "srcId": "data",
+            "dstModuleId": 2,
+            "dstId": "array"
+          },
+          {
+            "id": 12,
+            "srcModuleId": 2,
+            "srcId": "bundle",
+            "dstModuleId": 3,
+            "dstId": "array"
+          },
+          {
+            "id": 13,
+            "srcModuleId": 3,
+            "srcId": "bundle",
+            "dstModuleId": 4,
+            "dstId": "data"
+          },
+          {
+            "id": 14,
+            "srcModuleId": 3,
+            "srcId": "bundle",
+            "dstModuleId": 5,
+            "dstId": "data"
+          },
+          {
+            "id": 15,
+            "srcModuleId": 3,
+            "srcId": "bundle",
+            "dstModuleId": 6,
+            "dstId": "data"
+          },
+          {
+            "id": 16,
+            "srcModuleId": 3,
+            "srcId": "bundle",
+            "dstModuleId": 7,
+            "dstId": "data"
+          },
+          {
+            "id": 17,
+            "srcModuleId": 3,
+            "srcId": "bundle",
+            "dstModuleId": 8,
+            "dstId": "data"
+          },
+          {
+            "id": 18,
+            "srcModuleId": 3,
+            "srcId": "bundle",
+            "dstModuleId": 10,
+            "dstId": "data"
+          },
+          {
+            "id": 19,
+            "srcModuleId": 4,
+            "srcId": "bundle",
+            "dstModuleId": 9,
+            "dstId": "data"
+          }
+        ]
+      }
+    },
+    "schedule": {
+      "type": "interval",
+      "interval": 15,
+      "unit": "minutes"
+    },
+    "setup_instructions": [
+      "1. Replace 'YOUR_DOMAIN.com' with your actual domain",
+      "2. Replace 'YOUR_EMAIL@example.com' with your email address",
+      "3. Set up Slack workspace with channels: critical-bugs, bug-reports, feature-requests, content-suggestions, praise",
+      "4. Connect your Slack account to Make.com",
+      "5. Connect your email service to Make.com",
+      "6. Test with sample feedback",
+      "7. Activate the scenario to run every 15 minutes"
+    ]
+  },
+  "critical_bug_alerts": {
+    "name": "PNW History - Critical Bug Instant Alerts",
+    "description": "Instant SMS/email alerts for critical feedback using webhooks",
+    "blueprint": {
+      "scenario": {
+        "dstOffset": 0,
+        "modules": [
+          {
+            "id": 1,
+            "module": "webhooks:CustomWebhook",
+            "version": 1,
+            "parameters": {
+              "hook": "webhook_id_here"
+            },
+            "mapper": {},
+            "metadata": {
+              "designer": {
+                "x": 0,
+                "y": 0
+              },
+              "restore": {}
+            }
+          },
+          {
+            "id": 2,
+            "module": "builtin:BasicRouter",
+            "version": 1,
+            "parameters": {},
+            "mapper": {
+              "array": "{{1.feedback}}"
+            },
+            "metadata": {
+              "designer": {
+                "x": 300,
+                "y": 0
+              },
+              "restore": {}
+            },
+            "filter": {
+              "name": "Critical Priority Only",
+              "conditions": [
+                {
+                  "a": "{{1.priority}}",
+                  "b": "critical",
+                  "o": "text:equal"
+                }
+              ]
+            }
+          },
+          {
+            "id": 3,
+            "module": "sms:ActionSendSMS",
+            "version": 1,
+            "parameters": {
+              "to": "YOUR_PHONE_NUMBER"
+            },
+            "mapper": {
+              "text": "🚨 CRITICAL APP ISSUE 🚨\n\n{{1.locationName}}: {{1.message}}\n\nUser: {{1.email}}\nTime: {{1.createdAt}}\n\nFIX IMMEDIATELY!"
+            },
+            "metadata": {
+              "designer": {
+                "x": 600,
+                "y": 0
+              },
+              "restore": {}
+            }
+          },
+          {
+            "id": 4,
+            "module": "email:ActionSendEmail",
+            "version": 3,
+            "parameters": {
+              "to": "YOUR_EMAIL@example.com",
+              "subject": "🚨 CRITICAL: PNW History App Down"
+            },
+            "mapper": {
+              "text": "CRITICAL ISSUE REPORTED:\n\nLocation: {{1.locationName}}\nIssue: {{1.message}}\nUser: {{1.email}}\nTime: {{1.createdAt}}\n\nKeywords: {{1.keywords}}\n\nDrop everything and fix this now!"
+            },
+            "metadata": {
+              "designer": {
+                "x": 600,
+                "y": 100
+              },
+              "restore": {}
+            }
+          }
+        ],
+        "connections": [
+          {
+            "id": 5,
+            "srcModuleId": 1,
+            "srcId": "data",
+            "dstModuleId": 2,
+            "dstId": "array"
+          },
+          {
+            "id": 6,
+            "srcModuleId": 2,
+            "srcId": "bundle",
+            "dstModuleId": 3,
+            "dstId": "data"
+          },
+          {
+            "id": 7,
+            "srcModuleId": 2,
+            "srcId": "bundle",
+            "dstModuleId": 4,
+            "dstId": "data"
+          }
+        ]
+      }
+    },
+    "setup_instructions": [
+      "1. Create webhook in Make.com and note the URL",
+      "2. Add webhook trigger to your feedback submission endpoint",
+      "3. Replace 'YOUR_PHONE_NUMBER' with your actual phone number",
+      "4. Replace 'YOUR_EMAIL@example.com' with your email",
+      "5. Connect SMS service (Twilio recommended)",
+      "6. Test with sample critical feedback",
+      "7. This runs instantly when triggered"
+    ]
+  },
+  "weekly_feedback_digest": {
+    "name": "PNW History - Weekly Feedback Digest",
+    "description": "Weekly summary of all feedback trends and statistics",
+    "blueprint": {
+      "scenario": {
+        "dstOffset": 0,
+        "modules": [
+          {
+            "id": 1,
+            "module": "http:ActionSendData",
+            "version": 1,
+            "parameters": {
+              "url": "https://YOUR_DOMAIN.com/api/automation/feedback-stats",
+              "method": "GET",
+              "headers": [],
+              "qs": []
+            },
+            "mapper": {},
+            "metadata": {
+              "designer": {
+                "x": 0,
+                "y": 0
+              },
+              "restore": {}
+            }
+          },
+          {
+            "id": 2,
+            "module": "email:ActionSendEmail",
+            "version": 3,
+            "parameters": {
+              "to": "YOUR_EMAIL@example.com",
+              "subject": "Weekly Feedback Report - PNW History"
+            },
+            "mapper": {
+              "text": "📊 WEEKLY FEEDBACK REPORT 📊\n\n=== CATEGORIES ===\n🐛 Bugs: {{1.data.categories.bug}}\n💡 Feature Requests: {{1.data.categories.feature_request}}\n📝 Content Suggestions: {{1.data.categories.content_suggestion}}\n🎉 Praise: {{1.data.categories.praise}}\n\n=== PRIORITY BREAKDOWN ===\n🚨 Critical: {{1.data.priority_distribution.critical}}\n⚠️ High: {{1.data.priority_distribution.high}}\n📋 Medium: {{1.data.priority_distribution.medium}}\n📌 Low: {{1.data.priority_distribution.low}}\n\n=== RECENT TRENDS ===\n🐛 Bugs last 24h: {{1.data.recent_trends.bugs_last_24h}}\n💡 Requests last 24h: {{1.data.recent_trends.requests_last_24h}}\n\n=== ACTIONS NEEDED ===\n• Review high-priority bugs\n• Consider popular feature requests\n• Update content based on suggestions\n• Celebrate the praise! 🎉"
+            },
+            "metadata": {
+              "designer": {
+                "x": 300,
+                "y": 0
+              },
+              "restore": {}
+            }
+          }
+        ],
+        "connections": [
+          {
+            "id": 3,
+            "srcModuleId": 1,
+            "srcId": "data",
+            "dstModuleId": 2,
+            "dstId": "data"
+          }
+        ]
+      }
+    },
+    "schedule": {
+      "type": "weekly",
+      "day": "sunday",
+      "time": "09:00"
+    },
+    "setup_instructions": [
+      "1. Replace 'YOUR_DOMAIN.com' with your actual domain",
+      "2. Replace 'YOUR_EMAIL@example.com' with your email address",
+      "3. Set schedule to run every Sunday at 9 AM",
+      "4. Test manually first",
+      "5. Activate for weekly reports"
+    ]
+  }
+}
