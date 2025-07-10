@@ -11,7 +11,7 @@
             "module": "http:ActionSendData",
             "version": 1,
             "parameters": {
-              "url": "https://YOUR_DOMAIN.com/api/automation/recent-feedback",
+              "url": "https://historical-bainbridge-charles194.replit.app/api/automation/recent-feedback",
               "method": "GET",
               "headers": [],
               "qs": []
@@ -406,7 +406,7 @@
             "module": "email:ActionSendEmail",
             "version": 3,
             "parameters": {
-              "to": "YOUR_EMAIL@example.com",
+              "to": "red4golf@gmail.com",
               "subject": "🚨 CRITICAL: PNW History App Down"
             },
             "mapper": {
@@ -468,7 +468,7 @@
             "module": "http:ActionSendData",
             "version": 1,
             "parameters": {
-              "url": "https://YOUR_DOMAIN.com/api/automation/feedback-stats",
+              "url": "https://historical-bainbridge-charles194.replit.app/api/automation/feedback-stats",
               "method": "GET",
               "headers": [],
               "qs": []
@@ -487,7 +487,7 @@
             "module": "email:ActionSendEmail",
             "version": 3,
             "parameters": {
-              "to": "YOUR_EMAIL@example.com",
+              "to": "red4golf@gmail.com",
               "subject": "Weekly Feedback Report - PNW History"
             },
             "mapper": {
