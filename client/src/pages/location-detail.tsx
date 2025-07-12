@@ -334,7 +334,14 @@ export default function LocationDetail() {
                           <BookOpen className="w-8 h-8 text-heritage-brown" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-semibold text-heritage-brown mb-1">{book.title}</h3>
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-heritage-brown">{book.title}</h3>
+                            {book.category && (
+                              <span className="px-2 py-1 text-xs bg-heritage-beige text-heritage-brown rounded border">
+                                {book.category}
+                              </span>
+                            )}
+                          </div>
                           <p className="text-sm text-gray-600 mb-2">by {book.author}</p>
                           <p className="text-sm text-gray-700 mb-3">{book.description}</p>
                           <a
