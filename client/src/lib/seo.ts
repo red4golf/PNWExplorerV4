@@ -10,9 +10,38 @@ export interface SEOMetadata {
 }
 
 export function generateLocationSEO(location: Location): SEOMetadata {
-  const title = `${location.name} - ${location.category} Site | Pacific Northwest Historical Explorer`;
+  // Enhanced title with book keywords for better search visibility
+  const hasBooks = location.recommendedBooks && location.recommendedBooks !== '[]';
+  const bookKeywords = hasBooks ? " - Historical Books & Reading Guide" : "";
+  const title = `${location.name} - ${location.category} Site${bookKeywords} | Pacific Northwest Historical Explorer`;
   
-  const description = `Discover ${location.name}, a ${location.category.toLowerCase()} site in the Pacific Northwest. ${location.description.substring(0, 140)}...`;
+  // Enhanced description with book information
+  let description = `Discover ${location.name}, a ${location.category.toLowerCase()} site in the Pacific Northwest. ${location.description.substring(0, 100)}`;
+  if (hasBooks) {
+    try {
+      const books = JSON.parse(location.recommendedBooks);
+      const bookCategories = [...new Set(books.map((book: any) => book.category).filter(Boolean))];
+      if (bookCategories.length > 0) {
+        description += ` Includes ${bookCategories.join(', ')} book recommendations.`;
+      } else {
+        description += " Includes curated book recommendations.";
+      }
+    } catch (e) {
+      description += " Includes expert book recommendations.";
+    }
+  }
+  
+  // Enhanced keywords with book-related terms
+  const bookRelatedKeywords = hasBooks ? [
+    "historical books",
+    "reading recommendations",
+    "book reviews",
+    "historical fiction",
+    "true crime books",
+    "history books",
+    "Pacific Northwest books",
+    "affiliate recommendations"
+  ] : [];
   
   const keywords = [
     location.name,
@@ -22,12 +51,14 @@ export function generateLocationSEO(location: Location): SEOMetadata {
     location.address || "",
     location.period || "",
     "heritage sites",
-    "cultural landmarks"
+    "cultural landmarks",
+    ...bookRelatedKeywords
   ].filter(Boolean);
   
   const canonicalUrl = `https://pnw-history-explorer.replit.app/location/${location.id}`;
   
-  const structuredData = {
+  // Enhanced structured data with book recommendations
+  const structuredData: any = {
     "@context": "https://schema.org",
     "@type": location.category === "Natural" ? "TouristAttraction" : "Place",
     "name": location.name,
@@ -47,6 +78,38 @@ export function generateLocationSEO(location: Location): SEOMetadata {
       "name": "Pacific Northwest Historical Explorer"
     }
   };
+  
+  // Add book recommendations as structured data
+  if (hasBooks) {
+    try {
+      const books = JSON.parse(location.recommendedBooks);
+      structuredData.recommendedBooks = books.map((book: any) => ({
+        "@type": "Book",
+        "name": book.title,
+        "author": {
+          "@type": "Person",
+          "name": book.author
+        },
+        "description": book.description,
+        "bookFormat": book.format,
+        "offers": {
+          "@type": "Offer",
+          "price": book.price,
+          "priceCurrency": "USD",
+          "availability": "https://schema.org/InStock",
+          "url": book.amazon_url || book.amazonUrl,
+          "seller": {
+            "@type": "Organization",
+            "name": "Amazon"
+          }
+        },
+        "genre": book.category || "History",
+        "about": location.name
+      }));
+    } catch (e) {
+      // Ignore parsing errors
+    }
+  }
   
   return {
     title,
