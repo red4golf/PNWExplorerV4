@@ -927,29 +927,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/locations/:id/audio", async (req, res) => {
     try {
       const locationId = parseInt(req.params.id);
-      const location = await storage.getLocation(locationId);
+      const audioBuffer = await storage.getLocationAudio(locationId);
       
-      if (!location || !location.audioNarration) {
-        return res.status(404).json({ message: "Audio not found for this location" });
-      }
-
-      // Serve audio file from storage
-      const audioData = await storageManager.getFile(location.audioNarration, locationId);
-      
-      if (!audioData) {
-        return res.status(404).json({ message: "Audio file not found" });
+      if (!audioBuffer) {
+        return res.status(404).json({ message: "Audio narration not found" });
       }
 
       res.set({
         'Content-Type': 'audio/mpeg',
-        'Content-Length': audioData.length.toString(),
+        'Content-Length': audioBuffer.length.toString(),
         'Cache-Control': 'public, max-age=3600'
       });
       
-      res.send(audioData);
+      res.send(audioBuffer);
     } catch (error) {
       console.error("Error serving audio:", error);
-      res.status(500).json({ message: "Failed to serve audio file" });
+      res.status(500).json({ message: "Failed to serve audio narration" });
     }
   });
 

@@ -11,7 +11,9 @@ export interface IStorage {
   createLocation(location: InsertLocation): Promise<Location>;
   updateLocationStatus(id: number, status: string): Promise<Location | undefined>;
   updateLocationHeroImage(id: number, heroImage: string): Promise<Location | undefined>;
-  updateLocationAudio(id: number, audioPath: string): Promise<Location | undefined>;
+  updateLocationAudio(id: number, audioBuffer: Buffer): Promise<boolean>;
+  getLocationAudio(id: number): Promise<Buffer | null>;
+  getLocationById(id: number): Promise<Location | undefined>;
   
   // Photo methods
   getPhotosByLocationId(locationId: number): Promise<Photo[]>;
@@ -86,6 +88,42 @@ export class DatabaseStorage implements IStorage {
       .where(eq(locations.id, id))
       .returning();
     return location || undefined;
+  }
+
+  async updateLocationAudio(id: number, audioBuffer: Buffer): Promise<boolean> {
+    try {
+      const audioData = audioBuffer.toString('base64');
+      const [location] = await db
+        .update(locations)
+        .set({ audioNarration: audioData })
+        .where(eq(locations.id, id))
+        .returning();
+      return !!location;
+    } catch (error) {
+      console.error('Error updating location audio:', error);
+      return false;
+    }
+  }
+
+  async getLocationAudio(id: number): Promise<Buffer | null> {
+    try {
+      const [location] = await db
+        .select({ audioNarration: locations.audioNarration })
+        .from(locations)
+        .where(eq(locations.id, id));
+      
+      if (location?.audioNarration) {
+        return Buffer.from(location.audioNarration, 'base64');
+      }
+      return null;
+    } catch (error) {
+      console.error('Error getting location audio:', error);
+      return null;
+    }
+  }
+
+  async getLocationById(id: number): Promise<Location | undefined> {
+    return this.getLocation(id);
   }
 
   async updateLocationAudio(id: number, audioPath: string): Promise<Location | undefined> {
