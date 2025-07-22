@@ -24,12 +24,15 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
 
   useEffect(() => {
     // Check if audio exists for this location
+    console.log('🎵 AUDIO PLAYER: Checking audio availability for location', locationId);
     fetch(audioUrl, { method: 'HEAD' })
       .then(response => {
+        console.log('🎵 AUDIO PLAYER: HEAD response:', response.status, response.ok);
         setHasAudio(response.ok);
         setIsLoading(false);
       })
-      .catch(() => {
+      .catch((error) => {
+        console.log('🎵 AUDIO PLAYER: Error checking audio:', error);
         setHasAudio(false);
         setIsLoading(false);
       });
@@ -94,6 +97,7 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
   };
 
   if (isLoading) {
+    console.log('🎵 AUDIO PLAYER: Showing loading state for location', locationId);
     return (
       <Card className={cn("w-full", className)}>
         <CardContent className="p-4">
@@ -109,7 +113,10 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
     );
   }
 
+  console.log('🎵 AUDIO PLAYER: Final render state:', { hasAudio, locationId, locationName });
+
   if (!hasAudio) {
+    console.log('🎵 AUDIO PLAYER: No audio available, hiding component');
     return null; // Don't show anything if no audio available
   }
 
