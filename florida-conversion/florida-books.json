@@ -1,0 +1,120 @@
+{
+  "historical_fiction": [
+    {
+      "title": "Their Eyes Were Watching God",
+      "author": "Zora Neale Hurston",
+      "amazon_url": "https://www.amazon.com/Their-Eyes-Were-Watching-God/dp/0060838671",
+      "format": "Paperback",
+      "price": "$15.99",
+      "description": "Harlem Renaissance masterpiece set in early 1900s Florida. Follows Janie Crawford's journey through three marriages in Eatonville and the Everglades.",
+      "category": "Historical Fiction",
+      "locations": ["Eatonville Historic District", "Everglades National Park", "Belle Glade"]
+    },
+    {
+      "title": "A Land Remembered",
+      "author": "Patrick D. Smith",
+      "amazon_url": "https://www.amazon.com/Land-Remembered-Patrick-D-Smith/dp/1561641472",
+      "format": "Paperback", 
+      "price": "$16.99",
+      "description": "Epic three-generation saga following the MacIvey family from 1858 to 1968. Chronicles Florida's transformation from wilderness to modern state.",
+      "category": "Historical Fiction",
+      "locations": ["Kissimmee River", "Lake Okeechobee", "Central Florida", "Cattle Ranches"]
+    },
+    {
+      "title": "Shadow Country",
+      "author": "Peter Matthiessen",
+      "amazon_url": "https://www.amazon.com/Shadow-Country-Peter-Matthiessen/dp/0375708510",
+      "format": "Paperback",
+      "price": "$18.99", 
+      "description": "National Book Award winner. Dark novel of Edgar Watson, legendary outlaw of the Everglades frontier in the early 1900s.",
+      "category": "Historical Fiction",
+      "locations": ["Everglades National Park", "Ten Thousand Islands", "Chokoloskee Island"]
+    },
+    {
+      "title": "The Year of the Sawdust Man",
+      "author": "A. LaFaye", 
+      "amazon_url": "https://www.amazon.com/Year-Sawdust-Man-A-LaFaye/dp/0689841973",
+      "format": "Paperback",
+      "price": "$8.99",
+      "description": "Young adult historical fiction set in 1930s Louisiana bayou country with strong Florida Gulf Coast connections.",
+      "category": "Historical Fiction", 
+      "locations": ["Gulf Coast", "Apalachicola", "Cedar Key"]
+    }
+  ],
+  "true_crime": [
+    {
+      "title": "Florida Mayhem: True Crime from the Sunshine State",
+      "author": "Mike Miller",
+      "amazon_url": "https://www.amazon.com/Florida-Mayhem-Crime-Sunshine-State/dp/0811738337",
+      "format": "Paperback",
+      "price": "$16.95",
+      "description": "Collection of Florida's most notorious crimes from Spanish colonial times through modern era.",
+      "category": "True Crime",
+      "locations": ["Miami", "Tampa", "Jacksonville", "Key West"]
+    },
+    {
+      "title": "The Last Pirate: A Father, His Son, and the Golden Age of Marijuana Smuggling",
+      "author": "Tony Dokoupil",
+      "amazon_url": "https://www.amazon.com/Last-Pirate-Golden-Marijuana-Smuggling/dp/0767931459",
+      "format": "Paperback",
+      "price": "$16.99",
+      "description": "Memoir about marijuana smuggling through Florida in the 1970s-80s. Personal story of the drug trade's impact on families.",
+      "category": "True Crime",
+      "locations": ["Miami", "Key West", "Florida Keys", "Everglades"]
+    }
+  ],
+  "popular_history": [
+    {
+      "title": "The Swamp: The Everglades, Florida, and the Politics of Paradise",
+      "author": "Michael Grunwald",
+      "amazon_url": "https://www.amazon.com/Swamp-Everglades-Florida-Politics-Paradise/dp/0743284410",
+      "format": "Paperback",
+      "price": "$17.99",
+      "description": "Pulitzer Prize-winning journalist's definitive history of the Everglades from pristine wilderness to environmental battleground.",
+      "category": "Popular History",
+      "locations": ["Everglades National Park", "Lake Okeechobee", "Miami", "Fort Lauderdale"]
+    },
+    {
+      "title": "Some Kind of Paradise: A Chronicle of Man and the Land in Florida",
+      "author": "Mark Derr",
+      "amazon_url": "https://www.amazon.com/Some-Kind-Paradise-Chronicle-Florida/dp/0813014395",
+      "format": "Paperback",
+      "price": "$24.95",
+      "description": "Environmental history examining Florida's transformation from natural paradise to developed state.",
+      "category": "Popular History", 
+      "locations": ["Everglades", "St. Augustine", "Tampa Bay", "Miami"]
+    },
+    {
+      "title": "Finding Florida: The True History of the Sunshine State",
+      "author": "T.D. Allman",
+      "amazon_url": "https://www.amazon.com/Finding-Florida-History-Sunshine-State/dp/0802145418",
+      "format": "Paperback",
+      "price": "$18.99",
+      "description": "Comprehensive Florida history from Ponce de León through modern times, debunking myths and revealing complex truths.",
+      "category": "Popular History",
+      "locations": ["St. Augustine", "Tampa", "Miami", "Key West", "Tallahassee"]
+    }
+  ],
+  "guide_books": [
+    {
+      "title": "Florida Off the Beaten Path: Discover Your Fun",
+      "author": "Mike Kuhlman",
+      "amazon_url": "https://www.amazon.com/Florida-Beaten-Path-Discover-Your/dp/1493056441",
+      "format": "Paperback",
+      "price": "$18.95",
+      "description": "Guide to Florida's hidden gems and lesser-known historical sites throughout the state.",
+      "category": "Guide Books",
+      "locations": ["Cedar Key", "Apalachicola", "Mount Dora", "Sanford"]
+    },
+    {
+      "title": "Best Backroads of Florida",
+      "author": "Douglas Waitley",
+      "amazon_url": "https://www.amazon.com/Best-Backroads-Florida-Volumes/dp/1561643084",
+      "format": "Paperback",
+      "price": "$19.95",
+      "description": "Three-volume series covering scenic and historic routes throughout Florida with detailed maps and historical context.",
+      "category": "Guide Books", 
+      "locations": ["All regions of Florida"]
+    }
+  ]
+}
