@@ -685,6 +685,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Serve static uploads for previews
+  app.get("/uploads/:filename", (req, res) => {
+    const filename = req.params.filename;
+    const filePath = path.join(process.cwd(), 'uploads', filename);
+    
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: "File not found" });
+    }
+    
+    // Set appropriate headers
+    const ext = filename.toLowerCase().split('.').pop();
+    let contentType = 'application/octet-stream';
+    
+    if (ext === 'mp3') contentType = 'audio/mpeg';
+    else if (ext === 'jpg' || ext === 'jpeg') contentType = 'image/jpeg';
+    else if (ext === 'png') contentType = 'image/png';
+    
+    res.set({
+      'Content-Type': contentType,
+      'Cache-Control': 'public, max-age=3600'
+    });
+    
+    res.sendFile(filePath);
+  });
+
   // Add file serving route for database storage
   app.get("/api/files/location-:locationId/:filename", async (req, res) => {
     try {
