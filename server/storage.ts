@@ -1,6 +1,6 @@
-import { locations, photos, admins, feedback, affiliateClicks, userAnalytics, type Location, type InsertLocation, type Photo, type InsertPhoto, type Admin, type InsertAdmin, type Feedback, type InsertFeedback, type AffiliateClick, type InsertAffiliateClick, type UserAnalytics, type InsertUserAnalytics } from "@shared/schema";
+import { locations, photos, admins, feedback, affiliateClicks, userAnalytics, fileStorage, type Location, type InsertLocation, type Photo, type InsertPhoto, type Admin, type InsertAdmin, type Feedback, type InsertFeedback, type AffiliateClick, type InsertAffiliateClick, type UserAnalytics, type InsertUserAnalytics } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and, sql } from "drizzle-orm";
 
 export interface IStorage {
   // Location methods
@@ -90,30 +90,44 @@ export class DatabaseStorage implements IStorage {
     return location || undefined;
   }
 
-  async updateLocationAudio(id: number, audioBuffer: Buffer): Promise<boolean> {
-    try {
-      const audioData = audioBuffer.toString('base64');
-      const [location] = await db
-        .update(locations)
-        .set({ audioNarration: audioData })
-        .where(eq(locations.id, id))
-        .returning();
-      return !!location;
-    } catch (error) {
-      console.error('Error updating location audio:', error);
-      return false;
-    }
+  async updateLocationAudio(id: number, audioPath: string): Promise<Location | undefined> {
+    const [location] = await db
+      .update(locations)
+      .set({ audioNarration: audioPath })
+      .where(eq(locations.id, id))
+      .returning();
+    return location || undefined;
   }
 
   async getLocationAudio(id: number): Promise<Buffer | null> {
     try {
-      const [location] = await db
-        .select({ audioNarration: locations.audioNarration })
-        .from(locations)
-        .where(eq(locations.id, id));
+      console.log(`🎵 STORAGE: Looking for audio for location ${id}`);
       
-      if (location?.audioNarration) {
-        return Buffer.from(location.audioNarration, 'base64');
+      // Look for audio files in file_storage table for this location
+      const [audioFile] = await db
+        .select({ 
+          fileData: fileStorage.fileData,
+          filename: fileStorage.filename,
+          fileSize: fileStorage.fileSize 
+        })
+        .from(fileStorage)
+        .where(
+          and(
+            eq(fileStorage.locationId, id),
+            sql`${fileStorage.filename} LIKE '%narration%'`
+          )
+        )
+        .limit(1);
+      
+      console.log('🔍 STORAGE: Audio query result:', audioFile ? { 
+        filename: audioFile.filename, 
+        size: audioFile.fileSize,
+        hasData: !!audioFile.fileData 
+      } : 'No audio found');
+      
+      if (audioFile?.fileData) {
+        console.log(`✅ STORAGE: Returning audio buffer (${audioFile.fileData.length} bytes)`);
+        return audioFile.fileData;
       }
       return null;
     } catch (error) {
@@ -124,15 +138,6 @@ export class DatabaseStorage implements IStorage {
 
   async getLocationById(id: number): Promise<Location | undefined> {
     return this.getLocation(id);
-  }
-
-  async updateLocationAudio(id: number, audioPath: string): Promise<Location | undefined> {
-    const [location] = await db
-      .update(locations)
-      .set({ audioNarration: audioPath })
-      .where(eq(locations.id, id))
-      .returning();
-    return location || undefined;
   }
 
   async getPhotosByLocationId(locationId: number): Promise<Photo[]> {
