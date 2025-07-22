@@ -685,6 +685,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Serve HTML preview pages
+  app.get("/audio-preview", (req, res) => {
+    const filePath = path.join(process.cwd(), 'audio-preview-clickable.html');
+    res.sendFile(filePath);
+  });
+
   // Serve static uploads for previews
   app.get("/uploads/:filename", (req, res) => {
     const filename = req.params.filename;
