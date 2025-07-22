@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Florida Historical Explorer - Audio Preview</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+        .audio-container {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+        .location-title {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: #fff3e0;
+        }
+        audio {
+            width: 100%;
+            max-width: 500px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        .preview-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin: 20px 0;
+            opacity: 0.95;
+            font-style: italic;
+        }
+        .features {
+            text-align: left;
+            margin: 30px 0;
+        }
+        .features ul {
+            list-style: none;
+            padding: 0;
+        }
+        .features li {
+            margin: 15px 0;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            border-left: 4px solid #fff3e0;
+        }
+        .cta {
+            margin-top: 40px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+        }
+        .download-link {
+            display: inline-block;
+            margin: 10px;
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #ff6b35;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        .download-link:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌴 Florida Historical Explorer</h1>
+        <div class="subtitle">Audio Narration Preview - Powered by ElevenLabs AI</div>
+        
+        <div class="audio-container">
+            <div class="location-title">🏰 Castillo de San Marcos National Monument</div>
+            
+            <audio controls preload="metadata">
+                <source src="http://localhost:5000/uploads/florida-castillo-preview.mp3" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+            
+            <div class="preview-text">
+                "Welcome to Castillo de San Marcos National Monument. Standing sentinel over Matanzas Bay for more than 350 years, this massive star-shaped fortress represents one of America's most remarkable architectural and military achievements..."
+            </div>
+            
+            <a href="http://localhost:5000/uploads/florida-castillo-preview.mp3" class="download-link" download>
+                📱 Download Audio (436KB)
+            </a>
+        </div>
+
+        <div class="features">
+            <h3>🎧 Audio Narration Features:</h3>
+            <ul>
+                <li><strong>Professional Voice Quality:</strong> ElevenLabs Rachel voice optimized for historical education</li>
+                <li><strong>Perfect Length:</strong> 2-3 minute narrations ideal for on-site listening</li>
+                <li><strong>Mobile Optimized:</strong> Download capability for offline listening during site visits</li>
+                <li><strong>Educational Focus:</strong> Academic-quality content in accessible audio format</li>
+            </ul>
+        </div>
+
+        <div class="cta">
+            <h3>🚀 Ready for Florida Market Launch</h3>
+            <p>This audio preview demonstrates the professional narration quality for Florida Historical Explorer. The complete conversion kit includes:</p>
+            <ul>
+                <li>✅ 3 Premium Florida locations with comprehensive stories</li>
+                <li>✅ Orange-themed UI optimized for Sunshine State tourism</li>
+                <li>✅ Professional audio narration system</li>
+                <li>✅ Book recommendations for Florida historical literature</li>
+                <li>✅ Mobile-optimized experience for 140+ million annual tourists</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
