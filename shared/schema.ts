@@ -15,6 +15,7 @@ export const locations = pgTable("locations", {
   photos: text("photos").array().default([]),
   heroImage: text("hero_image"), // Main image for the location
   content: text("content"), // Rich story content
+  audioNarration: text("audio_narration"), // Generated audio file path/URL
   recommendedBooks: text("recommended_books"), // JSON array of book recommendations with affiliate links
   submitterName: text("submitter_name"),
   submitterEmail: text("submitter_email"),

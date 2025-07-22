@@ -14,6 +14,7 @@ const FLORIDA_LOCATIONS = [
     status: "approved" as const,
     submitterName: "Research Team",
     submitterEmail: "research@floridahistory.org",
+    audioNarration: "/api/locations/1/audio", // Will be generated via ElevenLabs
     content: `# Castillo de San Marcos: Fortress of the First Coast
 
 Standing sentinel over Matanzas Bay for more than 350 years, Castillo de San Marcos represents one of America's most remarkable architectural and military achievements. This massive star-shaped fortress, built from native coquina stone, tells the story of Spanish colonization, military engineering, and the birth of the oldest continuously inhabited European-established settlement in the continental United States.

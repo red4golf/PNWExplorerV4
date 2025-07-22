@@ -12,6 +12,7 @@ import fs from "fs";
 import { uploadPersistenceFix } from "./upload-persistence-fix";
 import { storageManager, DatabaseStorageProvider } from "./cloud-storage";
 import { generateSitemap, generateRobotsTxt } from "./sitemap";
+import { audioService } from "./audio-service";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure multer for file uploads with location-specific folders
@@ -833,6 +834,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error getting analytics by location:", error);
       res.status(500).json({ message: "Failed to get location analytics" });
+    }
+  });
+
+  // AUDIO NARRATION ENDPOINTS
+  
+  // Generate audio narration for a location
+  app.post("/api/admin/locations/:id/generate-audio", async (req, res) => {
+    try {
+      const locationId = parseInt(req.params.id);
+      const location = await storage.getLocation(locationId);
+      
+      if (!location) {
+        return res.status(404).json({ message: "Location not found" });
+      }
+
+      if (!location.content) {
+        return res.status(400).json({ message: "Location has no content for audio generation" });
+      }
+
+      console.log(`🎵 Generating audio narration for location: ${location.name}`);
+      
+      const audioBuffer = await audioService.generateHistoricalNarration(
+        location.name, 
+        location.content
+      );
+
+      // Save audio file to storage
+      const audioFilename = `narration-${locationId}-${Date.now()}.mp3`;
+      const audioPath = await storageManager.uploadFile(
+        audioBuffer, 
+        audioFilename, 
+        locationId, 
+        'audio/mpeg'
+      );
+
+      // Update location with audio path
+      const updatedLocation = await storage.updateLocationAudio(locationId, audioPath);
+      
+      if (!updatedLocation) {
+        return res.status(500).json({ message: "Failed to update location with audio" });
+      }
+
+      console.log(`✅ Audio narration generated successfully: ${audioPath}`);
+
+      res.json({
+        message: "Audio narration generated successfully",
+        audioPath,
+        location: updatedLocation
+      });
+    } catch (error) {
+      console.error("Error generating audio:", error);
+      res.status(500).json({ 
+        message: "Failed to generate audio narration",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Get audio narration for a location
+  app.get("/api/locations/:id/audio", async (req, res) => {
+    try {
+      const locationId = parseInt(req.params.id);
+      const location = await storage.getLocation(locationId);
+      
+      if (!location || !location.audioNarration) {
+        return res.status(404).json({ message: "Audio not found for this location" });
+      }
+
+      // Serve audio file from storage
+      const audioData = await storageManager.getFile(location.audioNarration, locationId);
+      
+      if (!audioData) {
+        return res.status(404).json({ message: "Audio file not found" });
+      }
+
+      res.set({
+        'Content-Type': 'audio/mpeg',
+        'Content-Length': audioData.length.toString(),
+        'Cache-Control': 'public, max-age=3600'
+      });
+      
+      res.send(audioData);
+    } catch (error) {
+      console.error("Error serving audio:", error);
+      res.status(500).json({ message: "Failed to serve audio file" });
     }
   });
 
