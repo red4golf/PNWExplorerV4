@@ -14,6 +14,7 @@ import { useState, useEffect } from "react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import LocationPhotoGallery from "@/components/location-photo-gallery";
+import AudioPlayer from "@/components/audio-player";
 
 
 
@@ -199,6 +200,14 @@ export default function LocationDetail() {
                 <span className="font-semibold">{location.period}</span>
               </div>
             )}
+
+            {/* Audio Player */}
+            <div className="mb-6">
+              <AudioPlayer 
+                locationId={location.id}
+                locationName={location.name}
+              />
+            </div>
 
             <div className="prose prose-sm sm:prose-base lg:prose-lg max-w-none mb-6 sm:mb-8">
               <p className="text-gray-700 leading-relaxed text-sm sm:text-base">

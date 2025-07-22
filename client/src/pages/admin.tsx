@@ -18,7 +18,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useAnalytics } from "@/hooks/use-analytics";
-import { Lock, Clock, MapPin, Users, CheckCircle, XCircle, LogIn, Upload, FileText, Database, Edit3, Search, Save, Filter, Eye, Trash2, Image, Calendar, BarChart3, Settings, RefreshCw, Download, ChevronDown, AlertCircle, X, MessageSquare, Bug, Lightbulb, BookOpen, TestTube } from "lucide-react";
+import { Lock, Clock, MapPin, Users, CheckCircle, XCircle, LogIn, Upload, FileText, Database, Edit3, Search, Save, Filter, Eye, Trash2, Image, Calendar, BarChart3, Settings, RefreshCw, Download, ChevronDown, AlertCircle, X, MessageSquare, Bug, Lightbulb, BookOpen, TestTube, Volume2 } from "lucide-react";
+import AdminAudio from "./admin-audio";
 import { formatDate, getCategoryColor } from "@/lib/utils";
 import type { Location, Feedback } from "@shared/schema";
 
