@@ -127,6 +127,46 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
       <p style={{ color: 'black' }}>Location: {locationName} (ID: {locationId})</p>
       <p style={{ color: 'black' }}>Has Audio: {hasAudio ? 'YES' : 'NO'}</p>
       
+      {/* Simple HTML Audio Controls Test */}
+      <div style={{ background: 'white', padding: '10px', border: '1px solid black', margin: '10px 0' }}>
+        <h4 style={{ color: 'black', margin: '0 0 10px 0' }}>Simple HTML Audio Test:</h4>
+        <audio 
+          controls 
+          src={audioUrl}
+          style={{ width: '100%' }}
+        />
+      </div>
+      
+      {/* Custom Controls Test */}
+      <div style={{ background: 'white', padding: '10px', border: '1px solid black', margin: '10px 0' }}>
+        <h4 style={{ color: 'black', margin: '0 0 10px 0' }}>Custom Controls Test:</h4>
+        <button 
+          onClick={togglePlay}
+          style={{ 
+            padding: '8px 16px', 
+            backgroundColor: '#007bff', 
+            color: 'white', 
+            border: 'none', 
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          {isPlaying ? '⏸️ Pause' : '▶️ Play'}
+        </button>
+        
+        <audio
+          ref={audioRef}
+          src={audioUrl}
+          onTimeUpdate={handleTimeUpdate}
+          onLoadedMetadata={handleLoadedMetadata}
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+          onEnded={() => setIsPlaying(false)}
+          preload="metadata"
+          style={{ display: 'none' }}
+        />
+      </div>
+      
       <Card className={cn("w-full bg-gradient-to-r from-heritage-50 to-heritage-100 dark:from-heritage-900 dark:to-heritage-800 border-heritage-200 dark:border-heritage-700", className)}>
         <CardContent className="p-4">
           <div className="flex items-center space-x-3 mb-3">
@@ -142,17 +182,6 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
               </p>
             </div>
           </div>
-
-          <audio
-            ref={audioRef}
-            src={audioUrl}
-            onTimeUpdate={handleTimeUpdate}
-            onLoadedMetadata={handleLoadedMetadata}
-            onPlay={() => setIsPlaying(true)}
-            onPause={() => setIsPlaying(false)}
-            onEnded={() => setIsPlaying(false)}
-            preload="metadata"
-          />
 
           {/* Main Controls */}
           <div className="flex items-center space-x-3 mb-3">
