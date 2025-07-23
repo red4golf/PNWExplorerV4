@@ -110,84 +110,90 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
     return null;
   }
 
-  // Force render with visible styles to debug
   return (
-    <div style={{ 
-      border: '3px solid blue', 
-      padding: '20px', 
-      margin: '20px 0', 
-      backgroundColor: 'lightblue',
-      minHeight: '200px'
-    }}>
-      <h2 style={{ color: 'black', fontSize: '20px', marginBottom: '20px' }}>
-        🎧 Audio Player Debug Mode
-      </h2>
-      
-      {/* Native HTML Audio with Controls */}
-      <div style={{ marginBottom: '20px', backgroundColor: 'white', padding: '10px' }}>
-        <h3 style={{ color: 'black', margin: '0 0 10px 0' }}>Native HTML Audio:</h3>
-        <audio controls style={{ width: '100%' }} src={audioUrl} />
+    <div className="w-full bg-gradient-to-r from-heritage-50 to-heritage-100 dark:from-heritage-900 dark:to-heritage-800 border border-heritage-200 dark:border-heritage-700 rounded-lg p-4 my-4">
+      <div className="flex items-center space-x-3 mb-4">
+        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-heritage-600 text-white text-lg">
+          🎧
+        </div>
+        <div>
+          <h4 className="font-semibold text-heritage-900 dark:text-heritage-100">
+            Audio Tour
+          </h4>
+          <p className="text-sm text-heritage-600 dark:text-heritage-300">
+            Listen to the story of {locationName}
+          </p>
+        </div>
       </div>
-      
-      {/* Simple Button Test */}
-      <div style={{ marginBottom: '20px', backgroundColor: 'white', padding: '10px' }}>
-        <h3 style={{ color: 'black', margin: '0 0 10px 0' }}>Simple Button Test:</h3>
-        <button 
-          onClick={() => {
-            console.log('Button clicked!');
-            if (audioRef.current) {
-              if (isPlaying) {
-                audioRef.current.pause();
-              } else {
-                audioRef.current.play();
-              }
-            }
-          }}
-          style={{ 
-            padding: '12px 24px',
-            fontSize: '16px',
-            backgroundColor: isPlaying ? '#dc3545' : '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer'
-          }}
+
+      <audio
+        ref={audioRef}
+        src={audioUrl}
+        onTimeUpdate={handleTimeUpdate}
+        onLoadedMetadata={handleLoadedMetadata}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onEnded={() => setIsPlaying(false)}
+        preload="metadata"
+        style={{ display: 'none' }}
+      />
+
+      {/* Main Controls */}
+      <div className="flex items-center space-x-3 mb-3">
+        <button
+          onClick={togglePlay}
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-heritage-600 hover:bg-heritage-700 text-white transition-colors"
         >
-          {isPlaying ? '⏸️ PAUSE' : '▶️ PLAY'}
+          {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
         </button>
-        
-        <audio
-          ref={audioRef}
-          src={audioUrl}
-          onTimeUpdate={handleTimeUpdate}
-          onLoadedMetadata={handleLoadedMetadata}
-          onPlay={() => setIsPlaying(true)}
-          onPause={() => setIsPlaying(false)}
-          onEnded={() => setIsPlaying(false)}
-          preload="metadata"
-          style={{ display: 'none' }}
-        />
+
+        <div className="flex-1">
+          <input
+            type="range"
+            min={0}
+            max={duration || 0}
+            value={currentTime}
+            onChange={handleSeek}
+            className="w-full h-2 bg-heritage-200 dark:bg-heritage-700 rounded-lg appearance-none cursor-pointer"
+            style={{
+              background: `linear-gradient(to right, #8b5a3c 0%, #8b5a3c ${(currentTime / (duration || 1)) * 100}%, #e5e7eb ${(currentTime / (duration || 1)) * 100}%, #e5e7eb 100%)`
+            }}
+          />
+          <div className="flex justify-between text-xs text-heritage-500 mt-1">
+            <span>{formatTime(currentTime)}</span>
+            <span>{formatTime(duration)}</span>
+          </div>
+        </div>
       </div>
-      
-      {/* Component Library Test */}
-      <div style={{ backgroundColor: 'white', padding: '10px' }}>
-        <h3 style={{ color: 'black', margin: '0 0 10px 0' }}>Component Library Test:</h3>
-        <Card style={{ backgroundColor: 'lightyellow' }}>
-          <CardContent style={{ padding: '16px' }}>
-            <Button
-              onClick={togglePlay}
-              style={{ 
-                backgroundColor: '#007bff',
-                color: 'white',
-                padding: '8px 16px',
-                border: 'none',
-                borderRadius: '4px'
-              }}
-            >
-              Component Button: {isPlaying ? 'Pause' : 'Play'}
-            </Button>
-          </CardContent>
-        </Card>
+
+      {/* Secondary Controls */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={toggleMute}
+            className="p-1 text-heritage-600 hover:text-heritage-700 transition-colors"
+          >
+            {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+          </button>
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.1}
+            value={isMuted ? 0 : volume}
+            onChange={handleVolumeChange}
+            className="w-16 h-1 bg-heritage-200 dark:bg-heritage-700 rounded-lg appearance-none cursor-pointer"
+          />
+        </div>
+
+        <a
+          href={audioUrl}
+          download={`${locationName}-audio-tour.mp3`}
+          className="flex items-center space-x-1 text-heritage-600 hover:text-heritage-700 transition-colors text-sm"
+        >
+          <Download className="h-4 w-4" />
+          <span className="hidden sm:inline">Download</span>
+        </a>
       </div>
     </div>
   );
