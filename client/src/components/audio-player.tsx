@@ -142,9 +142,14 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
       <div className="flex items-center space-x-3 mb-3">
         <button
           onClick={togglePlay}
-          className="flex items-center justify-center w-10 h-10 rounded-full bg-heritage-600 hover:bg-heritage-700 text-white transition-colors"
+          className="flex items-center justify-center w-12 h-12 rounded-full bg-heritage-600 hover:bg-heritage-700 text-white transition-colors shadow-lg border-2 border-white"
+          style={{ backgroundColor: '#8b5a3c' }}
         >
-          {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+          {isPlaying ? (
+            <Pause className="h-6 w-6" style={{ color: 'white', fill: 'white' }} />
+          ) : (
+            <Play className="h-6 w-6 ml-0.5" style={{ color: 'white', fill: 'white' }} />
+          )}
         </button>
 
         <div className="flex-1">
@@ -154,9 +159,10 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
             max={duration || 0}
             value={currentTime}
             onChange={handleSeek}
-            className="w-full h-2 bg-heritage-200 dark:bg-heritage-700 rounded-lg appearance-none cursor-pointer"
+            className="w-full h-1 rounded-lg appearance-none cursor-pointer"
             style={{
-              background: `linear-gradient(to right, #8b5a3c 0%, #8b5a3c ${(currentTime / (duration || 1)) * 100}%, #e5e7eb ${(currentTime / (duration || 1)) * 100}%, #e5e7eb 100%)`
+              background: `linear-gradient(to right, #8b5a3c 0%, #8b5a3c ${(currentTime / (duration || 1)) * 100}%, #d1d5db ${(currentTime / (duration || 1)) * 100}%, #d1d5db 100%)`,
+              outline: 'none'
             }}
           />
           <div className="flex justify-between text-xs text-heritage-500 mt-1">
@@ -171,7 +177,8 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
         <div className="flex items-center space-x-2">
           <button
             onClick={toggleMute}
-            className="p-1 text-heritage-600 hover:text-heritage-700 transition-colors"
+            className="p-2 text-heritage-600 hover:text-heritage-700 transition-colors rounded-full hover:bg-heritage-100"
+            style={{ color: '#8b5a3c' }}
           >
             {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
           </button>
@@ -182,7 +189,11 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
             step={0.1}
             value={isMuted ? 0 : volume}
             onChange={handleVolumeChange}
-            className="w-16 h-1 bg-heritage-200 dark:bg-heritage-700 rounded-lg appearance-none cursor-pointer"
+            className="w-16 h-0.5 rounded-lg appearance-none cursor-pointer"
+            style={{
+              background: `linear-gradient(to right, #8b5a3c 0%, #8b5a3c ${volume * 100}%, #d1d5db ${volume * 100}%, #d1d5db 100%)`,
+              outline: 'none'
+            }}
           />
         </div>
 
