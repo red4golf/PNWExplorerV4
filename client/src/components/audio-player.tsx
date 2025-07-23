@@ -110,23 +110,52 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
     return null;
   }
 
+  // Force render with visible styles to debug
   return (
-    <Card className={cn("w-full bg-gradient-to-r from-heritage-50 to-heritage-100 dark:from-heritage-900 dark:to-heritage-800 border-heritage-200 dark:border-heritage-700", className)}>
-      <CardContent className="p-4">
-        <div className="flex items-center space-x-3 mb-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-heritage-600 text-white">
-            🎧
-          </div>
-          <div>
-            <h4 className="font-semibold text-heritage-900 dark:text-heritage-100">
-              Audio Tour
-            </h4>
-            <p className="text-sm text-heritage-600 dark:text-heritage-300">
-              Listen to the story of {locationName}
-            </p>
-          </div>
-        </div>
-
+    <div style={{ 
+      border: '3px solid blue', 
+      padding: '20px', 
+      margin: '20px 0', 
+      backgroundColor: 'lightblue',
+      minHeight: '200px'
+    }}>
+      <h2 style={{ color: 'black', fontSize: '20px', marginBottom: '20px' }}>
+        🎧 Audio Player Debug Mode
+      </h2>
+      
+      {/* Native HTML Audio with Controls */}
+      <div style={{ marginBottom: '20px', backgroundColor: 'white', padding: '10px' }}>
+        <h3 style={{ color: 'black', margin: '0 0 10px 0' }}>Native HTML Audio:</h3>
+        <audio controls style={{ width: '100%' }} src={audioUrl} />
+      </div>
+      
+      {/* Simple Button Test */}
+      <div style={{ marginBottom: '20px', backgroundColor: 'white', padding: '10px' }}>
+        <h3 style={{ color: 'black', margin: '0 0 10px 0' }}>Simple Button Test:</h3>
+        <button 
+          onClick={() => {
+            console.log('Button clicked!');
+            if (audioRef.current) {
+              if (isPlaying) {
+                audioRef.current.pause();
+              } else {
+                audioRef.current.play();
+              }
+            }
+          }}
+          style={{ 
+            padding: '12px 24px',
+            fontSize: '16px',
+            backgroundColor: isPlaying ? '#dc3545' : '#007bff',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer'
+          }}
+        >
+          {isPlaying ? '⏸️ PAUSE' : '▶️ PLAY'}
+        </button>
+        
         <audio
           ref={audioRef}
           src={audioUrl}
@@ -136,67 +165,30 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
           onPause={() => setIsPlaying(false)}
           onEnded={() => setIsPlaying(false)}
           preload="metadata"
+          style={{ display: 'none' }}
         />
-
-        {/* Main Controls */}
-        <div className="flex items-center space-x-3 mb-3">
-          <Button
-            onClick={togglePlay}
-            size="sm"
-            className="bg-heritage-600 hover:bg-heritage-700 text-white"
-          >
-            {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-          </Button>
-
-          <div className="flex-1">
-            {/* Progress Bar */}
-            <input
-              type="range"
-              min={0}
-              max={duration || 0}
-              value={currentTime}
-              onChange={handleSeek}
-              className="w-full h-2 bg-heritage-200 rounded-lg appearance-none cursor-pointer dark:bg-heritage-700 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-heritage-600"
-            />
-            <div className="flex justify-between text-xs text-heritage-500 mt-1">
-              <span>{formatTime(currentTime)}</span>
-              <span>{formatTime(duration)}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Secondary Controls */}
-        <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center space-x-2">
+      </div>
+      
+      {/* Component Library Test */}
+      <div style={{ backgroundColor: 'white', padding: '10px' }}>
+        <h3 style={{ color: 'black', margin: '0 0 10px 0' }}>Component Library Test:</h3>
+        <Card style={{ backgroundColor: 'lightyellow' }}>
+          <CardContent style={{ padding: '16px' }}>
             <Button
-              onClick={toggleMute}
-              size="sm"
-              variant="ghost"
-              className="h-8 w-8 p-0 text-heritage-600"
+              onClick={togglePlay}
+              style={{ 
+                backgroundColor: '#007bff',
+                color: 'white',
+                padding: '8px 16px',
+                border: 'none',
+                borderRadius: '4px'
+              }}
             >
-              {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+              Component Button: {isPlaying ? 'Pause' : 'Play'}
             </Button>
-            <input
-              type="range"
-              min={0}
-              max={1}
-              step={0.1}
-              value={isMuted ? 0 : volume}
-              onChange={handleVolumeChange}
-              className="w-20 h-1 bg-heritage-200 rounded-lg appearance-none cursor-pointer dark:bg-heritage-700 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-heritage-600"
-            />
-          </div>
-
-          <a
-            href={audioUrl}
-            download={`${locationName}-audio-tour.mp3`}
-            className="flex items-center space-x-1 text-heritage-600 hover:text-heritage-700 transition-colors"
-          >
-            <Download className="h-4 w-4" />
-            <span className="hidden sm:inline">Download</span>
-          </a>
-        </div>
-      </CardContent>
-    </Card>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }
