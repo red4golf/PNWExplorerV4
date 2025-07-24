@@ -64,7 +64,7 @@ export const fileStorage = pgTable("file_storage", {
   id: serial("id").primaryKey(),
   filename: text("filename").notNull(),
   locationId: integer("location_id").notNull(),
-  fileData: text("file_data", { mode: 'binary' }).notNull(), // Using binary mode for BYTEA
+  fileData: text("file_data").notNull(), // Binary data stored as base64 text
   fileSize: integer("file_size").notNull(),
   mimeType: text("mime_type"),
   uploadedAt: timestamp("uploaded_at").defaultNow(),
