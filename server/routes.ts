@@ -243,8 +243,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 console.log('✅ BACKUP: Photo ID', photo.id, 'stored in cloud');
               } catch (error) {
                 console.error('❌ CLOUD STORAGE: Failed to upload for photo ID:', photo.id, error);
-                console.error('❌ CLOUD STORAGE Error details:', error.message, error.stack);
-                errors.push(`${file.originalname}: Cloud storage upload failed - ${error.message}`);
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                const errorStack = error instanceof Error ? error.stack : 'No stack trace';
+                console.error('❌ CLOUD STORAGE Error details:', errorMessage, errorStack);
+                errors.push(`${file.originalname}: Cloud storage upload failed - ${errorMessage}`);
               }
             } else {
               console.error('❌ CRITICAL: Photo file missing immediately after upload!');
@@ -973,8 +975,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const audioPath = await storageManager.uploadFile(
         audioBuffer, 
         audioFilename, 
-        locationId, 
-        'audio/mpeg'
+        locationId
       );
 
       // Update location with audio path
@@ -1033,7 +1034,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const allFeedback = await storage.getAllFeedback();
       
       const recentFeedback = allFeedback
-        .filter(f => new Date(f.createdAt) > since)
+        .filter(f => f.createdAt && new Date(f.createdAt) > since)
         .map(f => {
           // Categorize feedback based on keywords
           const message = f.message.toLowerCase();
@@ -1083,9 +1084,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return {
             id: f.id,
             message: f.message,
-            email: f.email,
+            email: f.userEmail,
             locationId: f.locationId,
-            locationName: f.locationName,
+            locationName: null, // This property doesn't exist in the schema
             createdAt: f.createdAt,
             priority,
             category,
@@ -1116,7 +1117,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       allFeedback.forEach(f => {
         const message = f.message.toLowerCase();
-        const isRecent = new Date(f.createdAt) > last24h;
+        const isRecent = f.createdAt && new Date(f.createdAt) > last24h;
         
         // Categorize
         if (message.includes('broken') || message.includes('error') || message.includes('won\'t load')) {
@@ -1235,23 +1236,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get photos for the location
       const photos = await storage.getPhotosByLocationId(selectedLocation.id);
       
-      // Extract key facts from story or description
-      const storyPreview = selectedLocation.story 
-        ? selectedLocation.story.substring(0, 200) + '...' 
+      // Extract key facts from content or description
+      const storyPreview = selectedLocation.content 
+        ? selectedLocation.content.substring(0, 200) + '...' 
         : selectedLocation.description;
       
       // Generate social media content
       const socialContent = {
         instagram: {
-          caption: `🏛️ Hidden History: ${selectedLocation.name}\n\n${storyPreview}\n\n📍 ${selectedLocation.address}\n\n#PNWHistory #${selectedLocation.category.replace(/\s+/g, '')} #${selectedLocation.period.replace(/\s+/g, '')}`,
-          hashtags: ['PNWHistory', selectedLocation.category.replace(/\s+/g, ''), selectedLocation.period.replace(/\s+/g, '')]
+          caption: `🏛️ Hidden History: ${selectedLocation.name}\n\n${storyPreview}\n\n📍 ${selectedLocation.address}\n\n#PNWHistory #${selectedLocation.category.replace(/\s+/g, '')} ${selectedLocation.period ? '#' + selectedLocation.period.replace(/\s+/g, '') : ''}`,
+          hashtags: ['PNWHistory', selectedLocation.category.replace(/\s+/g, ''), ...(selectedLocation.period ? [selectedLocation.period.replace(/\s+/g, '')] : [])]
         },
         twitter: {
           tweet: `🏛️ ${selectedLocation.name}: ${storyPreview}\n\nLearn more: [LINK]\n\n#PNWHistory #${selectedLocation.category.replace(/\s+/g, '')}`,
           hashtags: ['PNWHistory', selectedLocation.category.replace(/\s+/g, '')]
         },
         facebook: {
-          post: `Discover the fascinating history of ${selectedLocation.name}!\n\n${selectedLocation.story ? selectedLocation.story.substring(0, 400) + '...' : selectedLocation.description}\n\nExplore this location and 60+ others in our Pacific Northwest Historical Explorer.`,
+          post: `Discover the fascinating history of ${selectedLocation.name}!\n\n${selectedLocation.content ? selectedLocation.content.substring(0, 400) + '...' : selectedLocation.description}\n\nExplore this location and 60+ others in our Pacific Northwest Historical Explorer.`,
           call_to_action: 'Learn More'
         }
       };
@@ -1265,7 +1266,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           category: selectedLocation.category,
           period: selectedLocation.period,
           heroImage: selectedLocation.heroImage,
-          story: selectedLocation.story,
+          content: selectedLocation.content,
           latitude: selectedLocation.latitude,
           longitude: selectedLocation.longitude
         },
@@ -1301,7 +1302,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             category: location.category,
             views: events.filter(e => e.eventType === 'location_view').length,
             has_photos: location.heroImage ? true : false,
-            story_length: location.story ? location.story.length : 0
+            story_length: location.content ? location.content.length : 0
           };
         })
       );

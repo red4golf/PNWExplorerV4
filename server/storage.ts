@@ -11,7 +11,7 @@ export interface IStorage {
   createLocation(location: InsertLocation): Promise<Location>;
   updateLocationStatus(id: number, status: string): Promise<Location | undefined>;
   updateLocationHeroImage(id: number, heroImage: string): Promise<Location | undefined>;
-  updateLocationAudio(id: number, audioBuffer: Buffer): Promise<boolean>;
+  updateLocationAudio(id: number, audioPath: string): Promise<Location | undefined>;
   getLocationAudio(id: number): Promise<Buffer | null>;
   getLocationById(id: number): Promise<Location | undefined>;
   
@@ -127,7 +127,7 @@ export class DatabaseStorage implements IStorage {
       
       if (audioFile?.fileData) {
         console.log(`✅ STORAGE: Returning audio buffer (${audioFile.fileData.length} bytes)`);
-        return audioFile.fileData;
+        return Buffer.from(audioFile.fileData, 'base64');
       }
       return null;
     } catch (error) {
