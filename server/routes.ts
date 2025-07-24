@@ -2,10 +2,10 @@ import type { Express } from "express";
 import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertLocationSchema, insertFeedbackSchema, insertAffiliateClickSchema, insertUserAnalyticsSchema, locations } from "@shared/schema";
+import { insertLocationSchema, insertFeedbackSchema, insertAffiliateClickSchema, insertUserAnalyticsSchema, locations, fileStorage } from "@shared/schema";
 import { z } from "zod";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -869,6 +869,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // AUDIO NARRATION ENDPOINTS
+  
+  // Generate audio narration for a location with custom script
+  app.post("/api/admin/audio/generate", async (req, res) => {
+    try {
+      const { locationId, script } = req.body;
+      
+      if (!locationId || !script) {
+        return res.status(400).json({ message: "Location ID and script are required" });
+      }
+
+      const location = await storage.getLocation(locationId);
+      if (!location) {
+        return res.status(404).json({ message: "Location not found" });
+      }
+
+      console.log(`🎵 Generating audio narration for location: ${location.name}`);
+      
+      const audioBuffer = await audioService.generateSpeech({
+        text: script,
+        voice_id: '21m00Tcm4TlvDq8ikWAM', // Rachel voice
+        model_id: 'eleven_monolingual_v1',
+        voice_settings: {
+          stability: 0.5,
+          similarity_boost: 0.75,
+          style: 0.0,
+          use_speaker_boost: true
+        }
+      });
+
+      // Save audio file to database storage
+      const audioFilename = `narration-${location.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+      
+      // Store in file_storage table using raw SQL
+      const base64Data = audioBuffer.toString('base64');
+      const fileSize = audioBuffer.length;
+      const mimeType = 'audio/mpeg';
+      
+      // Store in file_storage table using Drizzle ORM
+      try {
+        await db.insert(fileStorage).values({
+          filename: audioFilename,
+          locationId: locationId,
+          fileData: base64Data,
+          fileSize: fileSize,
+          mimeType: mimeType,
+          uploadedAt: new Date()
+        });
+      } catch (error) {
+        // Handle unique constraint by updating existing record
+        await db.update(fileStorage)
+          .set({
+            fileData: base64Data,
+            fileSize: fileSize,
+            uploadedAt: new Date()
+          })
+          .where(and(
+            eq(fileStorage.filename, audioFilename),
+            eq(fileStorage.locationId, locationId)
+          ));
+      }
+
+      console.log(`✅ Audio narration generated successfully: ${audioFilename} (${fileSize} bytes)`);
+
+      res.json({
+        message: "Audio narration generated successfully",
+        filename: audioFilename,
+        size: fileSize,
+        location: location.name
+      });
+    } catch (error) {
+      console.error("Error generating audio:", error);
+      res.status(500).json({ 
+        message: "Failed to generate audio narration",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
   
   // Generate audio narration for a location
   app.post("/api/admin/locations/:id/generate-audio", async (req, res) => {
