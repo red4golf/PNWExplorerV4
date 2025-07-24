@@ -90,10 +90,10 @@ Preferred communication style: Simple, everyday language.
 ## Future Feature Ideas
 
 ### Audio Tour Expansion Status ✓ COMPLETED
-- **23 Professional Audio Tours**: Comprehensive ElevenLabs narration system covering 27.7% of all approved locations
-- **Categories with Audio**: Natural Heritage (7 tours), Military History (4 tours), Historic Landmarks (4 tours), Indigenous Heritage (3 tours), Cultural Heritage (4 tours), plus Maritime, Memorial, Agricultural, Industrial, Transportation, and Underground Infrastructure
-- **Audio Content**: 42+ MB of professional 2-4 minute narrations with Rachel voice synthesis
-- **Next Phase**: Expand to 50+ locations for comprehensive coverage across all categories
+- **33 Professional Audio Tours**: Comprehensive ElevenLabs narration system covering 39.8% of all approved locations
+- **Categories with Audio**: Natural Heritage (8 tours), Indigenous Heritage (5 tours), Military History (4 tours), Historic Landmarks (5 tours), Historical Sites (4 tours), Cultural Heritage (4 tours), plus Maritime Heritage, Memorial Sites, Agricultural Heritage, Industrial Heritage, Transportation, Underground Infrastructure, Recreation, International Diplomacy, Civil Rights, Environmental Innovation
+- **Audio Content**: 70+ MB of professional 2-4 minute narrations with Rachel voice synthesis
+- **Latest Additions**: Maritime dangers (Tillamook Rock Lighthouse), Civil rights history (Japanese American Exclusion Memorial), Indigenous sovereignty (Treaty Rock), Urban Native culture (Duwamish Longhouse), Environmental innovation (Columbia River Gorge Wind Farms)
 
 ### Location Discovery Wizard
 - Interest-based questionnaire (Military History, Native Heritage, Natural Disasters, Pioneer Stories)
