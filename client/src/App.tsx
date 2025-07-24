@@ -11,7 +11,7 @@ import LocationDetail from "@/pages/location-detail";
 import SubmitLocation from "@/pages/submit-location";
 import Admin from "@/pages/admin";
 import NotFoundSEO from "@/pages/not-found-seo";
-import AudioPreview from "@/pages/audio-preview";
+
 
 function Router() {
   const [location] = useLocation();
@@ -54,9 +54,7 @@ function Router() {
             <Footer />
           </div>
         </Route>
-        <Route path="/florida-audio-preview">
-          <AudioPreview />
-        </Route>
+
         <Route>
           <NotFoundSEO />
         </Route>
