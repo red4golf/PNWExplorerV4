@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Audio Debug Test</title>
+</head>
+<body>
+    <h1>Audio Debug Test</h1>
+    <audio controls preload="metadata" id="testAudio">
+        <source src="/api/locations/31/audio" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    
+    <div id="debug"></div>
+    
+    <script>
+        const audio = document.getElementById('testAudio');
+        const debug = document.getElementById('debug');
+        
+        function log(message) {
+            debug.innerHTML += '<div>' + message + '</div>';
+            console.log(message);
+        }
+        
+        audio.addEventListener('loadstart', () => log('LOADSTART'));
+        audio.addEventListener('loadedmetadata', () => log('METADATA LOADED: duration=' + audio.duration));
+        audio.addEventListener('loadeddata', () => log('DATA LOADED'));
+        audio.addEventListener('canplay', () => log('CAN PLAY'));
+        audio.addEventListener('canplaythrough', () => log('CAN PLAY THROUGH'));
+        audio.addEventListener('error', (e) => {
+            log('ERROR: ' + e.target.error.code + ' - ' + e.target.error.message);
+        });
+        audio.addEventListener('stalled', () => log('STALLED'));
+        audio.addEventListener('suspend', () => log('SUSPEND'));
+        audio.addEventListener('abort', () => log('ABORT'));
+        audio.addEventListener('emptied', () => log('EMPTIED'));
+        
+        // Test fetch
+        fetch('/api/locations/31/audio')
+            .then(response => {
+                log('FETCH: ' + response.status + ' ' + response.statusText);
+                log('CONTENT-TYPE: ' + response.headers.get('content-type'));
+                log('CONTENT-LENGTH: ' + response.headers.get('content-length'));
+                return response.blob();
+            })
+            .then(blob => {
+                log('BLOB: size=' + blob.size + ' type=' + blob.type);
+            })
+            .catch(err => log('FETCH ERROR: ' + err));
+    </script>
+</body>
+</html>

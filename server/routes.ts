@@ -1001,14 +1001,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get audio narration for a location with range support
+  // Get audio narration for a location with range support and header fix
   app.get("/api/locations/:id/audio", async (req, res) => {
     try {
       const locationId = parseInt(req.params.id);
-      const audioBuffer = await storage.getLocationAudio(locationId);
+      let audioBuffer = await storage.getLocationAudio(locationId);
       
       if (!audioBuffer) {
         return res.status(404).json({ message: "Audio narration not found" });
+      }
+
+      // Check for corrupted MP3 header and try to fix it
+      const headerBytes = audioBuffer.slice(0, 4);
+      const headerStr = headerBytes.toString();
+      
+      if (headerStr === 'SUQz') {
+        console.log('🔧 AUDIO FIX: Detected corrupted MP3 header, attempting to find valid MP3 start');
+        
+        // Look for the MP3 frame sync pattern (0xFF, 0xFB or similar)
+        for (let i = 0; i < Math.min(audioBuffer.length, 8192); i++) {
+          if (audioBuffer[i] === 0xFF && (audioBuffer[i + 1] & 0xE0) === 0xE0) {
+            console.log(`🔧 AUDIO FIX: Found MP3 sync at offset ${i}, trimming corrupted header`);
+            audioBuffer = audioBuffer.slice(i);
+            break;
+          }
+        }
       }
 
       const range = req.headers.range;
