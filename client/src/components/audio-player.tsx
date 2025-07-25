@@ -29,25 +29,35 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
 
     const checkAndLoadAudio = async () => {
       try {
-        // Use a simpler approach - just check if audio exists first
-        const headResponse = await fetch(`/api/locations/${locationId}/audio`, { 
-          method: 'HEAD',
+        // Check if audio exists with a simple GET request
+        const audioResponse = await fetch(`/api/locations/${locationId}/audio`, {
+          method: 'GET',
           credentials: 'same-origin',
           mode: 'cors'
         });
         
         if (!mounted) return;
         
-        if (headResponse.ok) {
-          // Direct URL approach - let browser handle caching
-          setAudioUrl(`/api/locations/${locationId}/audio`);
-          setHasAudio(true);
+        if (audioResponse.ok) {
+          // Get the audio as a blob and create object URL
+          const audioBlob = await audioResponse.blob();
+          if (audioBlob.size > 0) {
+            const blobUrl = URL.createObjectURL(audioBlob);
+            currentBlobUrl = blobUrl;
+            setAudioUrl(blobUrl);
+            setHasAudio(true);
+            console.log(`Audio loaded: ${audioBlob.size} bytes`);
+          } else {
+            console.warn('Audio blob is empty');
+            setHasAudio(false);
+          }
         } else {
+          console.warn(`Audio request failed: ${audioResponse.status}`);
           setHasAudio(false);
         }
       } catch (error) {
         if (mounted) {
-          console.warn('Audio check failed:', error);
+          console.warn('Audio loading error:', error);
           setHasAudio(false);
         }
       } finally {
@@ -206,7 +216,7 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
           onPause={() => setIsPlaying(false)}
           onEnded={() => setIsPlaying(false)}
           onError={handleError}
-          preload="none"
+          preload="metadata"
           crossOrigin="anonymous"
           style={{ display: 'none' }}
         />
