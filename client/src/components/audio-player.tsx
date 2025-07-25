@@ -70,10 +70,17 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
         if (isPlaying) {
           audioRef.current.pause();
         } else {
+          console.log('Attempting to play audio...');
+          // Force reload if needed
+          if (audioRef.current.readyState === 0) {
+            audioRef.current.load();
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
           await audioRef.current.play();
         }
       } catch (error) {
-        console.warn('Audio play failed:', error);
+        console.log('Play failed, attempting to reload audio...', error);
+        audioRef.current.load();
         setIsPlaying(false);
       }
     }
@@ -128,6 +135,7 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
     if (audioRef.current && !isNaN(audioRef.current.duration)) {
       setDuration(audioRef.current.duration);
       setIsReady(true);
+      console.log(`Audio metadata loaded: duration=${audioRef.current.duration}s`);
     }
   };
 
@@ -187,19 +195,23 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
       {audioUrl && (
         <audio
           ref={audioRef}
+          src={audioUrl}
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
           onCanPlayThrough={handleCanPlay}
-          onPlay={() => setIsPlaying(true)}
+          onLoadedData={() => console.log('Audio data loaded')}
+          onCanPlay={() => console.log('Audio can play')}
+          onPlay={() => {
+            setIsPlaying(true);
+            console.log('Audio started playing');
+          }}
           onPause={() => setIsPlaying(false)}
           onEnded={() => setIsPlaying(false)}
           onError={handleError}
-          preload="auto"
+          preload="metadata"
+          controls={false}
           style={{ display: 'none' }}
-        >
-          <source src={audioUrl} type="audio/mpeg" />
-          Your browser does not support the audio element.
-        </audio>
+        />
       )}
 
       {/* Main Controls */}
