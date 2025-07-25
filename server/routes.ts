@@ -2,10 +2,10 @@ import type { Express } from "express";
 import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertLocationSchema, insertFeedbackSchema, insertAffiliateClickSchema, insertUserAnalyticsSchema, locations, fileStorage } from "@shared/schema";
+import { insertLocationSchema, insertFeedbackSchema, insertAffiliateClickSchema, insertUserAnalyticsSchema, locations, fileStorage, userAnalytics } from "@shared/schema";
 import { z } from "zod";
 import { db } from "./db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, isNotNull, sql } from "drizzle-orm";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -789,15 +789,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Analytics tracking endpoints
+  // Enhanced analytics tracking endpoint with device detection
   app.post("/api/analytics", async (req, res) => {
     try {
+      const userAgent = req.get('User-Agent') || '';
+      const clientIP = req.ip || req.connection.remoteAddress || "unknown";
+      
+      // Detect if this is likely a developer IP (Replit container IPs start with 172.31.)
+      const isDevIP = clientIP?.startsWith('172.31.') || clientIP === '127.0.0.1';
+      
+      // Extract device and browser info from user agent
+      const deviceType = getDeviceType(userAgent);
+      const browserName = getBrowserName(userAgent);
+      
       const analyticsData = insertUserAnalyticsSchema.parse({
         ...req.body,
-        userAgent: req.get('User-Agent'),
-        ipAddress: req.ip || req.connection.remoteAddress || "unknown",
-        referrer: req.get('Referer')
+        userAgent,
+        ipAddress: clientIP,
+        referrer: req.get('Referer'),
+        deviceType,
+        browserName,
+        isDeveloper: req.body.isDeveloper || isDevIP
       });
+      
+      // Only log non-developer events to avoid spam
+      if (!isDevIP) {
+        console.log("📊 User Analytics:", {
+          event: analyticsData.eventType,
+          device: deviceType,
+          location: analyticsData.locationId,
+          metadata: analyticsData.metadata
+        });
+      }
       
       const analytics = await storage.createAnalyticsEvent(analyticsData);
       res.json(analytics);
@@ -810,6 +833,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+// Helper functions for device/browser detection
+function getDeviceType(userAgent: string): string {
+  if (/Mobile|Android|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)) {
+    return 'mobile';
+  }
+  if (/iPad|Tablet/i.test(userAgent)) {
+    return 'tablet';
+  }
+  return 'desktop';
+}
+
+function getBrowserName(userAgent: string): string {
+  if (userAgent.includes('Edg/')) return 'Edge';
+  if (userAgent.includes('Chrome/') && !userAgent.includes('Edg/')) return 'Chrome';
+  if (userAgent.includes('Firefox/')) return 'Firefox';
+  if (userAgent.includes('Safari/') && !userAgent.includes('Chrome/')) return 'Safari';
+  if (userAgent.includes('Opera/')) return 'Opera';
+  return 'Unknown';
+}
+
   // Get analytics stats (admin only)
   app.get("/api/admin/analytics/stats", async (req, res) => {
     try {
@@ -818,6 +861,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error getting analytics stats:", error);
       res.status(500).json({ message: "Failed to get analytics stats" });
+    }
+  });
+
+  // Enhanced analytics endpoint with advanced breakdowns
+  app.get("/api/admin/analytics/enhanced-stats", async (req, res) => {
+    try {
+      // Get basic stats
+      const basicStats = await storage.getAnalyticsStats();
+      
+      // Get device breakdown
+      const deviceStats = await db.select({
+        deviceType: userAnalytics.deviceType,
+        count: sql<number>`count(*)`.as('count')
+      }).from(userAnalytics)
+        .where(eq(userAnalytics.isDeveloper, false))
+        .groupBy(userAnalytics.deviceType);
+
+      // Get browser breakdown
+      const browserStats = await db.select({
+        browserName: userAnalytics.browserName,
+        count: sql<number>`count(*)`.as('count')
+      }).from(userAnalytics)
+        .where(eq(userAnalytics.isDeveloper, false))
+        .groupBy(userAnalytics.browserName);
+
+      // Get unique users (by IP)
+      const uniqueUsers = await db.select({
+        count: sql<number>`count(distinct ip_address)`.as('count')
+      }).from(userAnalytics)
+        .where(eq(userAnalytics.isDeveloper, false));
+
+      // Get top events
+      const topEvents = await db.select({
+        eventType: userAnalytics.eventType,
+        count: sql<number>`count(*)`.as('count')
+      }).from(userAnalytics)
+        .where(eq(userAnalytics.isDeveloper, false))
+        .groupBy(userAnalytics.eventType)
+        .orderBy(sql`count(*) desc`)
+        .limit(10);
+
+      // Get top locations by views
+      const topLocations = await db.select({
+        locationId: userAnalytics.locationId,
+        locationName: sql<string>`max(metadata->>'locationName')`.as('locationName'),
+        count: sql<number>`count(*)`.as('count')
+      }).from(userAnalytics)
+        .where(and(
+          eq(userAnalytics.eventType, 'location_view'),
+          eq(userAnalytics.isDeveloper, false),
+          isNotNull(userAnalytics.locationId)
+        ))
+        .groupBy(userAnalytics.locationId)
+        .orderBy(sql`count(*) desc`)
+        .limit(10);
+
+      // Format device breakdown
+      const deviceBreakdown = {
+        mobile: deviceStats.find(d => d.deviceType === 'mobile')?.count || 0,
+        desktop: deviceStats.find(d => d.deviceType === 'desktop')?.count || 0,
+        tablet: deviceStats.find(d => d.deviceType === 'tablet')?.count || 0
+      };
+
+      // Format browser breakdown
+      const browserBreakdown = browserStats.reduce((acc, browser) => {
+        acc[browser.browserName || 'Unknown'] = browser.count;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const enhancedStats = {
+        ...basicStats,
+        uniqueUsers: uniqueUsers[0]?.count || 0,
+        deviceBreakdown,
+        browserBreakdown,
+        topEvents: topEvents.map(e => ({ eventType: e.eventType, count: e.count })),
+        topLocations: topLocations.map(l => ({
+          id: l.locationId,
+          name: l.locationName || 'Unknown Location',
+          views: l.count
+        })),
+        searchTerms: [] // Will be populated when search tracking is implemented
+      };
+
+      res.json(enhancedStats);
+    } catch (error) {
+      console.error("Error getting enhanced analytics stats:", error);
+      res.status(500).json({ message: "Failed to get enhanced analytics stats" });
     }
   });
 

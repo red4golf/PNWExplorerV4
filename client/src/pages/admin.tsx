@@ -18,8 +18,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useAnalytics } from "@/hooks/use-analytics";
+import { EnhancedAnalyticsDashboard } from "@/components/enhanced-analytics-dashboard";
 import { Lock, Clock, MapPin, Users, CheckCircle, XCircle, LogIn, Upload, FileText, Database, Edit3, Search, Save, Filter, Eye, Trash2, Image, Calendar, BarChart3, Settings, RefreshCw, Download, ChevronDown, AlertCircle, X, MessageSquare, Bug, Lightbulb, BookOpen, TestTube, Volume2 } from "lucide-react";
-import AdminAudio from "./admin-audio";
+
 import { formatDate, getCategoryColor } from "@/lib/utils";
 import type { Location, Feedback } from "@shared/schema";
 
@@ -1776,153 +1777,7 @@ export default function Admin() {
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-heritage-brown flex items-center">
-                  <BarChart3 className="w-5 h-5 mr-2" />
-                  Analytics & Insights
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Analytics Overview */}
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <Card className="bg-blue-50 border-blue-200">
-                    <CardContent className="p-4 text-center">
-                      <h4 className="font-semibold text-blue-900 mb-1">Total Events</h4>
-                      <p className="text-2xl font-bold text-blue-700">{analyticsStats?.totalEvents || 0}</p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="bg-green-50 border-green-200">
-                    <CardContent className="p-4 text-center">
-                      <h4 className="font-semibold text-green-900 mb-1">QR Scans</h4>
-                      <p className="text-2xl font-bold text-green-700">
-                        {analyticsStats?.qrScans || 0}
-                      </p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="bg-yellow-50 border-yellow-200">
-                    <CardContent className="p-4 text-center">
-                      <h4 className="font-semibold text-yellow-900 mb-1">Share Links</h4>
-                      <p className="text-2xl font-bold text-yellow-700">
-                        {analyticsStats?.shareLinks || 0}
-                      </p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="bg-purple-50 border-purple-200">
-                    <CardContent className="p-4 text-center">
-                      <h4 className="font-semibold text-purple-900 mb-1">Location Views</h4>
-                      <p className="text-2xl font-bold text-purple-700">
-                        {analyticsStats?.locationViews || 0}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Category Breakdown */}
-                <div className="grid md:grid-cols-2 gap-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg">Locations by Category</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        {['Historical', 'Natural', 'Cultural'].map(category => {
-                          const count = allLocations?.filter(l => l.category === category).length || 0;
-                          const total = allLocations?.length || 1;
-                          const percentage = Math.round((count / total) * 100);
-                          
-                          return (
-                            <div key={category} className="space-y-2">
-                              <div className="flex justify-between items-center">
-                                <span className="font-medium">{category}</span>
-                                <span className="text-sm text-gray-600">{count} ({percentage}%)</span>
-                              </div>
-                              <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div 
-                                  className={`h-2 rounded-full ${
-                                    category === 'Historical' ? 'bg-amber-500' :
-                                    category === 'Natural' ? 'bg-green-500' : 'bg-blue-500'
-                                  }`}
-                                  style={{ width: `${percentage}%` }}
-                                />
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg">Content Completion</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span>Basic Information</span>
-                            <span className="text-sm text-gray-600">
-                              {allLocations?.filter(l => l.name && l.description && l.category).length || 0}
-                              /{allLocations?.length || 0}
-                            </span>
-                          </div>
-                          <div className="space-y-2">
-                            <span>Extended Stories</span>
-                            <span className="text-sm text-gray-600">
-                              {allLocations?.filter(l => l.content && l.content.length > 100).length || 0}
-                              /{allLocations?.length || 0}
-                            </span>
-                          </div>
-                          <div className="space-y-2">
-                            <span>Geographic Data</span>
-                            <span className="text-sm text-gray-600">
-                              {allLocations?.filter(l => l.latitude && l.longitude && l.address).length || 0}
-                              /{allLocations?.length || 0}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Affiliate Marketing Performance */}
-                <AffiliateClicksAnalytics />
-
-                {/* Recent Activity */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Recent Activity</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {allLocations
-                        ?.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
-                        .slice(0, 5)
-                        .map(location => (
-                          <div key={location.id} className="flex items-center justify-between py-2 border-b last:border-b-0">
-                            <div>
-                              <p className="font-medium">{location.name}</p>
-                              <p className="text-sm text-gray-600">
-                                {location.category} • {location.status}
-                              </p>
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {location.createdAt ? formatDate(location.createdAt) : 'Unknown date'}
-                            </div>
-                          </div>
-                        )) || (
-                        <p className="text-gray-500 text-center py-4">No recent activity</p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </CardContent>
-            </Card>
+            <EnhancedAnalyticsDashboard />
           </TabsContent>
 
           <TabsContent value="import" className="space-y-6">

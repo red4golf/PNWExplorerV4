@@ -74,7 +74,7 @@ export const fileStorage = pgTable("file_storage", {
 
 export const userAnalytics = pgTable("user_analytics", {
   id: serial("id").primaryKey(),
-  eventType: varchar("event_type", { length: 50 }).notNull(), // 'qr_scan', 'share_link', 'page_view', 'location_view'
+  eventType: varchar("event_type", { length: 50 }).notNull(), // 'qr_scan', 'share_link', 'page_view', 'location_view', 'search', 'filter_use', 'directions_click', 'photo_view', 'book_click', 'audio_play', 'feedback_submit'
   locationId: integer("location_id").references(() => locations.id),
   referrer: text("referrer"),
   userAgent: text("user_agent"),
@@ -82,7 +82,10 @@ export const userAnalytics = pgTable("user_analytics", {
   sessionId: varchar("session_id", { length: 255 }),
   isDeveloper: boolean("is_developer").default(false),
   timestamp: timestamp("timestamp").defaultNow().notNull(),
-  metadata: jsonb("metadata"), // Additional data like shared_via, qr_location, etc.
+  metadata: jsonb("metadata"), // Additional data like shared_via, qr_location, search_terms, filter_criteria, time_spent, etc.
+  deviceType: varchar("device_type", { length: 20 }), // mobile, tablet, desktop
+  browserName: varchar("browser_name", { length: 50 }),
+  timeSpent: integer("time_spent"), // seconds spent on page/location
 });
 
 export const insertLocationSchema = createInsertSchema(locations).omit({
