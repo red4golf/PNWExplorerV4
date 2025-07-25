@@ -100,7 +100,9 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
         if (!document.querySelector('link[href*="leaflet.css"]')) {
           const link = document.createElement("link");
           link.rel = "stylesheet";
+          // Load Leaflet CSS with explicit CORS handling
           link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+          link.crossOrigin = "anonymous";
           document.head.appendChild(link);
         }
       }

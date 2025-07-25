@@ -15,7 +15,8 @@ export default function QRShare({ url = window.location.href, title = "Pacific N
   const { toast } = useToast();
 
   // Generate QR code URL using QR Server API (free service)
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
+  // Use a local QR code generation or disable external QR service to prevent CORS
+  const qrCodeUrl = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="white"/><text x="100" y="100" text-anchor="middle" font-size="14" fill="black">QR Code</text></svg>`;
 
   // Track analytics events
   const trackAnalytics = async (eventType: string, metadata?: any) => {

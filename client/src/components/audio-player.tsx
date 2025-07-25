@@ -21,19 +21,39 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
   const [hasAudio, setHasAudio] = useState(false);
   const [isReady, setIsReady] = useState(false);
 
-  const audioUrl = `/api/locations/${locationId}/audio`;
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(audioUrl, { method: 'HEAD' })
-      .then(response => {
-        setHasAudio(response.ok);
-        setIsLoading(false);
-      })
-      .catch(() => {
+    const checkAndLoadAudio = async () => {
+      try {
+        const response = await fetch(`/api/locations/${locationId}/audio`, { method: 'HEAD' });
+        if (response.ok) {
+          // Create blob URL to avoid cross-origin issues
+          const audioResponse = await fetch(`/api/locations/${locationId}/audio`);
+          const audioBlob = await audioResponse.blob();
+          const blobUrl = URL.createObjectURL(audioBlob);
+          setAudioUrl(blobUrl);
+          setHasAudio(true);
+        } else {
+          setHasAudio(false);
+        }
+      } catch (error) {
+        console.warn('Audio loading failed:', error);
         setHasAudio(false);
+      } finally {
         setIsLoading(false);
-      });
-  }, [audioUrl]);
+      }
+    };
+
+    checkAndLoadAudio();
+
+    // Cleanup blob URL on unmount
+    return () => {
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+      }
+    };
+  }, [locationId]);
 
   const togglePlay = async () => {
     if (audioRef.current) {
@@ -156,19 +176,21 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
         </div>
       </div>
 
-      <audio
-        ref={audioRef}
-        src={audioUrl}
-        onTimeUpdate={handleTimeUpdate}
-        onLoadedMetadata={handleLoadedMetadata}
-        onCanPlayThrough={handleCanPlay}
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-        onEnded={() => setIsPlaying(false)}
-        onError={handleError}
-        preload="metadata"
-        style={{ display: 'none' }}
-      />
+      {audioUrl && (
+        <audio
+          ref={audioRef}
+          src={audioUrl}
+          onTimeUpdate={handleTimeUpdate}
+          onLoadedMetadata={handleLoadedMetadata}
+          onCanPlayThrough={handleCanPlay}
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+          onEnded={() => setIsPlaying(false)}
+          onError={handleError}
+          preload="metadata"
+          style={{ display: 'none' }}
+        />
+      )}
 
       {/* Main Controls */}
       <div className="flex items-center space-x-3 mb-3">
@@ -228,14 +250,22 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
           />
         </div>
 
-        <a
-          href={audioUrl}
-          download={`${locationName}-audio-tour.mp3`}
+        <button
+          onClick={() => {
+            if (audioUrl) {
+              const link = document.createElement('a');
+              link.href = audioUrl;
+              link.download = `${locationName}-audio-tour.mp3`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }
+          }}
           className="flex items-center space-x-1 text-heritage-600 hover:text-heritage-700 transition-colors text-sm"
         >
           <Download className="h-4 w-4" />
           <span className="hidden sm:inline">Download</span>
-        </a>
+        </button>
       </div>
     </div>
   );
