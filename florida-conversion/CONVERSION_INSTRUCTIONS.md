@@ -19,6 +19,11 @@ Copy these files from your PNW project's `florida-conversion/` folder to your ne
 - Copy `seed-florida.ts` → rename to `server/seed.ts`
 - Copy `florida-books.json` → reference for book recommendations
 
+#### **Enhanced Audio System:**
+- Copy `enhanced-audio-player.tsx` → place in `client/src/components/`
+- Copy `enhanced-routes.ts` → integrate audio validation routes
+- Copy `location-detail-with-audio.tsx` → update location detail page
+
 #### **Branding & UI:**
 - Copy `header-florida.tsx` → replace `client/src/components/ui/header.tsx`
 - Copy `replit-florida.md` → replace `replit.md`
@@ -102,8 +107,14 @@ node server/seed.ts
 ### **Month 2+: Premium Features**
 - Author interviews with Florida writers
 - Partnership with Florida Historical Society
-- Audio tours for driving between sites
+- Audio tours for driving between sites (enhanced system ready)
 - Seasonal content (hurricane history, tourism patterns)
+
+### **🎵 Audio System Status**
+- **Enhanced Audio Player**: Florida orange theme, graceful fallback messaging
+- **Corruption Detection**: Validates MP3 headers, prevents playback issues
+- **User Experience**: Shows "temporarily unavailable" for missing audio
+- **Ready for Content**: ElevenLabs integration prepared for future audio generation
 
 ## **⚠️ Safety Checks:**
 

@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { SEOHelmet } from "../lib/seo";
-import { AudioPlayer } from "../components/ui/audio-player";
+import { EnhancedAudioPlayer } from "./enhanced-audio-player";
 
 // Types for Florida book recommendations
 interface BookRecommendation {
@@ -158,15 +158,13 @@ export default function LocationDetailWithAudio() {
             </div>
 
             {/* Audio Narration */}
-            {location.audioNarration && (
-              <div>
-                <AudioPlayer 
-                  audioUrl={location.audioNarration}
-                  locationName={location.name}
-                  className="mb-8"
-                />
-              </div>
-            )}
+            <div>
+              <EnhancedAudioPlayer 
+                locationId={location.id}
+                locationName={location.name}
+                className="mb-8"
+              />
+            </div>
 
             {/* Story Content */}
             {location.content && (
