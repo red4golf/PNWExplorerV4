@@ -19,6 +19,8 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useAnalytics } from "@/hooks/use-analytics";
 import { EnhancedAnalyticsDashboard } from "@/components/enhanced-analytics-dashboard";
+import { GeographicAnalyticsSimplified } from "@/components/geographic-analytics-simplified";
+
 import { Lock, Clock, MapPin, Users, CheckCircle, XCircle, LogIn, Upload, FileText, Database, Edit3, Search, Save, Filter, Eye, Trash2, Image, Calendar, BarChart3, Settings, RefreshCw, Download, ChevronDown, AlertCircle, X, MessageSquare, Bug, Lightbulb, BookOpen, TestTube, Volume2 } from "lucide-react";
 
 import { formatDate, getCategoryColor } from "@/lib/utils";
@@ -1777,7 +1779,17 @@ export default function Admin() {
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">
-            <EnhancedAnalyticsDashboard />
+            <div className="space-y-8">
+              <div>
+                <h2 className="text-xl font-semibold text-heritage-brown mb-4">User Engagement Overview</h2>
+                <EnhancedAnalyticsDashboard />
+              </div>
+              
+              <div>
+                <h2 className="text-xl font-semibold text-heritage-brown mb-4">Geographic Insights & User Context</h2>
+                <GeographicAnalyticsSimplified />
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="import" className="space-y-6">

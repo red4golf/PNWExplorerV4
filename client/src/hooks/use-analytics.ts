@@ -16,6 +16,82 @@ const isDeveloperMode = () => {
   return localStorage.getItem('dev-mode') === 'true';
 };
 
+// Get user's approximate location (using browser geolocation API)
+const getUserLocation = (): Promise<any> => {
+  return new Promise((resolve) => {
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          resolve({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy
+          });
+        },
+        () => {
+          // If geolocation fails, try to get timezone
+          resolve({
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            language: navigator.language
+          });
+        },
+        { timeout: 5000, enableHighAccuracy: false }
+      );
+    } else {
+      resolve({
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        language: navigator.language
+      });
+    }
+  });
+};
+
+// Detect user context based on behavior patterns
+const detectUserContext = () => {
+  const referrer = document.referrer;
+  const currentTime = new Date().getHours();
+  const sessionStorage = window.sessionStorage;
+  
+  // Check referrer patterns
+  if (referrer.includes('google.com') || referrer.includes('bing.com')) {
+    return 'research';
+  }
+  if (referrer.includes('facebook.com') || referrer.includes('twitter.com') || referrer.includes('instagram.com')) {
+    return 'social_discovery';
+  }
+  
+  // Check time patterns (trip planning often happens in evenings/weekends)
+  if ((currentTime >= 19 || currentTime <= 8) || new Date().getDay() === 0 || new Date().getDay() === 6) {
+    return 'planning_trip';
+  }
+  
+  // Check session behavior
+  const pageViews = parseInt(sessionStorage.getItem('pageViewCount') || '0');
+  if (pageViews > 5) {
+    return 'deep_research';
+  }
+  
+  return 'general_reading';
+};
+
+// Get referrer source category
+const getReferrerSource = () => {
+  const referrer = document.referrer;
+  if (!referrer) return 'direct';
+  
+  if (referrer.includes('google.com') || referrer.includes('bing.com') || referrer.includes('yahoo.com')) {
+    return 'search_engine';
+  }
+  if (referrer.includes('facebook.com') || referrer.includes('twitter.com') || referrer.includes('instagram.com')) {
+    return 'social_media';
+  }
+  if (referrer.includes('newsletter') || referrer.includes('email')) {
+    return 'newsletter';
+  }
+  
+  return 'referral';
+};
+
 export const useAnalytics = () => {
   const trackEvent = async (eventType: string, metadata?: any, locationId?: number) => {
     // Skip tracking in developer mode
@@ -25,11 +101,28 @@ export const useAnalytics = () => {
     }
 
     try {
+      // Get enhanced user context
+      const userLocation = await getUserLocation();
+      const userContext = detectUserContext();
+      const referrerSource = getReferrerSource();
+      
+      // Update session page view count
+      const pageViews = parseInt(sessionStorage.getItem('pageViewCount') || '0') + 1;
+      sessionStorage.setItem('pageViewCount', pageViews.toString());
+
       await apiRequest("POST", "/api/analytics", {
         eventType,
         locationId,
-        metadata,
+        metadata: {
+          ...metadata,
+          sessionPageViews: pageViews,
+          timeOfDay: new Date().getHours(),
+          dayOfWeek: new Date().getDay()
+        },
         sessionId: getSessionId(),
+        userLocation,
+        userContext,
+        referrerSource,
         isDeveloper: false
       });
     } catch (error) {
