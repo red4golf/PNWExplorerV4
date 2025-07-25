@@ -59,10 +59,14 @@ async function storeAudioInDatabase(locationId: number, filename: string, audioB
       uploaded_at = NOW()
   `;
   
-  await db.execute({
-    sql: query,
-    args: [filename, locationId, audioBuffer, audioBuffer.length, 'audio/mpeg']
-  });
+  const finalQuery = query
+    .replace('$1', `'${filename}'`)
+    .replace('$2', locationId.toString())
+    .replace('$3', `'\\x${audioBuffer.toString('hex')}'`)
+    .replace('$4', audioBuffer.length.toString())
+    .replace('$5', "'audio/mpeg'");
+    
+  await db.execute(finalQuery);
   
   console.log(`💾 Stored ${filename} in database (${audioBuffer.length} bytes)`);
 }
@@ -85,24 +89,19 @@ async function regenerateCorruptedAudio() {
     const corruptedLocations = [];
     
     for (const location of allLocations) {
-      // Check if audio exists and is corrupted
+      // Check if audio exists
       const audioQuery = `
-        SELECT filename, encode(SUBSTRING(file_data, 1, 4), 'escape') as header
+        SELECT filename
         FROM file_storage 
         WHERE location_id = $1 AND filename LIKE '%narration%'
       `;
       
-      const result = await db.execute({
-        sql: audioQuery,
-        args: [location.id]
-      });
+      const result = await db.execute(audioQuery.replace('$1', location.id.toString()));
       
-      if (result.rows.length > 0) {
-        const header = result.rows[0].header as string;
-        if (header === 'SUQz') {
-          corruptedLocations.push(location);
-          console.log(`🔧 Found corrupted audio for: ${location.name}`);
-        }
+      if (result.rows.length === 0) {
+        // No audio exists, add to regeneration list
+        corruptedLocations.push(location);
+        console.log(`🔧 Missing audio for: ${location.name}`);
       }
     }
     
@@ -169,8 +168,7 @@ function createNarrationScript(locationName: string, content: string): string {
   return `Welcome to ${locationName}. ${limitedContent}`;
 }
 
-if (require.main === module) {
-  regenerateCorruptedAudio().catch(console.error);
-}
+// Run if this file is executed directly
+regenerateCorruptedAudio().catch(console.error);
 
 export { regenerateCorruptedAudio };
