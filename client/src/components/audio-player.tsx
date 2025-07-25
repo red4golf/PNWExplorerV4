@@ -41,14 +41,14 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
         if (audioResponse.ok) {
           // Get the audio as a blob and create object URL
           const audioBlob = await audioResponse.blob();
-          if (audioBlob.size > 0) {
+          if (audioBlob.size > 0 && audioBlob.type.startsWith('audio/')) {
             const blobUrl = URL.createObjectURL(audioBlob);
             currentBlobUrl = blobUrl;
             setAudioUrl(blobUrl);
             setHasAudio(true);
-            console.log(`Audio loaded: ${audioBlob.size} bytes`);
+            console.log(`Audio loaded: ${audioBlob.size} bytes, type: ${audioBlob.type}`);
           } else {
-            console.warn('Audio blob is empty');
+            console.warn(`Invalid audio blob: size=${audioBlob.size}, type=${audioBlob.type}`);
             setHasAudio(false);
           }
         } else {
