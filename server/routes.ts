@@ -1001,40 +1001,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get audio narration for a location with range support and header fix
+  // Get audio narration for a location
   app.get("/api/locations/:id/audio", async (req, res) => {
     try {
       const locationId = parseInt(req.params.id);
-      let audioBuffer = await storage.getLocationAudio(locationId);
+      const audioBuffer = await storage.getLocationAudio(locationId);
       
       if (!audioBuffer) {
-        return res.status(404).json({ message: "Audio narration not found" });
+        console.log(`🎵 No audio found for location ${locationId}`);
+        return res.status(404).json({ message: "Audio narration temporarily unavailable" });
       }
 
-      // Check for corrupted MP3 header and try to fix it
+      // Verify audio is valid MP3
       const headerBytes = audioBuffer.slice(0, 4);
-      const headerStr = headerBytes.toString();
+      const isValidMP3 = (headerBytes[0] === 0xFF && (headerBytes[1] & 0xE0) === 0xE0) || 
+                        headerBytes.toString().startsWith('ID3');
       
-      if (headerStr === 'SUQz') {
-        console.log('🔧 AUDIO FIX: Detected corrupted MP3 header, analyzing buffer...');
-        console.log('🔧 AUDIO FIX: First 20 bytes:', Array.from(audioBuffer.slice(0, 20)).map(b => b.toString(16).padStart(2, '0')).join(' '));
-        
-        // Look for the MP3 frame sync pattern (0xFF, 0xFB or similar)
-        let syncFound = false;
-        for (let i = 0; i < Math.min(audioBuffer.length, 16384); i++) {
-          if (audioBuffer[i] === 0xFF && (audioBuffer[i + 1] & 0xE0) === 0xE0) {
-            console.log(`🔧 AUDIO FIX: Found MP3 sync at offset ${i}, trimming corrupted header`);
-            audioBuffer = audioBuffer.slice(i);
-            syncFound = true;
-            break;
-          }
-        }
-        
-        if (!syncFound) {
-          console.log('🔧 AUDIO FIX: No MP3 sync found, this appears to be completely corrupted audio data');
-          // Return 404 for completely corrupted audio
-          return res.status(404).json({ message: "Audio file is corrupted and cannot be played" });
-        }
+      if (!isValidMP3) {
+        console.log(`🔧 Invalid audio format for location ${locationId}`);
+        return res.status(404).json({ message: "Audio narration temporarily unavailable" });
       }
 
       const range = req.headers.range;
@@ -1074,7 +1059,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     } catch (error) {
       console.error("Error serving audio:", error);
-      res.status(500).json({ message: "Failed to serve audio narration" });
+      res.status(500).json({ message: "Audio narration temporarily unavailable" });
     }
   });
 

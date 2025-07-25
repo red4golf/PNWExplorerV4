@@ -173,7 +173,25 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
   }
 
   if (!hasAudio) {
-    return null;
+    return (
+      <Card className={cn("w-full border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950", className)}>
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-full bg-amber-100 dark:bg-amber-900">
+              <Volume2 className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                Audio narration temporarily unavailable
+              </p>
+              <p className="text-xs text-amber-600 dark:text-amber-400">
+                Audio content is being updated and will return soon
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
