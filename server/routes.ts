@@ -1016,15 +1016,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const headerStr = headerBytes.toString();
       
       if (headerStr === 'SUQz') {
-        console.log('🔧 AUDIO FIX: Detected corrupted MP3 header, attempting to find valid MP3 start');
+        console.log('🔧 AUDIO FIX: Detected corrupted MP3 header, analyzing buffer...');
+        console.log('🔧 AUDIO FIX: First 20 bytes:', Array.from(audioBuffer.slice(0, 20)).map(b => b.toString(16).padStart(2, '0')).join(' '));
         
         // Look for the MP3 frame sync pattern (0xFF, 0xFB or similar)
-        for (let i = 0; i < Math.min(audioBuffer.length, 8192); i++) {
+        let syncFound = false;
+        for (let i = 0; i < Math.min(audioBuffer.length, 16384); i++) {
           if (audioBuffer[i] === 0xFF && (audioBuffer[i + 1] & 0xE0) === 0xE0) {
             console.log(`🔧 AUDIO FIX: Found MP3 sync at offset ${i}, trimming corrupted header`);
             audioBuffer = audioBuffer.slice(i);
+            syncFound = true;
             break;
           }
+        }
+        
+        if (!syncFound) {
+          console.log('🔧 AUDIO FIX: No MP3 sync found, this appears to be completely corrupted audio data');
+          // Return 404 for completely corrupted audio
+          return res.status(404).json({ message: "Audio file is corrupted and cannot be played" });
         }
       }
 
