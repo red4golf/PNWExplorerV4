@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a full-stack web application that allows users to explore historical locations throughout Florida through an interactive map and detailed location information. Starting with 8 premium historical sites from St. Augustine to the Sebastian Inlet/Malabar area, the application features comprehensive stories, enhanced audio capabilities, and ready-to-monetize book recommendations. The platform supports user-submitted locations, photo galleries, and administrative approval workflows for maintaining content quality.
+This is a full-stack web application that allows users to explore historical locations throughout Florida through an interactive map and detailed location information. Starting with 8 premium historical sites from St. Augustine to the Sebastian Inlet/Malabar area, the application features comprehensive stories, enhanced audio infrastructure with corruption detection, and complete book recommendations ready for affiliate monetization. The platform supports user-submitted locations, photo galleries, and administrative approval workflows for maintaining content quality.
 
 ## Geographic Coverage
 
