@@ -66,15 +66,20 @@ node server/seed.ts
 ### **STEP 5: Test Your Florida Site (1 minute)**
 1. Run the project
 2. Verify Florida locations appear on map
-3. Check that Castillo de San Marcos, Kennedy Space Center, Everglades show up
+3. Check that all 8 locations show up (Castillo, KSC, Everglades, Pelican Island, Grant Store, both Museums, Jungle Trail)
 4. Confirm admin login works (admin / FloridaHistoryBeta2025!)
 
 ## **📊 What You'll Get:**
 
-### **Initial Florida Locations (3 premium sites):**
+### **Initial Florida Locations (8 premium sites):**
 - **Castillo de San Marcos** - Spanish colonial fortress with comprehensive history
 - **Kennedy Space Center** - Space exploration from Apollo to Artemis
 - **Everglades National Park** - Environmental history and conservation
+- **Pelican Island National Wildlife Refuge** - America's first wildlife refuge (Roosevelt 1903)
+- **Grant Grocery Store & Historic Settlement** - Florida's oldest operating store (1894)
+- **McLarty Treasure Museum** - Built on 1715 Spanish treasure fleet wreck site
+- **Mel Fisher's Treasure Museum** - Family museum showcasing legendary treasure hunter
+- **Historic Jungle Trail** - 1920s agricultural road through conservation areas
 
 ### **Book Integration Ready:**
 - **Historical Fiction**: "Their Eyes Were Watching God," "A Land Remembered," "Shadow Country"
@@ -91,7 +96,7 @@ node server/seed.ts
 
 ## **🚀 Expansion Plan:**
 
-### **Week 1-2: Add More Locations (25 total)**
+### **Week 1-2: Add More Locations (25+ total)**
 - **Spanish Colonial**: Mission San Luis, Fort De Soto, Fort Jefferson
 - **Maritime**: Key West lighthouses, shipwreck sites, Dry Tortugas
 - **Space History**: Cape Canaveral launch complexes
