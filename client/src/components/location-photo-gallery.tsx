@@ -94,7 +94,7 @@ export default function LocationPhotoGallery({ locationId, locationName }: Locat
                   className="w-full h-24 sm:h-28 md:h-32 lg:h-36 object-cover rounded-lg shadow-md hover:shadow-lg transition-all group-hover:scale-105"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.src = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&w=400&h=300&fit=crop';
+                    target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="%23f3f4f6"/><text x="200" y="150" text-anchor="middle" font-size="16" fill="%236b7280">Image Error</text></svg>';
                   }}
                 />
                 <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg" />
@@ -116,7 +116,7 @@ export default function LocationPhotoGallery({ locationId, locationName }: Locat
                   className="w-full max-h-[80vh] object-contain rounded-lg"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.src = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&w=800&h=600&fit=crop';
+                    target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"><rect width="800" height="600" fill="%23f3f4f6"/><text x="400" y="300" text-anchor="middle" font-size="24" fill="%236b7280">Image Error</text></svg>';
                   }}
                 />
                 {photo.caption && (

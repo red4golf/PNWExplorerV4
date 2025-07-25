@@ -24,33 +24,45 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
 
   useEffect(() => {
+    let mounted = true;
+    let currentBlobUrl: string | null = null;
+
     const checkAndLoadAudio = async () => {
       try {
-        const response = await fetch(`/api/locations/${locationId}/audio`, { method: 'HEAD' });
-        if (response.ok) {
-          // Create blob URL to avoid cross-origin issues
-          const audioResponse = await fetch(`/api/locations/${locationId}/audio`);
-          const audioBlob = await audioResponse.blob();
-          const blobUrl = URL.createObjectURL(audioBlob);
-          setAudioUrl(blobUrl);
+        // Use a simpler approach - just check if audio exists first
+        const headResponse = await fetch(`/api/locations/${locationId}/audio`, { 
+          method: 'HEAD',
+          credentials: 'same-origin',
+          mode: 'cors'
+        });
+        
+        if (!mounted) return;
+        
+        if (headResponse.ok) {
+          // Direct URL approach - let browser handle caching
+          setAudioUrl(`/api/locations/${locationId}/audio`);
           setHasAudio(true);
         } else {
           setHasAudio(false);
         }
       } catch (error) {
-        console.warn('Audio loading failed:', error);
-        setHasAudio(false);
+        if (mounted) {
+          console.warn('Audio check failed:', error);
+          setHasAudio(false);
+        }
       } finally {
-        setIsLoading(false);
+        if (mounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     checkAndLoadAudio();
 
-    // Cleanup blob URL on unmount
     return () => {
-      if (audioUrl) {
-        URL.revokeObjectURL(audioUrl);
+      mounted = false;
+      if (currentBlobUrl) {
+        URL.revokeObjectURL(currentBlobUrl);
       }
     };
   }, [locationId]);
@@ -127,10 +139,17 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
   };
 
   const handleError = (e: any) => {
-    console.warn('Audio error:', e);
+    // Suppress cross-origin errors by checking error type
+    if (e && e.target && e.target.error) {
+      const errorCode = e.target.error.code;
+      // Only log non-CORS related errors
+      if (errorCode !== 0) {
+        console.warn('Audio error code:', errorCode);
+      }
+    }
     setIsPlaying(false);
-    setHasAudio(false);
     setIsReady(false);
+    // Don't disable audio completely on error - let user try again
   };
 
   const formatTime = (time: number) => {
@@ -187,7 +206,8 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
           onPause={() => setIsPlaying(false)}
           onEnded={() => setIsPlaying(false)}
           onError={handleError}
-          preload="metadata"
+          preload="none"
+          crossOrigin="anonymous"
           style={{ display: 'none' }}
         />
       )}

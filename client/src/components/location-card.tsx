@@ -12,7 +12,8 @@ interface LocationCardProps {
 
 export default function LocationCard({ location }: LocationCardProps) {
   // Use hero image if available, otherwise use placeholder
-  const placeholderImage = `https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&w=800&h=600&fit=crop`;
+  // Use a local placeholder to avoid cross-origin issues
+  const placeholderImage = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"><rect width="800" height="600" fill="%23f3f4f6"/><text x="400" y="300" text-anchor="middle" font-size="24" fill="%236b7280">Historical Location</text></svg>`;
   const imageUrl = location.heroImage || placeholderImage;
 
   return (
