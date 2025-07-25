@@ -39,18 +39,10 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
         if (!mounted) return;
         
         if (audioResponse.ok) {
-          // Get the audio as a blob and create object URL
-          const audioBlob = await audioResponse.blob();
-          if (audioBlob.size > 0 && audioBlob.type.startsWith('audio/')) {
-            const blobUrl = URL.createObjectURL(audioBlob);
-            currentBlobUrl = blobUrl;
-            setAudioUrl(blobUrl);
-            setHasAudio(true);
-            console.log(`Audio loaded: ${audioBlob.size} bytes, type: ${audioBlob.type}`);
-          } else {
-            console.warn(`Invalid audio blob: size=${audioBlob.size}, type=${audioBlob.type}`);
-            setHasAudio(false);
-          }
+          // Direct URL approach - simpler and more reliable
+          setAudioUrl(`/api/locations/${locationId}/audio`);
+          setHasAudio(true);
+          console.log(`Audio URL set: /api/locations/${locationId}/audio`);
         } else {
           console.warn(`Audio request failed: ${audioResponse.status}`);
           setHasAudio(false);
@@ -149,17 +141,17 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
   };
 
   const handleError = (e: any) => {
-    // Suppress cross-origin errors by checking error type
+    console.log('Audio error event:', e);
     if (e && e.target && e.target.error) {
       const errorCode = e.target.error.code;
-      // Only log non-CORS related errors
-      if (errorCode !== 0) {
-        console.warn('Audio error code:', errorCode);
-      }
+      console.log(`Audio error details: code=${errorCode}, message=${e.target.error.message || 'No message'}`);
     }
     setIsPlaying(false);
     setIsReady(false);
-    // Don't disable audio completely on error - let user try again
+    // Try to reload the audio element
+    if (audioRef.current) {
+      audioRef.current.load();
+    }
   };
 
   const formatTime = (time: number) => {
@@ -208,7 +200,6 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
       {audioUrl && (
         <audio
           ref={audioRef}
-          src={audioUrl}
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
           onCanPlayThrough={handleCanPlay}
@@ -216,10 +207,12 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
           onPause={() => setIsPlaying(false)}
           onEnded={() => setIsPlaying(false)}
           onError={handleError}
-          preload="metadata"
-          crossOrigin="anonymous"
+          preload="auto"
           style={{ display: 'none' }}
-        />
+        >
+          <source src={audioUrl} type="audio/mpeg" />
+          Your browser does not support the audio element.
+        </audio>
       )}
 
       {/* Main Controls */}

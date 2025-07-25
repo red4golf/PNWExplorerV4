@@ -1001,7 +1001,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get audio narration for a location
+  // Get audio narration for a location with range support
   app.get("/api/locations/:id/audio", async (req, res) => {
     try {
       const locationId = parseInt(req.params.id);
@@ -1011,16 +1011,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Audio narration not found" });
       }
 
-      res.set({
-        'Content-Type': 'audio/mpeg',
-        'Content-Length': audioBuffer.length.toString(),
-        'Cache-Control': 'public, max-age=3600',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
-      });
-      
-      res.send(audioBuffer);
+      const range = req.headers.range;
+      const fileSize = audioBuffer.length;
+
+      if (range) {
+        // Handle range requests for audio streaming
+        const parts = range.replace(/bytes=/, "").split("-");
+        const start = parseInt(parts[0], 10);
+        const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+        const chunksize = (end - start) + 1;
+        const chunk = audioBuffer.slice(start, end + 1);
+
+        res.writeHead(206, {
+          'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+          'Accept-Ranges': 'bytes',
+          'Content-Length': chunksize,
+          'Content-Type': 'audio/mpeg',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+          'Access-Control-Allow-Headers': 'Range, Content-Type'
+        });
+        res.end(chunk);
+      } else {
+        // Normal full file response
+        res.set({
+          'Content-Type': 'audio/mpeg',
+          'Content-Length': audioBuffer.length.toString(),
+          'Accept-Ranges': 'bytes',
+          'Cache-Control': 'public, max-age=3600',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+          'Access-Control-Allow-Headers': 'Range, Content-Type'
+        });
+        
+        res.send(audioBuffer);
+      }
     } catch (error) {
       console.error("Error serving audio:", error);
       res.status(500).json({ message: "Failed to serve audio narration" });
