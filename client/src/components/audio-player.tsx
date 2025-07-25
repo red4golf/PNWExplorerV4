@@ -29,27 +29,22 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
 
     const checkAndLoadAudio = async () => {
       try {
-        // Check if audio exists with a simple GET request
-        const audioResponse = await fetch(`/api/locations/${locationId}/audio`, {
-          method: 'GET',
-          credentials: 'same-origin',
-          mode: 'cors'
+        // Simple HEAD request to check if audio exists
+        const response = await fetch(`/api/locations/${locationId}/audio`, { 
+          method: 'HEAD'
         });
         
         if (!mounted) return;
         
-        if (audioResponse.ok) {
-          // Direct URL approach - simpler and more reliable
+        if (response.ok) {
           setAudioUrl(`/api/locations/${locationId}/audio`);
           setHasAudio(true);
-          console.log(`Audio URL set: /api/locations/${locationId}/audio`);
+          console.log(`Audio available for location ${locationId}`);
         } else {
-          console.warn(`Audio request failed: ${audioResponse.status}`);
           setHasAudio(false);
         }
       } catch (error) {
         if (mounted) {
-          console.warn('Audio loading error:', error);
           setHasAudio(false);
         }
       } finally {
@@ -141,17 +136,9 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
   };
 
   const handleError = (e: any) => {
-    console.log('Audio error event:', e);
-    if (e && e.target && e.target.error) {
-      const errorCode = e.target.error.code;
-      console.log(`Audio error details: code=${errorCode}, message=${e.target.error.message || 'No message'}`);
-    }
+    // Silently handle audio errors to prevent cross-origin issues
     setIsPlaying(false);
     setIsReady(false);
-    // Try to reload the audio element
-    if (audioRef.current) {
-      audioRef.current.load();
-    }
   };
 
   const formatTime = (time: number) => {
