@@ -22,6 +22,7 @@ import { EnhancedAnalyticsDashboard } from "@/components/enhanced-analytics-dash
 import { GeographicAnalyticsSimplified } from "@/components/geographic-analytics-simplified";
 import { RealAnalyticsDashboard } from "@/components/real-analytics-dashboard";
 import { EnhancedRealAnalytics } from "@/components/enhanced-real-analytics";
+import { HonestAnalyticsData } from "@/components/honest-analytics-data";
 
 import { Lock, Clock, MapPin, Users, CheckCircle, XCircle, LogIn, Upload, FileText, Database, Edit3, Search, Save, Filter, Eye, Trash2, Image, Calendar, BarChart3, Settings, RefreshCw, Download, ChevronDown, AlertCircle, X, MessageSquare, Bug, Lightbulb, BookOpen, TestTube, Volume2 } from "lucide-react";
 
@@ -1788,8 +1789,8 @@ export default function Admin() {
               </div>
               
               <div>
-                <h2 className="text-xl font-semibold text-heritage-brown mb-4">Comprehensive User Analytics</h2>
-                <EnhancedRealAnalytics />
+                <h2 className="text-xl font-semibold text-heritage-brown mb-4">Honest Analytics Assessment</h2>
+                <HonestAnalyticsData />
               </div>
               
               <div>
