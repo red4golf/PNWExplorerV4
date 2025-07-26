@@ -74,25 +74,116 @@ const detectUserContext = () => {
   return 'general_reading';
 };
 
-// Get referrer source category
-const getReferrerSource = () => {
+// Get UTM parameters from URL
+const getUtmParams = () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  return {
+    utm_source: urlParams.get('utm_source'),
+    utm_medium: urlParams.get('utm_medium'),
+    utm_campaign: urlParams.get('utm_campaign'),
+    utm_term: urlParams.get('utm_term'),
+    utm_content: urlParams.get('utm_content')
+  };
+};
+
+// Get and store initial traffic source for session
+const getTrafficSource = () => {
+  // Check if we already have the source for this session
+  let source = sessionStorage.getItem('traffic_source');
+  if (source) {
+    return JSON.parse(source);
+  }
+
+  // Check UTM parameters first (most reliable)
+  const utmParams = getUtmParams();
+  if (utmParams.utm_source) {
+    const sourceObj = {
+      type: 'utm_campaign',
+      source: utmParams.utm_source,
+      medium: utmParams.utm_medium,
+      campaign: utmParams.utm_campaign,
+      term: utmParams.utm_term,
+      content: utmParams.utm_content
+    };
+    sessionStorage.setItem('traffic_source', JSON.stringify(sourceObj));
+    return sourceObj;
+  }
+
+  // Fall back to referrer analysis
   const referrer = document.referrer;
-  if (!referrer) return 'direct';
-  
-  if (referrer.includes('google.com') || referrer.includes('bing.com') || referrer.includes('yahoo.com')) {
-    return 'search_engine';
+  let sourceObj;
+  if (!referrer) {
+    sourceObj = { type: 'direct', source: 'direct' };
+  } else if (referrer.includes('google.com') || referrer.includes('bing.com') || referrer.includes('yahoo.com')) {
+    sourceObj = { type: 'search_engine', source: 'organic_search', referrer };
+  } else if (referrer.includes('facebook.com') || referrer.includes('twitter.com') || referrer.includes('instagram.com')) {
+    sourceObj = { type: 'social_media', source: 'social', referrer };
+  } else if (referrer.includes('newsletter') || referrer.includes('email')) {
+    sourceObj = { type: 'newsletter', source: 'email', referrer };
+  } else {
+    sourceObj = { type: 'referral', source: 'referral', referrer };
   }
-  if (referrer.includes('facebook.com') || referrer.includes('twitter.com') || referrer.includes('instagram.com')) {
-    return 'social_media';
-  }
-  if (referrer.includes('newsletter') || referrer.includes('email')) {
-    return 'newsletter';
-  }
-  
-  return 'referral';
+
+  sessionStorage.setItem('traffic_source', JSON.stringify(sourceObj));
+  return sourceObj;
+};
+
+// Get referrer source category (legacy function)
+const getReferrerSource = () => {
+  const trafficSource = getTrafficSource();
+  return trafficSource.source || 'unknown';
 };
 
 export const useAnalytics = () => {
+  // Initialize session tracking on first load
+  useEffect(() => {
+    // Store initial referrer if not already stored
+    if (!sessionStorage.getItem('initial_referrer')) {
+      sessionStorage.setItem('initial_referrer', document.referrer || 'direct');
+    }
+    
+    // Initialize traffic source tracking
+    getTrafficSource();
+    
+    // Track session start if not already tracked
+    if (!sessionStorage.getItem('session_tracked')) {
+      const trackSessionStart = async () => {
+        try {
+          const userLocation = await getUserLocation();
+          const userContext = detectUserContext();
+          const trafficSource = getTrafficSource();
+          
+          await apiRequest("POST", "/api/analytics", {
+            eventType: 'session_start',
+            metadata: {
+              sessionStart: new Date().toISOString(),
+              trafficSource: trafficSource.type,
+              trafficSourceDetails: trafficSource,
+              initialReferrer: sessionStorage.getItem('initial_referrer'),
+              ...getUtmParams(),
+              userAgent: navigator.userAgent,
+              screenWidth: window.screen.width,
+              screenHeight: window.screen.height,
+              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+              language: navigator.language,
+              languages: navigator.languages?.join(',') || navigator.language
+            },
+            sessionId: getSessionId(),
+            userLocation,
+            userContext,
+            referrerSource: trafficSource.source,
+            isDeveloper: false
+          });
+          
+          sessionStorage.setItem('session_tracked', 'true');
+        } catch (error) {
+          console.log("Session tracking failed:", error);
+        }
+      };
+      
+      trackSessionStart();
+    }
+  }, []);
   const trackEvent = async (eventType: string, metadata?: any, locationId?: number) => {
     // Skip tracking in developer mode
     if (isDeveloperMode()) {
@@ -110,6 +201,8 @@ export const useAnalytics = () => {
       const pageViews = parseInt(sessionStorage.getItem('pageViewCount') || '0') + 1;
       sessionStorage.setItem('pageViewCount', pageViews.toString());
 
+      const trafficSource = getTrafficSource();
+      
       await apiRequest("POST", "/api/analytics", {
         eventType,
         locationId,
@@ -117,7 +210,26 @@ export const useAnalytics = () => {
           ...metadata,
           sessionPageViews: pageViews,
           timeOfDay: new Date().getHours(),
-          dayOfWeek: new Date().getDay()
+          dayOfWeek: new Date().getDay(),
+          // Enhanced traffic source tracking
+          trafficSource: trafficSource.type,
+          trafficSourceDetails: trafficSource,
+          initialReferrer: sessionStorage.getItem('initial_referrer') || document.referrer,
+          // UTM parameters
+          ...getUtmParams(),
+          // Technical context
+          userAgent: navigator.userAgent,
+          screenWidth: window.screen.width,
+          screenHeight: window.screen.height,
+          viewport: `${window.innerWidth}x${window.innerHeight}`,
+          // Browser capabilities
+          cookieEnabled: navigator.cookieEnabled,
+          onLine: navigator.onLine,
+          // Additional context
+          timestamp: new Date().toISOString(),
+          url: window.location.href,
+          path: window.location.pathname,
+          host: window.location.host
         },
         sessionId: getSessionId(),
         userLocation,
