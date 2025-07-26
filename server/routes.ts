@@ -923,6 +923,18 @@ function getBrowserName(userAgent: string): string {
     }
   });
 
+  // Enhanced real analytics endpoint
+  app.get("/api/admin/analytics/comprehensive-stats", async (req, res) => {
+    try {
+      const { getRealAnalyticsData } = await import("./real-analytics-endpoint");
+      const realData = await getRealAnalyticsData();
+      res.json(realData);
+    } catch (error) {
+      console.error("Error getting comprehensive analytics:", error);
+      res.status(500).json({ message: "Failed to get comprehensive analytics" });
+    }
+  });
+
   // Enhanced analytics endpoint with advanced breakdowns
   app.get("/api/admin/analytics/enhanced-stats", async (req, res) => {
     try {
