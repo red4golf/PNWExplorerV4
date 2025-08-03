@@ -1215,9 +1215,9 @@ export default function Admin() {
                 <div>
                   <label className="text-sm font-medium">Amazon Affiliate URL</label>
                   <Input
-                    value={book.amazonUrl || ""}
-                    onChange={(e) => updateBook(index, 'amazonUrl', e.target.value)}
-                    placeholder="https://amzn.to/..."
+                    value={book.amazon_url || ""}
+                    onChange={(e) => updateBook(index, 'amazon_url', e.target.value)}
+                    placeholder="https://www.amazon.com/..."
                   />
                 </div>
                 
