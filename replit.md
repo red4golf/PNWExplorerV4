@@ -95,3 +95,4 @@ The application implements anonymous user analytics with strong privacy protecti
 - **January 2025**: All book recommendations verified with authentic Amazon affiliate links (80/81 locations)
 - **January 2025**: Fixed Amazon affiliate link functionality (camelCase/snake_case mismatch resolved)
 - **January 2025**: Comprehensive data integrity review completed - production ready for deployment
+- **January 2025**: Press release and newsletter announcement created for public beta launch with audio tour roadmap
