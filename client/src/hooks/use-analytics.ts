@@ -13,7 +13,13 @@ const getSessionId = () => {
 
 // Check if we're in developer mode
 const isDeveloperMode = () => {
-  return localStorage.getItem('dev-mode') === 'true';
+  // Auto-detect common development scenarios
+  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const isDevDomain = window.location.hostname.includes('replit.dev');
+  const hasDevFlag = localStorage.getItem('dev-mode') === 'true';
+  const hasAdminAccess = localStorage.getItem('admin-token') !== null;
+  
+  return hasDevFlag || hasAdminAccess || (isLocalhost && !window.location.href.includes('deployed'));
 };
 
 // Get user's approximate location (using browser geolocation API)
