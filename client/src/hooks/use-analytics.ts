@@ -39,7 +39,7 @@ const getUserLocation = (): Promise<any> => {
           resolve({
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             language: navigator.language
-          });
+          } as any);
         },
         { timeout: 5000, enableHighAccuracy: false }
       );

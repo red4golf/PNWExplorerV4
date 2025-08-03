@@ -30,7 +30,7 @@ The application uses a monorepo structure, separating client, server, and shared
 - **Admins**: Users for content moderation.
 - **Content Workflow**: Pending/approved/rejected states for submitted content.
 - **File Storage**: Files are stored directly in the PostgreSQL database (BYTEA) with automatic environment detection for deployed environments, or locally for development.
-- **Analytics**: `user_analytics` table for tracking user engagement (page views, location views, QR code scans, shares).
+- **Analytics**: `user_analytics` table for tracking user engagement (page views, location views, QR code scans, shares) with automatic developer exclusion.
 - **Book Recommendations**: Structured JSON for title, author, description, format, price, and Amazon URLs.
 
 ### Core Features
@@ -39,7 +39,7 @@ The application uses a monorepo structure, separating client, server, and shared
 - Photo management system supporting hero images and multiple gallery photos per location, with bulk selection and responsive display.
 - Comprehensive SEO optimization including dynamic meta tags, structured data (JSON-LD), Open Graph/Twitter cards, and sitemap generation.
 - Integrated book recommendation system for all historical locations.
-- User analytics tracking for engagement patterns (excluding developer traffic).
+- User analytics tracking for engagement patterns with enhanced developer exclusion (admin users, development domains, manual dev-mode flag).
 - Potential future feature: Audio tour system (currently unavailable due to content regeneration needs).
 
 ## External Dependencies
@@ -68,3 +68,30 @@ The application uses a monorepo structure, separating client, server, and shared
 - **Amazon Associates program**: For future affiliate link integration in book recommendations.
 - **ElevenLabs AI**: (Previously used for audio synthesis, currently not active for content generation).
 - **Make.com**: Automation system for feedback collection and social media posting.
+
+## Analytics & Privacy
+The application implements anonymous user analytics with strong privacy protections:
+
+### Developer Exclusion System
+- **Admin users**: Automatically excluded from tracking
+- **Development domains**: replit.dev, localhost auto-detected
+- **Manual exclusion**: Set `localStorage.setItem('dev-mode', 'true')` in browser console
+- **No personal data**: Only aggregate usage patterns collected
+
+### Tracked Events (Anonymous)
+- Page views and location visits for content optimization
+- Geographic regions (timezone-based) for audience insights  
+- Affiliate link clicks for revenue tracking
+- User flow patterns for UX improvements
+
+### Privacy Compliance
+- No individual user identification or personal data
+- No cross-site tracking or persistent cookies
+- GDPR/CCPA compliant without consent requirements
+- Raw analytics dashboard shows only factual database counts
+
+## Recent Changes
+- **January 2025**: Analytics system reset for public beta launch with enhanced developer exclusion
+- **January 2025**: All book recommendations verified with authentic Amazon affiliate links (80/81 locations)
+- **January 2025**: Fixed Amazon affiliate link functionality (camelCase/snake_case mismatch resolved)
+- **January 2025**: Comprehensive data integrity review completed - production ready for deployment
