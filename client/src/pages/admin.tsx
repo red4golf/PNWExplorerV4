@@ -853,14 +853,14 @@ export default function Admin() {
             <div className="space-y-4">
               <div className="text-center">
                 <p className="text-3xl font-bold text-heritage-brown">
-                  {affiliateStats?.totalClicks || 0}
+                  {(affiliateStats as any)?.totalClicks || 0}
                 </p>
                 <p className="text-sm text-gray-600">Total Book Link Clicks</p>
               </div>
               
               <div className="space-y-2">
                 <h4 className="font-semibold text-sm">Top Performing Locations</h4>
-                {affiliateStats?.clicksByLocation?.slice(0, 5).map((location: any) => (
+                {((affiliateStats as any)?.clicksByLocation || []).slice(0, 5).map((location: any) => (
                   <div key={location.locationId} className="flex justify-between items-center py-1">
                     <span className="text-sm">{location.locationName}</span>
                     <span className="text-sm font-medium">{location.clicks} clicks</span>
@@ -879,7 +879,7 @@ export default function Admin() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {recentClicks?.slice(0, 5).map((click: any) => (
+              {((recentClicks as any) || []).slice(0, 5).map((click: any) => (
                 <div key={click.id} className="flex items-center justify-between py-2 border-b last:border-b-0">
                   <div>
                     <p className="font-medium text-sm">{click.bookTitle}</p>

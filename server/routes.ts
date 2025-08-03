@@ -908,7 +908,7 @@ function getBrowserName(userAgent: string): string {
           weekday: Math.floor(basicStats.totalEvents * 0.7),
           weekend: Math.floor(basicStats.totalEvents * 0.3)
         },
-        locationInsights: basicStats.topLocations?.slice(0, 10).map((loc: any) => ({
+        locationInsights: (basicStats as any).topLocations?.slice(0, 10).map((loc: any) => ({
           id: loc.locationId,
           name: loc.locationName,
           views: loc.count,
