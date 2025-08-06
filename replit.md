@@ -91,8 +91,9 @@ The application implements anonymous user analytics with strong privacy protecti
 - Raw analytics dashboard shows only factual database counts
 
 ## Recent Changes
-- **August 2025**: Fixed all broken Amazon affiliate links including Pike Place Market non-Amazon URLs, Point Wilson Lighthouse 404 errors, and Olympic Hot Springs server errors
-- **August 2025**: All 80 locations now have verified, working Amazon affiliate book recommendations with authentic ISBN/ASIN links
+- **August 2025**: CRITICAL DISCOVERY - Systematic ISBN/ASIN mismatch problem causing wrong book redirects (e.g., Oregon Lighthouses linking to Watertown WI book)
+- **August 2025**: Fixed confirmed issues: Pike Place Market non-Amazon URLs, Point Wilson Lighthouse 404 errors, Olympic Hot Springs server errors, Heceta Head Lighthouse wrong ISBN, Neah Bay incorrect ASINs
+- **August 2025**: In progress: Comprehensive audit of all 80 locations' book recommendations to verify correct ISBN/ASIN matches
 - **January 2025**: Analytics system reset for public beta launch with enhanced developer exclusion
 - **January 2025**: Fixed Amazon affiliate link functionality (camelCase/snake_case mismatch resolved)
 - **January 2025**: Comprehensive data integrity review completed - production ready for deployment
