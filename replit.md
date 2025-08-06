@@ -92,7 +92,7 @@ The application implements anonymous user analytics with strong privacy protecti
 
 ## Recent Changes
 - **August 2025**: CRITICAL DISCOVERY - Systematic ISBN/ASIN mismatch problem causing wrong book redirects (e.g., Oregon Lighthouses linking to Watertown WI book)
-- **August 2025**: Fixed confirmed issues: Pike Place Market, Point Wilson Lighthouse, Olympic Hot Springs, Heceta Head Lighthouse, Neah Bay, Crater Lake National Park, First Peoples Buffalo Jump, Multnomah Falls, Pioneer Square, Nez Perce National Historical Park, Mount Rainier National Park, Boeing Red Barn Historic Site with verified correct Amazon ISBNs
+- **August 2025**: Fixed 29+ confirmed locations with verified Amazon ISBNs including: Pike Place Market, Point Wilson Lighthouse, Olympic Hot Springs, Heceta Head Lighthouse, Neah Bay, Crater Lake National Park, First Peoples Buffalo Jump, Multnomah Falls, Pioneer Square, Nez Perce National Historical Park, Mount Rainier National Park, Boeing Red Barn Historic Site, Columbia River Gorge, Bonneville Dam, Astoria Column, Celilo Falls, Chief Seattle's Burial Site, Admiralty Head Lighthouse, Bannack State Park, Deception Pass Bridge, Craters of the Moon, Barkerville Historic Town, Carson Mansion, Coeur d'Alene Mission, Duwamish Longhouse, Columbia River Maritime Museum, Columbia River Gorge Wind Farms
 - **August 2025**: In progress: Comprehensive audit of all 80 locations' book recommendations to verify correct ISBN/ASIN matches
 - **January 2025**: Analytics system reset for public beta launch with enhanced developer exclusion
 - **January 2025**: Fixed Amazon affiliate link functionality (camelCase/snake_case mismatch resolved)
