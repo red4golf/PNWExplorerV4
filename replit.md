@@ -92,7 +92,7 @@ The application implements anonymous user analytics with strong privacy protecti
 
 ## Recent Changes
 - **August 2025**: CRITICAL DISCOVERY - Systematic ISBN/ASIN mismatch problem causing wrong book redirects (e.g., Oregon Lighthouses linking to Watertown WI book)
-- **August 2025**: Fixed confirmed issues: Pike Place Market non-Amazon URLs, Point Wilson Lighthouse 404 errors, Olympic Hot Springs server errors, Heceta Head Lighthouse wrong ISBN, Neah Bay incorrect ASINs
+- **August 2025**: Fixed confirmed issues: Pike Place Market, Point Wilson Lighthouse, Olympic Hot Springs, Heceta Head Lighthouse, Neah Bay, Crater Lake National Park, First Peoples Buffalo Jump, Multnomah Falls, Pioneer Square with verified correct Amazon ISBNs
 - **August 2025**: In progress: Comprehensive audit of all 80 locations' book recommendations to verify correct ISBN/ASIN matches
 - **January 2025**: Analytics system reset for public beta launch with enhanced developer exclusion
 - **January 2025**: Fixed Amazon affiliate link functionality (camelCase/snake_case mismatch resolved)
