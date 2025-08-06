@@ -687,6 +687,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Book verification endpoint
+  app.post("/api/verify-books", async (req, res) => {
+    try {
+      const { verifyAndFixBookLinks } = await import("./book-verification");
+      const results = await verifyAndFixBookLinks();
+      
+      const summary = {
+        total: results.length,
+        verified: results.filter(r => r.issues.length === 0).length,
+        needsReview: results.filter(r => r.issues.length > 0).length,
+        results: results.slice(0, 10) // Return first 10 for preview
+      };
+      
+      res.json(summary);
+    } catch (error) {
+      console.error("Error verifying books:", error);
+      res.status(500).json({ message: "Failed to verify books" });
+    }
+  });
+
   // Serve HTML preview pages
   app.get("/audio-preview", (req, res) => {
     const filePath = path.join(process.cwd(), 'audio-preview-clickable.html');
