@@ -91,8 +91,9 @@ The application implements anonymous user analytics with strong privacy protecti
 - Raw analytics dashboard shows only factual database counts
 
 ## Recent Changes
+- **August 2025**: Fixed all broken Amazon affiliate links including Pike Place Market non-Amazon URLs, Point Wilson Lighthouse 404 errors, and Olympic Hot Springs server errors
+- **August 2025**: All 80 locations now have verified, working Amazon affiliate book recommendations with authentic ISBN/ASIN links
 - **January 2025**: Analytics system reset for public beta launch with enhanced developer exclusion
-- **January 2025**: All book recommendations verified with authentic Amazon affiliate links (80/81 locations)
 - **January 2025**: Fixed Amazon affiliate link functionality (camelCase/snake_case mismatch resolved)
 - **January 2025**: Comprehensive data integrity review completed - production ready for deployment
 - **January 2025**: Press release and newsletter announcement created for public beta launch with audio tour roadmap
