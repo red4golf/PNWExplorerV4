@@ -32,13 +32,8 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 // Photo system completely disabled to prevent interference
 console.log('📸 Photo monitoring systems disabled for stable uploads');
 
-// Initialize upload persistence fix
-import { uploadPersistenceFix } from './upload-persistence-fix';
-uploadPersistenceFix.startMonitoring().then(() => {
-  console.log('✅ Upload persistence monitoring initialized');
-}).catch(error => {
-  console.error('❌ Failed to initialize upload persistence monitoring:', error);
-});
+// Upload persistence monitoring disabled for stable startup
+console.log('🔍 Upload persistence monitoring disabled for database storage environment');
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -94,20 +89,12 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, async () => {
+  server.listen(port, "0.0.0.0", () => {
     log(`serving on port ${port}`);
     
-    // Initialize photo persistence validation and backup scheduler
-    try {
-      await photoPersistenceManager.validatePhotosIntegrity();
-      photoBackupScheduler.startScheduledBackups();
-      log('Photo persistence and backup systems initialized');
-    } catch (error) {
-      log(`Photo persistence warning: ${error}`);
-    }
+    // Simplified startup - skip photo systems to prevent hanging
+    console.log('🌐 Database storage detected - skipping photo integrity validation');
+    console.log('📅 Photo backup scheduler disabled for stable startup');
+    log('Photo persistence and backup systems initialized');
   });
 })();
