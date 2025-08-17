@@ -91,6 +91,7 @@ The application implements anonymous user analytics with strong privacy protecti
 - Raw analytics dashboard shows only factual database counts
 
 ## Recent Changes
+- **August 2025**: **CRITICAL SAFETY FIX** - Corrected Frog Rock coordinates from incorrect location (47.626, -122.5319) that was directing users to private driveway to proper intersection of Madison Avenue and Phelps Road (47.6289, -122.5253)
 - **August 2025**: Fixed critical map initialization issue - map now loads immediately instead of waiting for location permission, improving user experience significantly
 - **August 2025**: Completed comprehensive book verification audit with systematic ASIN replacement across all 80 locations, achieving 83-90% Amazon link success rates
 - **August 2025**: Created systematic book verification table (book_verification_table.md) for ongoing quality assurance and manual verification process
