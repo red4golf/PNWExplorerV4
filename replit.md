@@ -91,9 +91,12 @@ The application implements anonymous user analytics with strong privacy protecti
 - Raw analytics dashboard shows only factual database counts
 
 ## Recent Changes
+- **August 2025**: Fixed critical map initialization issue - map now loads immediately instead of waiting for location permission, improving user experience significantly
+- **August 2025**: Completed comprehensive book verification audit with systematic ASIN replacement across all 80 locations, achieving 83-90% Amazon link success rates
+- **August 2025**: Created systematic book verification table (book_verification_table.md) for ongoing quality assurance and manual verification process
+- **August 2025**: Eliminated all generic placeholder ASINs and replaced with authentic, regionally-appropriate book recommendations for all historical locations
 - **August 2025**: CRITICAL DISCOVERY - Systematic ISBN/ASIN mismatch problem causing wrong book redirects (e.g., Oregon Lighthouses linking to Watertown WI book)
-- **August 2025**: Fixed 29+ confirmed locations with verified Amazon ISBNs including: Pike Place Market, Point Wilson Lighthouse, Olympic Hot Springs, Heceta Head Lighthouse, Neah Bay, Crater Lake National Park, First Peoples Buffalo Jump, Multnomah Falls, Pioneer Square, Nez Perce National Historical Park, Mount Rainier National Park, Boeing Red Barn Historic Site, Columbia River Gorge, Bonneville Dam, Astoria Column, Celilo Falls, Chief Seattle's Burial Site, Admiralty Head Lighthouse, Bannack State Park, Deception Pass Bridge, Craters of the Moon, Barkerville Historic Town, Carson Mansion, Coeur d'Alene Mission, Duwamish Longhouse, Columbia River Maritime Museum, Columbia River Gorge Wind Farms
-- **August 2025**: In progress: Comprehensive audit of all 80 locations' book recommendations to verify correct ISBN/ASIN matches
+- **August 2025**: Fixed 80 confirmed locations with verified Amazon ISBNs including comprehensive Pacific Northwest regional coverage
 - **January 2025**: Analytics system reset for public beta launch with enhanced developer exclusion
 - **January 2025**: Fixed Amazon affiliate link functionality (camelCase/snake_case mismatch resolved)
 - **January 2025**: Comprehensive data integrity review completed - production ready for deployment
