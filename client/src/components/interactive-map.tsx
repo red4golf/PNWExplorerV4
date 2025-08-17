@@ -220,9 +220,9 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
   }, []);
 
   useEffect(() => {
-    if (!L || !mapRef.current || !locations) return;
+    if (!L || !mapRef.current) return;
 
-    // Initialize map with appropriate view
+    // Initialize map immediately when Leaflet and DOM element are ready
     if (!mapInstanceRef.current) {
       let initialView = [PNW_CENTER.lat, PNW_CENTER.lng];
       let initialZoom = PNW_ZOOM;
@@ -239,8 +239,13 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       }).addTo(mapInstanceRef.current);
     }
+  }, [L, userLocation]); // Dependencies: Leaflet library and user location
 
-    // Clear existing markers (except user location marker)
+  // Separate effect for adding location markers
+  useEffect(() => {
+    if (!mapInstanceRef.current || !locations) return;
+
+    // Clear existing location markers (keep user location marker)
     mapInstanceRef.current.eachLayer((layer: any) => {
       if (layer instanceof L.Marker && layer !== userMarkerRef.current) {
         mapInstanceRef.current.removeLayer(layer);
