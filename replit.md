@@ -91,7 +91,7 @@ The application implements anonymous user analytics with strong privacy protecti
 - Raw analytics dashboard shows only factual database counts
 
 ## Recent Changes
-- **August 2025**: **CRITICAL SAFETY FIX** - Corrected Frog Rock coordinates to exact address 14607 Phelps Rd NE (47.6351, -122.5147) after user reported incorrect location was directing to private driveway
+- **August 2025**: **CRITICAL SAFETY FIX** - Corrected Frog Rock coordinates to exact address 14607 Phelps Rd NE (47.6965465, -122.5234931) after user reported incorrect location was directing to private driveway
 - **August 2025**: Fixed critical map initialization issue - map now loads immediately instead of waiting for location permission, improving user experience significantly
 - **August 2025**: Completed comprehensive book verification audit with systematic ASIN replacement across all 80 locations, achieving 83-90% Amazon link success rates
 - **August 2025**: Created systematic book verification table (book_verification_table.md) for ongoing quality assurance and manual verification process
