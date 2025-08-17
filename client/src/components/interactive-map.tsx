@@ -566,18 +566,23 @@ export default function InteractiveMap({ onLocationSelect }: InteractiveMapProps
           {/* Map Legend */}
           <div className="border-t pt-3">
             <h5 className="font-semibold text-heritage-brown mb-2 text-sm">Map Legend</h5>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-heritage-gold rounded-full mr-2"></div>
-                <span>Historical ({locations?.filter(l => l.category === 'Historical').length || 0})</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-heritage-olive rounded-full mr-2"></div>
-                <span>Cultural ({locations?.filter(l => l.category === 'Cultural').length || 0})</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-heritage-brown rounded-full mr-2"></div>
-                <span>Natural ({locations?.filter(l => l.category === 'Natural').length || 0})</span>
+            <div className="max-h-40 overflow-y-auto">
+              <div className="grid grid-cols-1 gap-1 text-xs">
+                {categories
+                  .map(category => ({
+                    category,
+                    count: locations?.filter(l => l.category === category).length || 0
+                  }))
+                  .sort((a, b) => b.count - a.count) // Sort by count descending
+                  .map(({ category, count }) => (
+                    <div key={category} className="flex items-center">
+                      <div 
+                        className="w-3 h-3 rounded-full mr-2 border border-gray-300" 
+                        style={{ backgroundColor: getCategoryColor(category) }}
+                      ></div>
+                      <span className="truncate">{category} ({count})</span>
+                    </div>
+                  ))}
               </div>
             </div>
           </div>
