@@ -91,6 +91,8 @@ The application implements anonymous user analytics with strong privacy protecti
 - Raw analytics dashboard shows only factual database counts
 
 ## Recent Changes
+- **August 2025**: Added Fay Bainbridge Park as location #135 - comprehensive Indigenous Heritage site covering 10,000+ years of Suquamish history, Chief Seattle connection, and medical pioneer Dr. Temple Fay legacy
+- **August 2025**: Fixed map legend to display all 27 location categories dynamically instead of hardcoded 3 categories, sorted by popularity with proper color coding
 - **August 2025**: **CRITICAL SAFETY FIX** - Corrected Frog Rock coordinates to exact address 14607 Phelps Rd NE (47.6965465, -122.5234931) after user reported incorrect location was directing to private driveway
 - **August 2025**: Fixed critical map initialization issue - map now loads immediately instead of waiting for location permission, improving user experience significantly
 - **August 2025**: Completed comprehensive book verification audit with systematic ASIN replacement across all 80 locations, achieving 83-90% Amazon link success rates
