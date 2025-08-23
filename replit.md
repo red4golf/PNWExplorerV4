@@ -66,7 +66,7 @@ The application uses a monorepo structure, separating client, server, and shared
 ### Other Integrations
 - **Google Maps**: For turn-by-turn directions.
 - **Amazon Associates program**: For future affiliate link integration in book recommendations.
-- **ElevenLabs AI**: (Previously used for audio synthesis, currently not active for content generation).
+- **ElevenLabs AI**: Active audio synthesis system for generating high-quality audio tours and location narrations.
 - **Make.com**: Automation system for feedback collection and social media posting.
 
 ## Analytics & Privacy
@@ -91,6 +91,7 @@ The application implements anonymous user analytics with strong privacy protecti
 - Raw analytics dashboard shows only factual database counts
 
 ## Recent Changes
+- **August 2025**: Created audio tour for Pia the Peacekeeper (Location #50) - first location with full audio narration using ElevenLabs AI, bringing the troll sculpture's community story to life
 - **August 2025**: Added Mashel Prairie as location #136 - historically significant prairie site of the 1856 Mashel Massacre and home to Indian Henry (Soo-Too-Lick), bridging indigenous stewardship, territorial conflict, and cultural adaptation
 - **August 2025**: Added Fay Bainbridge Park as location #135 - comprehensive Indigenous Heritage site covering 10,000+ years of Suquamish history, Chief Seattle connection, and medical pioneer Dr. Temple Fay legacy
 - **August 2025**: Fixed map legend to display all 27 location categories dynamically instead of hardcoded 3 categories, sorted by popularity with proper color coding
