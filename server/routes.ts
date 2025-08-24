@@ -1235,11 +1235,14 @@ function getBrowserName(userAgent: string): string {
 
       // Verify audio is valid MP3
       const headerBytes = audioBuffer.slice(0, 4);
+      const headerString = headerBytes.toString();
       const isValidMP3 = (headerBytes[0] === 0xFF && (headerBytes[1] & 0xE0) === 0xE0) || 
-                        headerBytes.toString().startsWith('ID3');
+                        headerString.startsWith('ID3') || 
+                        headerString.startsWith('SUQ'); // ID3v2 with extended header
       
       if (!isValidMP3) {
         console.log(`🔧 Invalid audio format for location ${locationId}`);
+        console.log(`🔍 Header bytes: ${Array.from(headerBytes).map(b => b.toString(16).padStart(2, '0')).join(' ')}`);
         return res.status(404).json({ message: "Audio narration temporarily unavailable" });
       }
 
