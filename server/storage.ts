@@ -117,6 +117,7 @@ export class DatabaseStorage implements IStorage {
             sql`${fileStorage.filename} LIKE '%narration%'`
           )
         )
+        .orderBy(sql`${fileStorage.uploadedAt} DESC`)
         .limit(1);
       
       console.log('🔍 STORAGE: Audio query result:', audioFile ? { 
