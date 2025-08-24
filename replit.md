@@ -91,6 +91,7 @@ The application implements anonymous user analytics with strong privacy protecti
 - Raw analytics dashboard shows only factual database counts
 
 ## Recent Changes
+- **August 2025**: Created research-based audio tour for Japanese American Exclusion Memorial (Location #21) - comprehensive historical narrative covering Executive Order 9066, the first removal on March 30, 1942, and community resistance/reconciliation
 - **August 2025**: Created custom audio tour for The Goonies House (Location #62) - immersive tour guide experience that places visitors directly in front of the iconic Victorian home with conversational narration about the 1985 film's impact
 - **August 2025**: Created audio tour for Pia the Peacekeeper (Location #50) - first location with full audio narration using ElevenLabs AI, bringing the troll sculpture's community story to life
 - **August 2025**: Added Mashel Prairie as location #136 - historically significant prairie site of the 1856 Mashel Massacre and home to Indian Henry (Soo-Too-Lick), bridging indigenous stewardship, territorial conflict, and cultural adaptation
