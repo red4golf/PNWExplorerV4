@@ -1121,45 +1121,27 @@ function getBrowserName(userAgent: string): string {
         }
       });
 
-      // Save audio file to database storage
-      const audioFilename = `narration-${location.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+      // Save audio file to storage using the same reliable method as standard generation
+      const audioFilename = `narration-${locationId}-${Date.now()}.mp3`;
+      const audioPath = await storageManager.uploadFile(
+        audioBuffer, 
+        audioFilename, 
+        locationId
+      );
+
+      // Update location with audio path
+      const updatedLocation = await storage.updateLocationAudio(locationId, audioPath);
       
-      // Store in file_storage table using raw SQL
-      const base64Data = audioBuffer.toString('base64');
-      const fileSize = audioBuffer.length;
-      const mimeType = 'audio/mpeg';
-      
-      // Store in file_storage table using Drizzle ORM
-      try {
-        await db.insert(fileStorage).values({
-          filename: audioFilename,
-          locationId: locationId,
-          fileData: base64Data,
-          fileSize: fileSize,
-          mimeType: mimeType,
-          uploadedAt: new Date()
-        });
-      } catch (error) {
-        // Handle unique constraint by updating existing record
-        await db.update(fileStorage)
-          .set({
-            fileData: base64Data,
-            fileSize: fileSize,
-            uploadedAt: new Date()
-          })
-          .where(and(
-            eq(fileStorage.filename, audioFilename),
-            eq(fileStorage.locationId, locationId)
-          ));
+      if (!updatedLocation) {
+        return res.status(500).json({ message: "Failed to update location with audio" });
       }
 
-      console.log(`✅ Audio narration generated successfully: ${audioFilename} (${fileSize} bytes)`);
+      console.log(`✅ Audio narration generated successfully: ${audioPath}`);
 
       res.json({
         message: "Audio narration generated successfully",
-        filename: audioFilename,
-        size: fileSize,
-        location: location.name
+        audioPath,
+        location: updatedLocation
       });
     } catch (error) {
       console.error("Error generating audio:", error);
