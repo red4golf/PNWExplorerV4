@@ -114,7 +114,9 @@ class AudioService {
     const payload = {
       text: request.text,
       duration_seconds: request.duration_seconds || 5,
-      prompt_influence: request.prompt_influence || 0.3
+      prompt_influence: request.prompt_influence || 0.3,
+      model_id: 'eleven_text_to_sound_v2',
+      output_format: 'mp3_44100_128'
     };
 
     try {
@@ -123,6 +125,7 @@ class AudioService {
         headers: {
           'xi-api-key': this.apiKey,
           'Content-Type': 'application/json',
+          'Accept': 'audio/mpeg',
         },
         body: JSON.stringify(payload),
       });
