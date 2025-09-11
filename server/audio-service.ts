@@ -18,6 +18,18 @@ interface AudioGenerationRequest {
   };
 }
 
+interface SoundEffectRequest {
+  text: string;
+  duration_seconds?: number;
+  prompt_influence?: number;
+}
+
+interface AudioSegment {
+  type: 'narration' | 'sound_effect' | 'pause';
+  content: string;
+  duration?: number; // for sound effects and pauses
+}
+
 class AudioService {
   private apiKey: string;
   private baseUrl = 'https://api.elevenlabs.io/v1';
@@ -92,6 +104,97 @@ class AudioService {
       console.error('Error generating speech:', error);
       throw error;
     }
+  }
+
+  async generateSoundEffect(request: SoundEffectRequest): Promise<Buffer> {
+    if (!this.apiKey) {
+      throw new Error('ElevenLabs API key not configured');
+    }
+
+    const payload = {
+      text: request.text,
+      duration_seconds: request.duration_seconds || 5,
+      prompt_influence: request.prompt_influence || 0.3
+    };
+
+    try {
+      const response = await fetch(`${this.baseUrl}/sound-effects`, {
+        method: 'POST',
+        headers: {
+          'xi-api-key': this.apiKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error(`ElevenLabs Sound Effects error: ${response.status} - ${await response.text()}`);
+      }
+
+      return Buffer.from(await response.arrayBuffer());
+    } catch (error) {
+      console.error('Error generating sound effect:', error);
+      throw error;
+    }
+  }
+
+  async generateNarrationWithEffects(segments: AudioSegment[]): Promise<Buffer> {
+    console.log('🎵 Generating narration with integrated sound effects...');
+    
+    const audioBuffers: Buffer[] = [];
+    
+    for (const segment of segments) {
+      console.log(`📝 Processing segment: ${segment.type} - "${segment.content.substring(0, 50)}..."`);
+      
+      switch (segment.type) {
+        case 'narration':
+          const narrationBuffer = await this.generateSpeech({
+            text: segment.content,
+            voice_settings: {
+              stability: 0.6,
+              similarity_boost: 0.8,
+              style: 0.3, // More dramatic for immersive storytelling
+              use_speaker_boost: true
+            }
+          });
+          audioBuffers.push(narrationBuffer);
+          break;
+          
+        case 'sound_effect':
+          const sfxBuffer = await this.generateSoundEffect({
+            text: segment.content,
+            duration_seconds: segment.duration || 3,
+            prompt_influence: 0.4
+          });
+          audioBuffers.push(sfxBuffer);
+          break;
+          
+        case 'pause':
+          // Generate brief silence (ElevenLabs will handle this as a short pause)
+          const pauseBuffer = await this.generateSpeech({
+            text: '...',
+            voice_settings: {
+              stability: 0.5,
+              similarity_boost: 0.5
+            }
+          });
+          audioBuffers.push(pauseBuffer);
+          break;
+      }
+      
+      // Brief pause between segments for natural flow
+      if (segment.type !== 'pause') {
+        const briefPause = await this.generateSpeech({
+          text: '.',
+          voice_settings: { stability: 0.5, similarity_boost: 0.5 }
+        });
+        audioBuffers.push(briefPause);
+      }
+    }
+    
+    // For now, concatenate buffers - in production this could use audio mixing libraries
+    console.log('🎶 Combining audio segments...');
+    return Buffer.concat(audioBuffers);
   }
 
   async generateHistoricalNarration(locationName: string, content: string): Promise<Buffer> {

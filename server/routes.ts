@@ -1204,6 +1204,55 @@ function getBrowserName(userAgent: string): string {
     }
   });
 
+  // Generate audio narration with sound effects for a location
+  app.post("/api/admin/audio/generate-with-effects", async (req, res) => {
+    try {
+      const { locationId, segments } = req.body;
+      
+      if (!locationId || !segments || !Array.isArray(segments)) {
+        return res.status(400).json({ message: "Location ID and segments array are required" });
+      }
+
+      const location = await storage.getLocation(locationId);
+      if (!location) {
+        return res.status(404).json({ message: "Location not found" });
+      }
+
+      console.log(`🎵 Generating audio with sound effects for location: ${location.name}`);
+      
+      const audioBuffer = await audioService.generateNarrationWithEffects(segments);
+
+      // Save audio file to storage
+      const audioFilename = `narration-${locationId}-${Date.now()}.mp3`;
+      const audioPath = await storageManager.uploadFile(
+        audioBuffer, 
+        audioFilename, 
+        locationId
+      );
+
+      // Update location with audio path
+      const updatedLocation = await storage.updateLocationAudio(locationId, audioPath);
+      
+      if (!updatedLocation) {
+        return res.status(500).json({ message: "Failed to update location with audio" });
+      }
+
+      console.log(`✅ Audio with sound effects generated successfully: ${audioPath}`);
+
+      res.json({
+        message: "Audio with sound effects generated successfully",
+        audioPath,
+        location: updatedLocation
+      });
+    } catch (error) {
+      console.error("Error generating audio with effects:", error);
+      res.status(500).json({ 
+        message: "Failed to generate audio with sound effects",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   // Get audio narration for a location
   app.get("/api/locations/:id/audio", async (req, res) => {
     try {
