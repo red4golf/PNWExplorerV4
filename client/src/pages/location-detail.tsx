@@ -15,6 +15,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import LocationPhotoGallery from "@/components/location-photo-gallery";
 import AudioPlayer from "@/components/audio-player";
+import { BookThumbnail } from "@/components/book-thumbnail";
 
 
 
@@ -339,9 +340,12 @@ export default function LocationDetail() {
                   {JSON.parse(location.recommendedBooks).map((book: any, index: number) => (
                     <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                       <div className="flex items-start space-x-4">
-                        <div className="w-16 h-20 bg-heritage-beige rounded flex-shrink-0 flex items-center justify-center">
-                          <BookOpen className="w-8 h-8 text-heritage-brown" />
-                        </div>
+                        <BookThumbnail 
+                          amazonUrl={book.amazon_url}
+                          title={book.title}
+                          author={book.author}
+                          size="medium"
+                        />
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <h3 className="font-semibold text-heritage-brown">{book.title}</h3>
