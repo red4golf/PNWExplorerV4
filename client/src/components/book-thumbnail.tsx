@@ -48,6 +48,13 @@ export function BookThumbnail({
         alt={`${title} by ${author} - Book Cover`}
         className="w-full h-full object-cover"
         onError={() => setImageError(true)}
+        onLoad={(e) => {
+          // Check if Amazon returned a 1x1 transparent placeholder
+          const img = e.currentTarget;
+          if (img.naturalWidth < 50 || img.naturalHeight < 50) {
+            setImageError(true);
+          }
+        }}
         loading="lazy"
       />
     </div>
