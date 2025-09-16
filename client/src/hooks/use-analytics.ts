@@ -13,13 +13,17 @@ const getSessionId = () => {
 
 // Check if we're in developer mode
 const isDeveloperMode = () => {
-  // Auto-detect common development scenarios
-  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  const isDevDomain = window.location.hostname.includes('replit.dev');
+  // Check for explicit developer mode flag
   const hasDevFlag = localStorage.getItem('dev-mode') === 'true';
+  
+  // Check if user is logged in as admin
   const hasAdminAccess = localStorage.getItem('admin-token') !== null;
   
-  return hasDevFlag || hasAdminAccess || (isLocalhost && !window.location.href.includes('deployed'));
+  // Check if we're on admin pages
+  const isOnAdminPage = window.location.pathname.startsWith('/admin');
+  
+  // Only return true if explicitly set - allow normal tracking on public pages
+  return hasDevFlag || hasAdminAccess || isOnAdminPage;
 };
 
 // Get user's approximate location (using browser geolocation API)
@@ -178,7 +182,7 @@ export const useAnalytics = () => {
             userLocation,
             userContext,
             referrerSource: trafficSource.source,
-            isDeveloper: false
+            isDeveloper: isDeveloperMode()
           });
           
           sessionStorage.setItem('session_tracked', 'true');
@@ -241,7 +245,7 @@ export const useAnalytics = () => {
         userLocation,
         userContext,
         referrerSource,
-        isDeveloper: false
+        isDeveloper: isDeveloperMode()
       });
     } catch (error) {
       console.log("Analytics tracking failed:", error);
@@ -308,16 +312,66 @@ export const useAnalytics = () => {
     isDeveloperMode,
     enableDeveloperMode: () => {
       localStorage.setItem('dev-mode', 'true');
-      console.log("🔧 Developer mode enabled - analytics disabled");
+      console.log("🔧 Developer mode enabled - visits will be marked as developer testing");
     },
     disableDeveloperMode: () => {
-      localStorage.setItem('dev-mode', 'false');
-      console.log("👥 Developer mode disabled - analytics enabled");
+      localStorage.removeItem('dev-mode');
+      console.log("👥 Developer mode disabled - visits will be tracked as real users");
+    },
+    toggleAnalyticsMode: () => {
+      const currentMode = isDeveloperMode();
+      if (currentMode) {
+        localStorage.removeItem('dev-mode');
+        console.log("👥 Switched to REAL USER mode - your visits will count as genuine visitor traffic");
+      } else {
+        localStorage.setItem('dev-mode', 'true');
+        console.log("🔧 Switched to DEVELOPER mode - your visits will be marked as testing");
+      }
+      return !currentMode;
+    },
+    getAnalyticsStatus: () => {
+      const isDevMode = isDeveloperMode();
+      const status = isDevMode ? "DEVELOPER" : "REAL USER";
+      console.log(`📊 Current Analytics Mode: ${status}`);
+      console.log("💡 Use toggleAnalyticsMode() to switch modes");
+      return { isDeveloper: isDevMode, mode: status };
     }
   };
 };
 
 // Hook to automatically track page views
+// Make analytics control available globally in the browser console
+declare global {
+  interface Window {
+    toggleAnalyticsMode: () => void;
+    getAnalyticsStatus: () => any;
+  }
+}
+
+// Set up global analytics controls for easy console access
+if (typeof window !== 'undefined') {
+  window.toggleAnalyticsMode = () => {
+    const currentMode = isDeveloperMode();
+    if (currentMode) {
+      localStorage.removeItem('dev-mode');
+      console.log("👥 Switched to REAL USER mode - your visits will count as genuine visitor traffic");
+    } else {
+      localStorage.setItem('dev-mode', 'true');
+      console.log("🔧 Switched to DEVELOPER mode - your visits will be marked as testing");
+    }
+    return !currentMode;
+  };
+
+  window.getAnalyticsStatus = () => {
+    const isDevMode = isDeveloperMode();
+    const status = isDevMode ? "DEVELOPER" : "REAL USER";
+    console.log(`📊 Current Analytics Mode: ${status}`);
+    console.log("💡 Use toggleAnalyticsMode() to switch modes");
+    console.log("💡 Use getAnalyticsStatus() to check current mode");
+    return { isDeveloper: isDevMode, mode: status };
+  };
+}
+
 export const usePageView = (pageName: string, metadata?: any) => {
   const { trackPageView } = useAnalytics();
   

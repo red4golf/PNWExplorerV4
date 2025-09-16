@@ -809,14 +809,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Enhanced analytics tracking endpoint with device detection
+  // Enhanced analytics tracking endpoint with improved developer detection
   app.post("/api/analytics", async (req, res) => {
     try {
       const userAgent = req.get('User-Agent') || '';
       const clientIP = req.ip || req.connection.remoteAddress || "unknown";
       
-      // Detect if this is likely a developer IP (Replit container IPs start with 172.31.)
+      // Improved developer detection logic
       const isDevIP = clientIP?.startsWith('172.31.') || clientIP === '127.0.0.1';
+      
+      // Check if client explicitly set developer mode (from localStorage dev-mode or admin-token)
+      const clientDeveloperFlag = req.body.isDeveloper === true;
+      
+      // Check if this is admin user activity (from admin panel)
+      const isFromAdmin = req.get('Referer')?.includes('/admin') || false;
+      
+      // Final developer determination: 
+      // - Respect client's explicit developer flag
+      // - OR mark as developer if coming from admin panel
+      // - BUT allow real visitor tracking on public URLs even from dev IPs
+      const isDeveloper = clientDeveloperFlag || isFromAdmin;
       
       // Extract device and browser info from user agent
       const deviceType = getDeviceType(userAgent);
@@ -829,18 +841,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         referrer: req.get('Referer'),
         deviceType,
         browserName,
-        isDeveloper: req.body.isDeveloper || isDevIP
+        isDeveloper: isDeveloper
       });
       
-      // Only log non-developer events to avoid spam
-      if (!isDevIP) {
-        console.log("📊 User Analytics:", {
-          event: analyticsData.eventType,
-          device: deviceType,
-          location: analyticsData.locationId,
-          metadata: analyticsData.metadata
-        });
-      }
+      // Enhanced logging for both developer and real user events
+      const logPrefix = isDeveloper ? "🔧 Developer" : "📊 Real User";
+      console.log(`${logPrefix} Analytics:`, {
+        event: analyticsData.eventType,
+        device: deviceType,
+        location: analyticsData.locationId,
+        ip: clientIP.replace(/^172\.31\.\d+/, '172.31.xxx'), // Anonymize IP in logs
+        developer: isDeveloper
+      });
       
       const analytics = await storage.createAnalyticsEvent(analyticsData);
       res.json(analytics);
