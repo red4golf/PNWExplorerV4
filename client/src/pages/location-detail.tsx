@@ -16,9 +16,6 @@ import remarkGfm from 'remark-gfm';
 import LocationPhotoGallery from "@/components/location-photo-gallery";
 import AudioPlayer from "@/components/audio-player";
 import { BookThumbnail } from "@/components/book-thumbnail";
-import { useTheme } from "@/contexts/ThemeContext";
-import { PageLayout, PageLayoutSidebar, PageLayoutMain } from "@/components/layouts/PageLayout";
-import { ContentWrapper, ThemeCard } from "@/components/layouts/ContentWrapper";
 
 
 
@@ -26,9 +23,7 @@ export default function LocationDetail() {
   const [, params] = useRoute("/location/:id");
   const locationId = params?.id ? parseInt(params.id) : 0;
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
-  const { trackLocationView } = useAnalytics();
-  const { currentTheme } = useTheme();
-  const { contentLayout, cardStyle, sectionSpacing } = currentTheme.layout;
+  const { trackLocationView} = useAnalytics();
 
   const { data: location, isLoading, error } = useQuery<Location>({
     queryKey: [`/api/locations/${locationId}`],
@@ -114,17 +109,11 @@ export default function LocationDetail() {
   const placeholderImage = `https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&w=800&h=600&fit=crop`;
   const imageUrl = location.heroImage || placeholderImage;
 
-  const spacingClass = {
-    compact: 'space-y-4',
-    normal: 'space-y-6',
-    spacious: 'space-y-8 md:space-y-12',
-  }[sectionSpacing];
-
   return (
-    <div className="min-h-screen bg-background py-4 sm:py-8">
-      <PageLayout className="py-0">
+    <div className="min-h-screen bg-heritage-cream py-4 sm:py-8">
+      <div className="container mx-auto px-4 max-w-5xl">
         {/* Back Button */}
-        <div className={cn("col-span-full mb-4 sm:mb-6", contentLayout === 'sidebar' && 'lg:col-span-1')}>
+        <div className="mb-4 sm:mb-6">
           <Link href="/#map">
             <Button variant="ghost">
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -133,256 +122,202 @@ export default function LocationDetail() {
           </Link>
         </div>
 
-        {/* Sidebar for Heritage Refined theme */}
-        {contentLayout === 'sidebar' && (
-          <PageLayoutSidebar>
-            <ContentWrapper className="sticky top-4">
-              <Card className={cn(cardStyle === 'bordered' && 'border-2')}>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold mb-4">Quick Info</h3>
-                  <div className="space-y-3 text-sm">
-                    <div className="flex items-center">
-                      <span className="text-2xl mr-2">{getCategoryIcon(location.category || '')}</span>
-                      <Badge variant="secondary" className={getCategoryColor(location.category || '')}>
-                        {location.category}
-                      </Badge>
-                    </div>
-                    {location.period && (
-                      <div className="flex items-center">
-                        <Calendar className="w-4 h-4 mr-2" />
-                        <span>{location.period}</span>
-                      </div>
-                    )}
-                    {location.address && (
-                      <div className="flex items-start">
-                        <MapPin className="w-4 h-4 mr-2 mt-0.5" />
-                        <span>{location.address}</span>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </ContentWrapper>
-          </PageLayoutSidebar>
-        )}
+        <div className="space-y-6">
+          {/* Hero Image */}
+          <div>
+            <img
+              src={imageUrl}
+              alt={location.name}
+              className="w-full h-48 sm:h-64 md:h-80 lg:h-96 object-cover rounded-lg shadow-lg"
+            />
+          </div>
 
-        {/* Main Content */}
-        <PageLayoutMain>
-          <ContentWrapper className={spacingClass}>
-            {/* Hero Image - Full width for Dark Elegant, contained for others */}
-            <div className={cn(
-              contentLayout === 'fullwidth' && '-mx-4 sm:-mx-8'
-            )}>
-              <img
-                src={imageUrl}
-                alt={location.name}
-                className={cn(
-                  "w-full object-cover shadow-lg",
-                  contentLayout === 'fullwidth' ? 'h-64 sm:h-96 lg:h-[500px] rounded-none' : 'h-48 sm:h-64 md:h-80 lg:h-96 rounded-lg'
-                )}
-              />
+          {/* Title and Category */}
+          <div>
+            <div className="flex items-center mb-3 sm:mb-4">
+              <span className="text-2xl mr-2">{getCategoryIcon(location.category || '')}</span>
+              <Badge variant="secondary" className={getCategoryColor(location.category || '')}>
+                {location.category}
+              </Badge>
             </div>
+            
+            <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold break-words leading-tight mb-4">
+              {location.name}
+            </h1>
 
-            {/* Title and Category - Centered for Modern Minimal */}
-            <div className={cn(
-              contentLayout === 'centered' && 'text-center'
-            )}>
-              {contentLayout !== 'sidebar' && (
-                <div className="flex items-center mb-3 sm:mb-4 justify-start">
-                  <span className="text-2xl mr-2">{getCategoryIcon(location.category || '')}</span>
-                  <Badge variant="secondary" className={getCategoryColor(location.category || '')}>
-                    {location.category}
-                  </Badge>
-                </div>
-              )}
-              
-              <h1 className={cn(
-                "font-bold break-words leading-tight mb-4",
-                contentLayout === 'fullwidth' ? 'text-3xl sm:text-4xl lg:text-5xl' : 'text-xl sm:text-2xl lg:text-3xl xl:text-4xl'
-              )}>
-                {location.name}
-              </h1>
+            {location.period && (
+              <div className="flex items-center mb-6">
+                <Calendar className="w-5 h-5 mr-2" />
+                <span className="font-semibold">{location.period}</span>
+              </div>
+            )}
+          </div>
 
-              {location.period && (
-                <div className={cn(
-                  "flex items-center mb-6",
-                  contentLayout === 'centered' && 'justify-center'
-                )}>
-                  <Calendar className="w-5 h-5 mr-2" />
-                  <span className="font-semibold">{location.period}</span>
-                </div>
-              )}
-            </div>
+          {/* Audio Player */}
+          <div>
+            <AudioPlayer 
+              locationId={location.id}
+              locationName={location.name}
+            />
+          </div>
 
-            {/* Audio Player */}
-            <div>
-              <AudioPlayer 
-                locationId={location.id}
+          {/* Description */}
+          <div className="prose prose-sm sm:prose-base lg:prose-lg max-w-none">
+            <p className="leading-relaxed">
+              {location.description}
+            </p>
+          </div>
+
+          {/* Photo Gallery */}
+          <Card>
+            <CardContent className="p-3 sm:p-4 md:p-6">
+              <LocationPhotoGallery 
+                locationId={location.id} 
                 locationName={location.name}
               />
-            </div>
+            </CardContent>
+          </Card>
 
-            {/* Description */}
-            <div className="prose prose-sm sm:prose-base lg:prose-lg max-w-none">
-              <p className="leading-relaxed">
-                {location.description}
-              </p>
-            </div>
-
-            {/* Photo Gallery */}
-            <Card className={cn(cardStyle === 'bordered' && 'border-2', cardStyle === 'elevated' && 'shadow-xl')}>
-              <CardContent className="p-3 sm:p-4 md:p-6">
-                <LocationPhotoGallery 
-                  locationId={location.id} 
-                  locationName={location.name}
-                />
-              </CardContent>
-            </Card>
-
-            {/* Extended Story Section */}
-            {location.content && (
-              <Card className={cn(cardStyle === 'bordered' && 'border-2', cardStyle === 'elevated' && 'shadow-xl')}>
-                <CardContent className="p-4 sm:p-6">
-                  <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 flex items-center">
-                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                    The Story
-                  </h3>
-                  <div className="prose prose-sm sm:prose-base lg:prose-lg max-w-none">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {location.content}
-                    </ReactMarkdown>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Map Section */}
-            {location.latitude && location.longitude && (
-              <Card className={cn(cardStyle === 'bordered' && 'border-2', cardStyle === 'elevated' && 'shadow-xl')}>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <MapPin className="w-5 h-5 mr-2" />
-                    Location
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-48 bg-muted rounded-lg border relative overflow-hidden">
-                    <iframe
-                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${location.longitude-0.01},${location.latitude-0.01},${location.longitude+0.01},${location.latitude+0.01}&layer=mapnik&marker=${location.latitude},${location.longitude}`}
-                      width="100%"
-                      height="100%"
-                      style={{ border: 0 }}
-                      loading="lazy"
-                      title={`Map showing ${location.name}`}
-                    />
-                  </div>
-                  {location.address && (
-                    <p className="mt-4 text-sm text-muted-foreground">{location.address}</p>
-                  )}
-                  <div className="mt-4 flex space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => window.open(`https://www.openstreetmap.org/?mlat=${location.latitude}&mlon=${location.longitude}&zoom=15`, '_blank')}
-                    >
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      View on OpenStreetMap
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Submission Info */}
-            <Card className={cn(cardStyle === 'bordered' && 'border-2', cardStyle === 'flat' && 'bg-muted')}>
+          {/* Extended Story Section */}
+          {location.content && (
+            <Card>
               <CardContent className="p-4 sm:p-6">
-                <h3 className="text-sm sm:text-base font-semibold mb-3 sm:mb-4">
-                  Contribution Information
+                <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 flex items-center">
+                  <FileText className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                  The Story
                 </h3>
-                <div className="space-y-2 text-xs sm:text-sm">
-                  {location.submitterName && (
-                    <div className="flex items-center">
-                      <User className="w-4 h-4 mr-2" />
-                      <span>Submitted by: {location.submitterName}</span>
-                    </div>
-                  )}
-                  {location.createdAt && (
-                    <div className="flex items-center">
-                      <Calendar className="w-4 h-4 mr-2" />
-                      <span>Added: {formatDate(location.createdAt)}</span>
-                    </div>
-                  )}
+                <div className="prose prose-sm sm:prose-base lg:prose-lg max-w-none">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {location.content}
+                  </ReactMarkdown>
                 </div>
               </CardContent>
             </Card>
+          )}
 
-            {/* Distance and Directions */}
-            {location.latitude && location.longitude && userLocation && (
-              <Card className="bg-blue-50 border-blue-200">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-semibold text-blue-800">
-                        Distance from your location
-                      </p>
-                      <p className="text-lg font-bold text-blue-900">
-                        {calculateDistance(
-                          userLocation,
-                          { lat: location.latitude, lng: location.longitude }
-                        ).toFixed(1)} miles away
-                      </p>
-                    </div>
-                    <Button 
-                      onClick={() => window.open(getDirectionsUrl(location, userLocation || undefined), '_blank')}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      <Navigation className="w-4 h-4 mr-2" />
-                      Get Directions
-                    </Button>
+          {/* Map Section */}
+          {location.latitude && location.longitude && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <MapPin className="w-5 h-5 mr-2" />
+                  Location
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-48 bg-muted rounded-lg border relative overflow-hidden">
+                  <iframe
+                    src={`https://www.openstreetmap.org/export/embed.html?bbox=${location.longitude-0.01},${location.latitude-0.01},${location.longitude+0.01},${location.latitude+0.01}&layer=mapnik&marker=${location.latitude},${location.longitude}`}
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    loading="lazy"
+                    title={`Map showing ${location.name}`}
+                  />
+                </div>
+                {location.address && (
+                  <p className="mt-4 text-sm text-muted-foreground">{location.address}</p>
+                )}
+                <div className="mt-4 flex space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open(`https://www.openstreetmap.org/?mlat=${location.latitude}&mlon=${location.longitude}&zoom=15`, '_blank')}
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    View on OpenStreetMap
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Submission Info */}
+          <Card>
+            <CardContent className="p-4 sm:p-6">
+              <h3 className="text-sm sm:text-base font-semibold mb-3 sm:mb-4">
+                Contribution Information
+              </h3>
+              <div className="space-y-2 text-xs sm:text-sm">
+                {location.submitterName && (
+                  <div className="flex items-center">
+                    <User className="w-4 h-4 mr-2" />
+                    <span>Submitted by: {location.submitterName}</span>
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                )}
+                {location.createdAt && (
+                  <div className="flex items-center">
+                    <Calendar className="w-4 h-4 mr-2" />
+                    <span>Added: {formatDate(location.createdAt)}</span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Action Buttons */}
-            <div className={cn(
-              "flex gap-4",
-              contentLayout === 'centered' && 'justify-center'
-            )}>
-              {location.latitude && location.longitude && (
-                <Button 
-                  onClick={() => window.open(getDirectionsUrl(location, userLocation || undefined), '_blank')}
-                >
-                  <Navigation className="w-4 h-4 mr-2" />
-                  Directions
-                </Button>
-              )}
+          {/* Distance and Directions */}
+          {location.latitude && location.longitude && userLocation && (
+            <Card className="bg-blue-50 border-blue-200">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-blue-800">
+                      Distance from your location
+                    </p>
+                    <p className="text-lg font-bold text-blue-900">
+                      {calculateDistance(
+                        userLocation,
+                        { lat: location.latitude, lng: location.longitude }
+                      ).toFixed(1)} miles away
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={() => window.open(getDirectionsUrl(location, userLocation || undefined), '_blank')}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Navigation className="w-4 h-4 mr-2" />
+                    Get Directions
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex gap-4">
+            {location.latitude && location.longitude && (
               <Button 
-                onClick={() => {
-                  if (navigator.share) {
-                    navigator.share({
-                      title: location.name,
-                      text: location.description,
-                      url: window.location.href,
-                    });
-                  } else {
-                    navigator.clipboard.writeText(window.location.href);
-                  }
-                }}
-                variant="outline"
+                onClick={() => window.open(getDirectionsUrl(location, userLocation || undefined), '_blank')}
               >
-                <ExternalLink className="w-4 h-4 mr-2" />
-                Share
+                <Navigation className="w-4 h-4 mr-2" />
+                Directions
               </Button>
-            </div>
-          </ContentWrapper>
-        </PageLayoutMain>
-      </PageLayout>
+            )}
+            <Button 
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({
+                    title: location.name,
+                    text: location.description,
+                    url: window.location.href,
+                  });
+                } else {
+                  navigator.clipboard.writeText(window.location.href);
+                }
+              }}
+              variant="outline"
+            >
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Share
+            </Button>
+          </div>
+        </div>
+      </div>
 
       {/* Book Recommendations - Full Width */}
       {location.recommendedBooks && JSON.parse(location.recommendedBooks).length > 0 && (
-        <div className="container mx-auto px-4 mt-16">
-          <Card className={cn(cardStyle === 'bordered' && 'border-2', cardStyle === 'elevated' && 'shadow-xl')}>
+        <div className="container mx-auto px-4 mt-16 max-w-5xl">
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center text-2xl">
                 <BookOpen className="w-6 h-6 mr-3" />
