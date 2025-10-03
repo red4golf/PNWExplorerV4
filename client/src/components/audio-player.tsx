@@ -29,17 +29,21 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
 
     const checkAndLoadAudio = async () => {
       try {
+        // Cache-busting timestamp to force fresh audio load
+        const cacheBuster = Date.now();
+        
         // Simple HEAD request to check if audio exists
-        const response = await fetch(`/api/locations/${locationId}/audio`, { 
-          method: 'HEAD'
+        const response = await fetch(`/api/locations/${locationId}/audio?v=${cacheBuster}`, { 
+          method: 'HEAD',
+          cache: 'no-cache'
         });
         
         if (!mounted) return;
         
         if (response.ok) {
-          setAudioUrl(`/api/locations/${locationId}/audio`);
+          setAudioUrl(`/api/locations/${locationId}/audio?v=${cacheBuster}`);
           setHasAudio(true);
-          console.log(`Audio available for location ${locationId}`);
+          console.log(`Audio available for location ${locationId} (v=${cacheBuster})`);
         } else {
           setHasAudio(false);
         }

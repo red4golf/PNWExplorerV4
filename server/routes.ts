@@ -1305,6 +1305,7 @@ function getBrowserName(userAgent: string): string {
           'Accept-Ranges': 'bytes',
           'Content-Length': chunksize,
           'Content-Type': 'audio/mpeg',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
           'Access-Control-Allow-Headers': 'Range, Content-Type'
@@ -1316,7 +1317,7 @@ function getBrowserName(userAgent: string): string {
           'Content-Type': 'audio/mpeg',
           'Content-Length': audioBuffer.length.toString(),
           'Accept-Ranges': 'bytes',
-          'Cache-Control': 'public, max-age=3600',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
           'Access-Control-Allow-Headers': 'Range, Content-Type'
