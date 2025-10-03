@@ -89,28 +89,59 @@ body {
 }
 
 :root {
-  --background: hsl(60, 47%, 94%);
-  --foreground: hsl(24, 9.8%, 10%);
-  --muted: hsl(60, 4.8%, 95.9%);
-  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  /* Theme colors - will be dynamically updated by ThemeContext */
+  --background: hsl(30, 26%, 96%);
+  --foreground: hsl(24, 45%, 20%);
+  --muted: hsl(30, 20%, 90%);
+  --muted-foreground: hsl(24, 25%, 40%);
   --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --popover-foreground: hsl(24, 45%, 20%);
   --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(20, 14.3%, 4.1%);
-  --border: hsl(20, 5.9%, 90%);
-  --input: hsl(20, 5.9%, 90%);
+  --card-foreground: hsl(24, 45%, 20%);
+  --border: hsl(30, 15%, 85%);
+  --input: hsl(30, 15%, 85%);
   --primary: hsl(38, 69%, 59%);
   --primary-foreground: hsl(24, 45%, 20%);
-  --secondary: hsl(60, 4.8%, 95.9%);
-  --secondary-foreground: hsl(24, 9.8%, 10%);
-  --accent: hsl(60, 4.8%, 95.9%);
-  --accent-foreground: hsl(24, 9.8%, 10%);
-  --destructive: hsl(0, 84.2%, 60.2%);
-  --destructive-foreground: hsl(60, 9.1%, 97.8%);
-  --ring: hsl(20, 14.3%, 4.1%);
+  --secondary: hsl(120, 25%, 25%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+  --accent: hsl(38, 69%, 59%);
+  --accent-foreground: hsl(24, 45%, 20%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --ring: hsl(38, 69%, 59%);
   --radius: 0.5rem;
   
-  /* Heritage colors */
+  /* Typography variables - updated by theme */
+  --heading-font: Georgia, "Times New Roman", serif;
+  --body-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --mono-font: "Courier New", Courier, monospace;
+  
+  /* Font sizes */
+  --h1-size: 2.5rem;
+  --h2-size: 2rem;
+  --h3-size: 1.5rem;
+  --h4-size: 1.25rem;
+  
+  /* Font weights */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  
+  /* Spacing */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+  --spacing-xl: 3rem;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  
+  /* Heritage colors - for backward compatibility */
   --heritage-brown: hsl(24, 45%, 20%);
   --heritage-olive: hsl(120, 25%, 25%);
   --heritage-gold: hsl(38, 69%, 59%);
@@ -118,28 +149,6 @@ body {
   --heritage-cream: hsl(60, 47%, 94%);
 }
 
-.dark {
-  --background: hsl(240, 10%, 3.9%);
-  --foreground: hsl(0, 0%, 98%);
-  --muted: hsl(240, 3.7%, 15.9%);
-  --muted-foreground: hsl(240, 5%, 64.9%);
-  --popover: hsl(240, 10%, 3.9%);
-  --popover-foreground: hsl(0, 0%, 98%);
-  --card: hsl(240, 10%, 3.9%);
-  --card-foreground: hsl(0, 0%, 98%);
-  --border: hsl(240, 3.7%, 15.9%);
-  --input: hsl(240, 3.7%, 15.9%);
-  --primary: hsl(38, 69%, 59%);
-  --primary-foreground: hsl(24, 45%, 20%);
-  --secondary: hsl(240, 3.7%, 15.9%);
-  --secondary-foreground: hsl(0, 0%, 98%);
-  --accent: hsl(240, 3.7%, 15.9%);
-  --accent-foreground: hsl(0, 0%, 98%);
-  --destructive: hsl(0, 62.8%, 30.6%);
-  --destructive-foreground: hsl(0, 0%, 98%);
-  --ring: hsl(240, 4.9%, 83.9%);
-  --radius: 0.5rem;
-}
 
 @layer base {
   * {
