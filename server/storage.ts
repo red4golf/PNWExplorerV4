@@ -108,7 +108,8 @@ export class DatabaseStorage implements IStorage {
         .select({ 
           fileData: fileStorage.fileData,
           filename: fileStorage.filename,
-          fileSize: fileStorage.fileSize 
+          fileSize: fileStorage.fileSize,
+          uploadedAt: fileStorage.uploadedAt
         })
         .from(fileStorage)
         .where(
@@ -117,18 +118,19 @@ export class DatabaseStorage implements IStorage {
             sql`${fileStorage.filename} LIKE '%narration%'`
           )
         )
-        .orderBy(sql`${fileStorage.uploadedAt} DESC`)
+        .orderBy(desc(fileStorage.uploadedAt))
         .limit(1);
       
       console.log('🔍 STORAGE: Audio query result:', audioFile ? { 
         filename: audioFile.filename, 
         size: audioFile.fileSize,
+        uploadedAt: audioFile.uploadedAt,
         hasData: !!audioFile.fileData 
       } : 'No audio found');
       
       if (audioFile?.fileData) {
-        console.log(`✅ STORAGE: Returning audio buffer (${audioFile.fileData.length} bytes)`);
-        return Buffer.from(audioFile.fileData, 'base64');
+        console.log(`✅ STORAGE: Returning audio buffer (${audioFile.fileData.length} bytes) from file: ${audioFile.filename}`);
+        return Buffer.from(audioFile.fileData);
       }
       return null;
     } catch (error) {
