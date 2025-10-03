@@ -105,7 +105,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Enhanced static file serving with better persistence
+  // Gallery photo serving route for database storage (must come BEFORE static middleware)
+  // Handles /uploads/location-X/filename.jpg paths
+  app.get("/uploads/location-:locationId/:filename", async (req, res, next) => {
+    try {
+      const { locationId, filename } = req.params;
+      console.log('📸 GALLERY PHOTO REQUEST:', { locationId, filename });
+      
+      const provider = storageManager.getProvider();
+      
+      if (provider instanceof DatabaseStorageProvider) {
+        const fileData = await (provider as any).getFileData(filename, parseInt(locationId));
+        
+        if (fileData) {
+          // Get content type based on file extension
+          const ext = filename.toLowerCase().split('.').pop();
+          let contentType = 'application/octet-stream';
+          switch (ext) {
+            case 'jpg':
+            case 'jpeg':
+              contentType = 'image/jpeg';
+              break;
+            case 'png':
+              contentType = 'image/png';
+              break;
+            case 'gif':
+              contentType = 'image/gif';
+              break;
+            case 'webp':
+              contentType = 'image/webp';
+              break;
+          }
+          
+          res.setHeader('Content-Type', contentType);
+          res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year cache
+          res.send(fileData);
+          console.log('✅ GALLERY PHOTO SERVED:', { filename, size: fileData.length, contentType });
+          return;
+        } else {
+          // Photo not found in database, fall through to static middleware
+          console.log('📸 Gallery photo not in database, falling through to static handler');
+          next();
+          return;
+        }
+      } else {
+        // Not using database storage, fall through to static middleware
+        console.log('📸 Not using database storage, falling through to static handler');
+        next();
+        return;
+      }
+    } catch (error) {
+      console.error('❌ ERROR SERVING GALLERY PHOTO:', error);
+      // Fall through to next handler on error
+      next();
+    }
+  });
+
+  // Enhanced static file serving with better persistence (filesystem fallback)
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads'), {
     maxAge: '1d', // Cache for 1 day
     etag: true,
@@ -113,7 +169,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     dotfiles: 'deny',
     immutable: false, // Allow file updates
     setHeaders: (res, filePath) => {
-      console.log('📸 Serving photo:', filePath);
+      console.log('📸 Serving photo from filesystem:', filePath);
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'GET');
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
