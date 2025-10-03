@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, MapPin, Calendar, User, Navigation, ExternalLink, FileText, BookOpen } from "lucide-react";
 import { Link } from "wouter";
-import { getCategoryIcon, getCategoryColor, formatDate, getDirectionsUrl, calculateDistance } from "@/lib/utils";
+import { getCategoryIcon, getCategoryColor, formatDate, getDirectionsUrl, calculateDistance, cn } from "@/lib/utils";
 import { useAnalytics } from "@/hooks/use-analytics";
 import { generateLocationSEO, updatePageSEO } from "@/lib/seo";
 import type { Location } from "@shared/schema";
@@ -16,6 +16,9 @@ import remarkGfm from 'remark-gfm';
 import LocationPhotoGallery from "@/components/location-photo-gallery";
 import AudioPlayer from "@/components/audio-player";
 import { BookThumbnail } from "@/components/book-thumbnail";
+import { useTheme } from "@/contexts/ThemeContext";
+import { PageLayout, PageLayoutSidebar, PageLayoutMain } from "@/components/layouts/PageLayout";
+import { ContentWrapper, ThemeCard } from "@/components/layouts/ContentWrapper";
 
 
 
@@ -24,6 +27,8 @@ export default function LocationDetail() {
   const locationId = params?.id ? parseInt(params.id) : 0;
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const { trackLocationView } = useAnalytics();
+  const { currentTheme } = useTheme();
+  const { contentLayout, cardStyle, sectionSpacing } = currentTheme.layout;
 
   const { data: location, isLoading, error } = useQuery<Location>({
     queryKey: [`/api/locations/${locationId}`],
@@ -109,28 +114,123 @@ export default function LocationDetail() {
   const placeholderImage = `https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&w=800&h=600&fit=crop`;
   const imageUrl = location.heroImage || placeholderImage;
 
-  return (
-    <div className="min-h-screen bg-heritage-cream py-4 sm:py-8">
-      <div className="container mx-auto px-3 sm:px-4 max-w-7xl">
-        {/* Back Button */}
-        <Link href="/#map">
-          <Button variant="ghost" className="mb-4 sm:mb-6 text-heritage-brown hover:text-heritage-gold">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Map
-          </Button>
-        </Link>
+  const spacingClass = {
+    compact: 'space-y-4',
+    normal: 'space-y-6',
+    spacious: 'space-y-8 md:space-y-12',
+  }[sectionSpacing];
 
-        <div className="grid lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-          {/* Image and Map Section */}
-          <div className="lg:col-span-2 overflow-hidden">
-            <img
-              src={imageUrl}
-              alt={location.name}
-              className="w-full h-48 sm:h-64 md:h-80 lg:h-96 object-cover rounded-lg shadow-lg"
-            />
-            
-            {/* Photo Gallery - Moved to top for better mobile/tablet experience */}
-            <Card className="mt-4 sm:mt-6 border-heritage-beige">
+  return (
+    <div className="min-h-screen bg-background py-4 sm:py-8">
+      <PageLayout className="py-0">
+        {/* Back Button */}
+        <div className={cn("col-span-full mb-4 sm:mb-6", contentLayout === 'sidebar' && 'lg:col-span-1')}>
+          <Link href="/#map">
+            <Button variant="ghost">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Map
+            </Button>
+          </Link>
+        </div>
+
+        {/* Sidebar for Heritage Refined theme */}
+        {contentLayout === 'sidebar' && (
+          <PageLayoutSidebar>
+            <ContentWrapper className="sticky top-4">
+              <Card className={cn(cardStyle === 'bordered' && 'border-2')}>
+                <CardContent className="p-4">
+                  <h3 className="font-semibold mb-4">Quick Info</h3>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex items-center">
+                      <span className="text-2xl mr-2">{getCategoryIcon(location.category || '')}</span>
+                      <Badge variant="secondary" className={getCategoryColor(location.category || '')}>
+                        {location.category}
+                      </Badge>
+                    </div>
+                    {location.period && (
+                      <div className="flex items-center">
+                        <Calendar className="w-4 h-4 mr-2" />
+                        <span>{location.period}</span>
+                      </div>
+                    )}
+                    {location.address && (
+                      <div className="flex items-start">
+                        <MapPin className="w-4 h-4 mr-2 mt-0.5" />
+                        <span>{location.address}</span>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </ContentWrapper>
+          </PageLayoutSidebar>
+        )}
+
+        {/* Main Content */}
+        <PageLayoutMain>
+          <ContentWrapper className={spacingClass}>
+            {/* Hero Image - Full width for Dark Elegant, contained for others */}
+            <div className={cn(
+              contentLayout === 'fullwidth' && '-mx-4 sm:-mx-8'
+            )}>
+              <img
+                src={imageUrl}
+                alt={location.name}
+                className={cn(
+                  "w-full object-cover shadow-lg",
+                  contentLayout === 'fullwidth' ? 'h-64 sm:h-96 lg:h-[500px] rounded-none' : 'h-48 sm:h-64 md:h-80 lg:h-96 rounded-lg'
+                )}
+              />
+            </div>
+
+            {/* Title and Category - Centered for Modern Minimal */}
+            <div className={cn(
+              contentLayout === 'centered' && 'text-center'
+            )}>
+              {contentLayout !== 'sidebar' && (
+                <div className="flex items-center mb-3 sm:mb-4 justify-start">
+                  <span className="text-2xl mr-2">{getCategoryIcon(location.category || '')}</span>
+                  <Badge variant="secondary" className={getCategoryColor(location.category || '')}>
+                    {location.category}
+                  </Badge>
+                </div>
+              )}
+              
+              <h1 className={cn(
+                "font-bold break-words leading-tight mb-4",
+                contentLayout === 'fullwidth' ? 'text-3xl sm:text-4xl lg:text-5xl' : 'text-xl sm:text-2xl lg:text-3xl xl:text-4xl'
+              )}>
+                {location.name}
+              </h1>
+
+              {location.period && (
+                <div className={cn(
+                  "flex items-center mb-6",
+                  contentLayout === 'centered' && 'justify-center'
+                )}>
+                  <Calendar className="w-5 h-5 mr-2" />
+                  <span className="font-semibold">{location.period}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Audio Player */}
+            <div>
+              <AudioPlayer 
+                locationId={location.id}
+                locationName={location.name}
+              />
+            </div>
+
+            {/* Description */}
+            <div className="prose prose-sm sm:prose-base lg:prose-lg max-w-none">
+              <p className="leading-relaxed">
+                {location.description}
+              </p>
+            </div>
+
+            {/* Photo Gallery */}
+            <Card className={cn(cardStyle === 'bordered' && 'border-2', cardStyle === 'elevated' && 'shadow-xl')}>
               <CardContent className="p-3 sm:p-4 md:p-6">
                 <LocationPhotoGallery 
                   locationId={location.id} 
@@ -138,18 +238,35 @@ export default function LocationDetail() {
                 />
               </CardContent>
             </Card>
-            
+
+            {/* Extended Story Section */}
+            {location.content && (
+              <Card className={cn(cardStyle === 'bordered' && 'border-2', cardStyle === 'elevated' && 'shadow-xl')}>
+                <CardContent className="p-4 sm:p-6">
+                  <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 flex items-center">
+                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                    The Story
+                  </h3>
+                  <div className="prose prose-sm sm:prose-base lg:prose-lg max-w-none">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {location.content}
+                    </ReactMarkdown>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Map Section */}
             {location.latitude && location.longitude && (
-              <Card className="mt-6">
+              <Card className={cn(cardStyle === 'bordered' && 'border-2', cardStyle === 'elevated' && 'shadow-xl')}>
                 <CardHeader>
-                  <CardTitle className="flex items-center text-heritage-brown">
+                  <CardTitle className="flex items-center">
                     <MapPin className="w-5 h-5 mr-2" />
                     Location
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-48 bg-gray-100 rounded-lg border relative overflow-hidden">
+                  <div className="h-48 bg-muted rounded-lg border relative overflow-hidden">
                     <iframe
                       src={`https://www.openstreetmap.org/export/embed.html?bbox=${location.longitude-0.01},${location.latitude-0.01},${location.longitude+0.01},${location.latitude+0.01}&layer=mapnik&marker=${location.latitude},${location.longitude}`}
                       width="100%"
@@ -160,7 +277,7 @@ export default function LocationDetail() {
                     />
                   </div>
                   {location.address && (
-                    <p className="mt-4 text-sm text-gray-600">{location.address}</p>
+                    <p className="mt-4 text-sm text-muted-foreground">{location.address}</p>
                   )}
                   <div className="mt-4 flex space-x-2">
                     <Button
@@ -175,82 +292,23 @@ export default function LocationDetail() {
                 </CardContent>
               </Card>
             )}
-          </div>
-
-          {/* Content Section */}
-          <div className="lg:col-span-1 overflow-hidden">
-            <div className="flex items-center mb-3 sm:mb-4">
-              <span className="text-heritage-gold mr-2 sm:mr-3 text-xl sm:text-2xl">
-                {getCategoryIcon(location.category || '')}
-              </span>
-              <Badge 
-                variant="secondary" 
-                className={`${getCategoryColor(location.category || '')} text-xs sm:text-sm`}
-              >
-                {location.category}
-              </Badge>
-            </div>
-
-            <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-heritage-brown mb-3 sm:mb-4 break-words leading-tight">
-              {location.name}
-            </h1>
-
-            {location.period && (
-              <div className="flex items-center mb-6 text-heritage-olive">
-                <Calendar className="w-5 h-5 mr-2" />
-                <span className="font-semibold">{location.period}</span>
-              </div>
-            )}
-
-            {/* Audio Player */}
-            <div className="mb-6">
-              <AudioPlayer 
-                locationId={location.id}
-                locationName={location.name}
-              />
-            </div>
-
-            <div className="prose prose-sm sm:prose-base lg:prose-lg max-w-none mb-6 sm:mb-8">
-              <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
-                {location.description}
-              </p>
-            </div>
-
-            {/* Extended Story Section */}
-            {location.content && (
-              <Card className="mb-6 sm:mb-8 border-heritage-beige">
-                <CardContent className="p-4 sm:p-6">
-                  <h3 className="text-lg sm:text-xl font-semibold text-heritage-brown mb-3 sm:mb-4 flex items-center">
-                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                    The Story
-                  </h3>
-                  <div className="prose prose-sm sm:prose-base lg:prose-lg max-w-none text-gray-700">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {location.content}
-                    </ReactMarkdown>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-
 
             {/* Submission Info */}
-            <Card className="bg-heritage-beige">
+            <Card className={cn(cardStyle === 'bordered' && 'border-2', cardStyle === 'flat' && 'bg-muted')}>
               <CardContent className="p-4 sm:p-6">
-                <h3 className="text-sm sm:text-base font-semibold text-heritage-brown mb-3 sm:mb-4">
+                <h3 className="text-sm sm:text-base font-semibold mb-3 sm:mb-4">
                   Contribution Information
                 </h3>
                 <div className="space-y-2 text-xs sm:text-sm">
                   {location.submitterName && (
                     <div className="flex items-center">
-                      <User className="w-4 h-4 mr-2 text-heritage-olive" />
+                      <User className="w-4 h-4 mr-2" />
                       <span>Submitted by: {location.submitterName}</span>
                     </div>
                   )}
                   {location.createdAt && (
                     <div className="flex items-center">
-                      <Calendar className="w-4 h-4 mr-2 text-heritage-olive" />
+                      <Calendar className="w-4 h-4 mr-2" />
                       <span>Added: {formatDate(location.createdAt)}</span>
                     </div>
                   )}
@@ -260,7 +318,7 @@ export default function LocationDetail() {
 
             {/* Distance and Directions */}
             {location.latitude && location.longitude && userLocation && (
-              <Card className="bg-blue-50 border-blue-200 mt-6">
+              <Card className="bg-blue-50 border-blue-200">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -287,11 +345,13 @@ export default function LocationDetail() {
             )}
 
             {/* Action Buttons */}
-            <div className="flex gap-4 mt-8">
+            <div className={cn(
+              "flex gap-4",
+              contentLayout === 'centered' && 'justify-center'
+            )}>
               {location.latitude && location.longitude && (
                 <Button 
                   onClick={() => window.open(getDirectionsUrl(location, userLocation || undefined), '_blank')}
-                  className="bg-heritage-brown hover:bg-heritage-brown/90"
                 >
                   <Navigation className="w-4 h-4 mr-2" />
                   Directions
@@ -309,33 +369,30 @@ export default function LocationDetail() {
                     navigator.clipboard.writeText(window.location.href);
                   }
                 }}
-                variant="outline" 
-                className="border-heritage-brown text-heritage-brown hover:bg-heritage-brown hover:text-white"
+                variant="outline"
               >
                 <ExternalLink className="w-4 h-4 mr-2" />
-                Share Location
-              </Button>
-              <Button variant="outline" className="border-heritage-brown text-heritage-brown hover:bg-heritage-brown hover:text-white">
-                Add to Favorites
+                Share
               </Button>
             </div>
-          </div>
-        </div>
+          </ContentWrapper>
+        </PageLayoutMain>
+      </PageLayout>
 
-        {/* Book Recommendations */}
-        {location.recommendedBooks && JSON.parse(location.recommendedBooks).length > 0 && (
-          <section className="mt-16">
-            <Card className="bg-white border-heritage-olive/20">
-              <CardHeader>
-                <CardTitle className="flex items-center text-heritage-brown text-2xl">
-                  <BookOpen className="w-6 h-6 mr-3" />
-                  Further Reading
-                </CardTitle>
-                <p className="text-gray-600">
-                  Deepen your understanding with these recommended books about {location.name} and related historical topics.
-                </p>
-              </CardHeader>
-              <CardContent>
+      {/* Book Recommendations - Full Width */}
+      {location.recommendedBooks && JSON.parse(location.recommendedBooks).length > 0 && (
+        <div className="container mx-auto px-4 mt-16">
+          <Card className={cn(cardStyle === 'bordered' && 'border-2', cardStyle === 'elevated' && 'shadow-xl')}>
+            <CardHeader>
+              <CardTitle className="flex items-center text-2xl">
+                <BookOpen className="w-6 h-6 mr-3" />
+                Further Reading
+              </CardTitle>
+              <p className="text-muted-foreground">
+                Deepen your understanding with these recommended books about {location.name} and related historical topics.
+              </p>
+            </CardHeader>
+            <CardContent>
                 <div className="grid md:grid-cols-2 gap-6">
                   {JSON.parse(location.recommendedBooks).map((book: any, index: number) => (
                     <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
@@ -395,11 +452,11 @@ export default function LocationDetail() {
                 </div>
               </CardContent>
             </Card>
-          </section>
+          </div>
         )}
 
         {/* Related Locations - Coming Soon */}
-        <section className="mt-16">
+        <div className="container mx-auto px-4 mt-16">
           <div className="text-center py-12 bg-gradient-to-r from-heritage-cream to-heritage-beige rounded-lg border-2 border-dashed border-heritage-olive/30">
             <div className="max-w-2xl mx-auto px-6">
               <h2 className="text-3xl font-bold text-heritage-brown mb-4">
@@ -429,8 +486,7 @@ export default function LocationDetail() {
               </div>
             </div>
           </div>
-        </section>
+        </div>
       </div>
-    </div>
   );
 }

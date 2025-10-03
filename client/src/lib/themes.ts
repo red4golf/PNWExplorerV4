@@ -51,6 +51,15 @@ export interface ThemeShadows {
   xl: string;
 }
 
+export interface ThemeLayout {
+  containerMaxWidth: string;
+  contentLayout: 'sidebar' | 'centered' | 'fullwidth';
+  cardStyle: 'bordered' | 'elevated' | 'flat';
+  galleryLayout: 'grid' | 'masonry' | 'carousel';
+  navigationStyle: 'traditional' | 'minimal' | 'floating';
+  sectionSpacing: 'compact' | 'normal' | 'spacious';
+}
+
 export interface Theme {
   name: string;
   displayName: string;
@@ -60,6 +69,7 @@ export interface Theme {
   spacing: ThemeSpacing;
   shadows: ThemeShadows;
   borderRadius: string;
+  layout: ThemeLayout;
 }
 
 export const themes: Record<string, Theme> = {
@@ -117,6 +127,14 @@ export const themes: Record<string, Theme> = {
       xl: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
     },
     borderRadius: '0.5rem',
+    layout: {
+      containerMaxWidth: '1280px',
+      contentLayout: 'sidebar',
+      cardStyle: 'bordered',
+      galleryLayout: 'grid',
+      navigationStyle: 'traditional',
+      sectionSpacing: 'compact',
+    },
   },
   modernMinimal: {
     name: 'modernMinimal',
@@ -172,6 +190,14 @@ export const themes: Record<string, Theme> = {
       xl: '0 25px 50px -12px rgba(0, 0, 0, 0.15)',
     },
     borderRadius: '0.75rem',
+    layout: {
+      containerMaxWidth: '900px',
+      contentLayout: 'centered',
+      cardStyle: 'elevated',
+      galleryLayout: 'masonry',
+      navigationStyle: 'minimal',
+      sectionSpacing: 'spacious',
+    },
   },
   darkElegant: {
     name: 'darkElegant',
@@ -227,6 +253,14 @@ export const themes: Record<string, Theme> = {
       xl: '0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 0 25px rgba(251, 191, 36, 0.15)',
     },
     borderRadius: '0.5rem',
+    layout: {
+      containerMaxWidth: '100%',
+      contentLayout: 'fullwidth',
+      cardStyle: 'flat',
+      galleryLayout: 'carousel',
+      navigationStyle: 'floating',
+      sectionSpacing: 'normal',
+    },
   },
 };
 
