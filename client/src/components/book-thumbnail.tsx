@@ -6,6 +6,7 @@ interface BookThumbnailProps {
   amazonUrl: string;
   title: string;
   author: string;
+  thumbnailUrl?: string;
   className?: string;
   size?: 'small' | 'medium' | 'large';
 }
@@ -13,7 +14,8 @@ interface BookThumbnailProps {
 export function BookThumbnail({ 
   amazonUrl, 
   title, 
-  author, 
+  author,
+  thumbnailUrl,
   className = '',
   size = 'medium'
 }: BookThumbnailProps) {
@@ -24,14 +26,17 @@ export function BookThumbnail({
     large: 'w-20 h-28'
   };
 
-  // Generate the Amazon image URL directly
-  const asin = extractASIN(amazonUrl);
-  const imageUrl = asin ? getAmazonThumbnail(asin, size === 'small' ? 'S' : size === 'large' ? 'L' : 'M') : '';
-  
   // State for handling image load errors
   const [imageError, setImageError] = useState(false);
 
-  // If no ASIN or image failed to load, show placeholder
+  // Determine image URL: use provided thumbnailUrl first, then try ASIN extraction
+  let imageUrl = thumbnailUrl || '';
+  if (!imageUrl) {
+    const asin = extractASIN(amazonUrl);
+    imageUrl = asin ? getAmazonThumbnail(asin, size === 'small' ? 'S' : size === 'large' ? 'L' : 'M') : '';
+  }
+
+  // If no image URL or image failed to load, show placeholder
   if (!imageUrl || imageError) {
     return (
       <div className={`${sizeClasses[size]} bg-heritage-beige rounded flex-shrink-0 flex items-center justify-center ${className}`}>

@@ -334,6 +334,7 @@ export default function LocationDetail() {
                       <div className="flex items-start space-x-4">
                         <BookThumbnail 
                           amazonUrl={book.amazonUrl || book.amazon_url}
+                          thumbnailUrl={book.thumbnailUrl || book.thumbnail_url}
                           title={book.title}
                           author={book.author}
                           size="medium"
