@@ -171,6 +171,7 @@ export default function ModernLocationDetail({
                 locationId={location.id}
                 locationName={location.name}
                 className="bg-transparent border-0"
+                variant="modern"
               />
             </div>
 

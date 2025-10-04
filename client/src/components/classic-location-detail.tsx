@@ -125,6 +125,7 @@ export default function ClassicLocationDetail({
             <AudioPlayer 
               locationId={location.id}
               locationName={location.name}
+              variant="classic"
             />
           </div>
 
