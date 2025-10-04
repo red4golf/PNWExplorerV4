@@ -89,7 +89,7 @@ body {
 }
 
 :root {
-  /* Theme colors - will be dynamically updated by ThemeContext */
+  /* Classic Theme Colors (Heritage) */
   --background: hsl(30, 26%, 96%);
   --foreground: hsl(24, 45%, 20%);
   --muted: hsl(30, 20%, 90%);
@@ -111,7 +111,7 @@ body {
   --ring: hsl(38, 69%, 59%);
   --radius: 0.5rem;
   
-  /* Typography variables - updated by theme */
+  /* Typography variables */
   --heading-font: Georgia, "Times New Roman", serif;
   --body-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --mono-font: "Courier New", Courier, monospace;
@@ -147,6 +147,47 @@ body {
   --heritage-gold: hsl(38, 69%, 59%);
   --heritage-beige: hsl(60, 26%, 95%);
   --heritage-cream: hsl(60, 47%, 94%);
+  
+  /* Modern Theme Colors */
+  --modern-sage: hsl(165, 25%, 45%);
+  --modern-olive-dark: hsl(75, 20%, 35%);
+  --modern-olive-light: hsl(75, 25%, 55%);
+  --modern-terra-cotta: hsl(15, 65%, 55%);
+  --modern-cream: hsl(45, 40%, 92%);
+  --modern-warm-gray: hsl(30, 10%, 25%);
+  --modern-dark-bg: hsl(30, 15%, 18%);
+  --modern-card-bg: hsl(30, 12%, 22%);
+  --modern-text-light: hsl(45, 35%, 88%);
+}
+
+/* Modern Design Mode Overrides */
+[data-design-mode="modern"] {
+  --background: hsl(45, 40%, 92%);
+  --foreground: hsl(30, 15%, 18%);
+  --muted: hsl(30, 12%, 22%);
+  --muted-foreground: hsl(30, 10%, 60%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(30, 15%, 18%);
+  --border: hsl(30, 15%, 75%);
+  --input: hsl(30, 15%, 75%);
+  --primary: hsl(165, 25%, 45%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(75, 25%, 55%);
+  --secondary-foreground: hsl(30, 15%, 18%);
+  --accent: hsl(15, 65%, 55%);
+  --accent-foreground: hsl(0, 0%, 100%);
+  --ring: hsl(165, 25%, 45%);
+}
+
+/* Modern Dark Surfaces */
+[data-design-mode="modern"] .modern-dark-surface {
+  background-color: var(--modern-dark-bg);
+  color: var(--modern-text-light);
+}
+
+[data-design-mode="modern"] .modern-card-surface {
+  background-color: var(--modern-card-bg);
+  color: var(--modern-text-light);
 }
 
 

@@ -46,6 +46,9 @@ export function DesignModeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     saveDesignMode(designMode);
+    if (typeof document !== "undefined") {
+      document.documentElement.setAttribute("data-design-mode", designMode);
+    }
   }, [designMode]);
 
   return (

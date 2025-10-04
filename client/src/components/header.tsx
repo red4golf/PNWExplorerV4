@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Landmark, Menu } from "lucide-react";
+import DesignToggle from "@/components/design-toggle";
 
 export default function Header() {
   const [location] = useLocation();
@@ -42,6 +43,7 @@ export default function Header() {
                 {item.name}
               </Link>
             ))}
+            <DesignToggle />
           </div>
           
           {/* Mobile Navigation */}
@@ -66,6 +68,9 @@ export default function Header() {
                     <span>{item.name}</span>
                   </Link>
                 ))}
+                <div className="pt-4 border-t border-white/20">
+                  <DesignToggle />
+                </div>
               </div>
             </SheetContent>
           </Sheet>
