@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, MapPin, Calendar, User, Navigation, ExternalLink, FileText, BookOpen } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, User, Navigation, ExternalLink, FileText, BookOpen, Landmark, Compass, Mountain, Ship, Users, Clock, type LucideIcon } from "lucide-react";
 import { Link } from "wouter";
 import { getCategoryIcon, getCategoryColor, formatDate, getDirectionsUrl, calculateDistance } from "@/lib/utils";
 import type { Location, Photo } from "@shared/schema";
@@ -93,9 +93,9 @@ export default function ModernLocationDetail({
     
     // Split by paragraphs and look for year patterns
     const paragraphs = content.split('\n\n').filter(p => p.trim());
-    const timeline: Array<{ year?: string; content: string; icon: string }> = [];
+    const timeline: Array<{ year?: string; content: string; icon: LucideIcon }> = [];
     
-    const icons = ['🎬', '🌴', '🗺️', '📜', '🏛️', '⚓', '🎯', '📚'];
+    const icons: LucideIcon[] = [Landmark, MapPin, Compass, Clock, Mountain, Ship, Users, BookOpen];
     
     paragraphs.forEach((para, index) => {
       // Try to extract year from the paragraph
@@ -192,18 +192,20 @@ export default function ModernLocationDetail({
                 </h2>
                 
                 <div className="space-y-8">
-                  {timelineItems.map((item, index) => (
+                  {timelineItems.map((item, index) => {
+                    const IconComponent = item.icon;
+                    return (
                     <div key={index} className="flex gap-6">
                       {/* Icon Column */}
                       <div className="flex flex-col items-center">
                         <div 
-                          className="w-12 h-12 rounded-full flex items-center justify-center text-2xl bg-[var(--modern-olive-light)]/20"
+                          className="w-12 h-12 rounded-full flex items-center justify-center bg-[var(--modern-sage)]/10 border-2 border-[var(--modern-sage)]/30"
                           data-testid={`icon-timeline-${index}`}
                         >
-                          {item.icon}
+                          <IconComponent className="w-5 h-5 text-[var(--modern-sage)]" />
                         </div>
                         {index < timelineItems.length - 1 && (
-                          <div className="w-0.5 h-full min-h-[60px] bg-[var(--modern-olive-light)]/30 mt-2" />
+                          <div className="w-0.5 h-full min-h-[60px] bg-[var(--modern-sage)]/20 mt-2" />
                         )}
                       </div>
                       
@@ -227,7 +229,8 @@ export default function ModernLocationDetail({
                         </div>
                       </div>
                     </div>
-                  ))}
+                  );
+                  })}
                 </div>
               </div>
             )}
