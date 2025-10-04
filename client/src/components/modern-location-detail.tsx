@@ -137,7 +137,7 @@ export default function ModernLocationDetail({
           </div>
 
           {/* Title Section */}
-          <div className="space-y-4 mb-8">
+          <div className="space-y-4">
             <Badge 
               variant="secondary" 
               className="bg-[var(--modern-sage)] text-white border-0" 
@@ -157,17 +157,6 @@ export default function ModernLocationDetail({
               </div>
             )}
           </div>
-
-          {/* Audio Player in Hero */}
-          <div className="max-w-2xl">
-            <div className="bg-black/40 backdrop-blur-md rounded-xl p-4 border border-white/20">
-              <AudioPlayer 
-                locationId={location.id}
-                locationName={location.name}
-                className="bg-transparent border-0"
-              />
-            </div>
-          </div>
         </div>
       </div>
 
@@ -176,6 +165,15 @@ export default function ModernLocationDetail({
         <div className="grid lg:grid-cols-3 gap-8 xl:gap-12">
           {/* Left Column - Story Timeline */}
           <div className="lg:col-span-2 space-y-8">
+            {/* Audio Player */}
+            <div className="bg-black/40 backdrop-blur-md rounded-xl p-4 border border-white/20">
+              <AudioPlayer 
+                locationId={location.id}
+                locationName={location.name}
+                className="bg-transparent border-0"
+              />
+            </div>
+
             {/* Description */}
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <p className="text-lg leading-relaxed text-gray-700" data-testid="text-description">
