@@ -38,4 +38,8 @@ integrations = ["javascript_log_in_with_replit==1.0.0", "javascript_database==1.
 localPort = 5000
 externalPort = 80
 
+[[ports]]
+localPort = 35837
+externalPort = 3000
+
 
