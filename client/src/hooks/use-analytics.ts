@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { apiRequest } from "../lib/queryClient";
+import { DESIGN_MODE_STORAGE_KEY } from "@/contexts/design-mode-context";
 
 // Generate or get session ID
 const getSessionId = () => {
@@ -217,10 +218,11 @@ export const useAnalytics = () => {
         eventType,
         locationId,
         metadata: {
-          ...metadata,
           sessionPageViews: pageViews,
           timeOfDay: new Date().getHours(),
           dayOfWeek: new Date().getDay(),
+          // Design mode tracking - default from storage, can be overridden by specific events
+          designMode: localStorage.getItem(DESIGN_MODE_STORAGE_KEY) || 'modern',
           // Enhanced traffic source tracking
           trafficSource: trafficSource.type,
           trafficSourceDetails: trafficSource,
@@ -239,7 +241,9 @@ export const useAnalytics = () => {
           timestamp: new Date().toISOString(),
           url: window.location.href,
           path: window.location.pathname,
-          host: window.location.host
+          host: window.location.host,
+          // Spread custom metadata last so it can override defaults (e.g., designMode for toggle events)
+          ...metadata
         },
         sessionId: getSessionId(),
         userLocation,
@@ -296,6 +300,14 @@ export const useAnalytics = () => {
     trackEvent("time_spent", { timeSpent, pageName }, locationId);
   };
 
+  const trackDesignModeToggle = (newMode: "modern" | "classic") => {
+    // Pass newMode directly to override localStorage read timing issue
+    trackEvent("design_mode_toggle", { 
+      designMode: newMode, 
+      previousMode: newMode === "modern" ? "classic" : "modern" 
+    });
+  };
+
   return {
     trackEvent,
     trackPageView,
@@ -309,6 +321,7 @@ export const useAnalytics = () => {
     trackBookClick,
     trackAudioPlay,
     trackTimeSpent,
+    trackDesignModeToggle,
     isDeveloperMode,
     enableDeveloperMode: () => {
       localStorage.setItem('dev-mode', 'true');

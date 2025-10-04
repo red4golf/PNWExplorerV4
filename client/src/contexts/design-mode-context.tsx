@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { useAnalytics } from "@/hooks/use-analytics";
 
 type DesignMode = "modern" | "classic";
 
@@ -10,7 +11,7 @@ interface DesignModeContextType {
 
 const DesignModeContext = createContext<DesignModeContextType | undefined>(undefined);
 
-const DESIGN_MODE_STORAGE_KEY = "pnw-design-mode";
+export const DESIGN_MODE_STORAGE_KEY = "pnw-design-mode";
 
 function getStoredDesignMode(): DesignMode {
   if (typeof window === "undefined") return "modern";
@@ -33,6 +34,7 @@ function saveDesignMode(mode: DesignMode) {
 
 export function DesignModeProvider({ children }: { children: ReactNode }) {
   const [designMode, setDesignModeState] = useState<DesignMode>(getStoredDesignMode);
+  const { trackDesignModeToggle } = useAnalytics();
 
   const setDesignMode = (mode: DesignMode) => {
     setDesignModeState(mode);
@@ -41,6 +43,8 @@ export function DesignModeProvider({ children }: { children: ReactNode }) {
 
   const toggleDesignMode = () => {
     const newMode = designMode === "modern" ? "classic" : "modern";
+    // Track before state update to capture the toggle event with correct timing
+    trackDesignModeToggle(newMode);
     setDesignMode(newMode);
   };
 
