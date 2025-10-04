@@ -56,25 +56,46 @@ export default function ModernHome({ locations, isLoading, onStartExploring }: M
         <div className="container mx-auto px-4 md:px-6">
           <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
             <div className="relative h-[300px] md:h-[400px] bg-gradient-to-br from-[#5c8a89] to-[#4a7170]">
-              {/* Simplified PNW Map Representation */}
+              {/* Pacific Northwest Region Map */}
               <svg
                 viewBox="0 0 600 400"
                 className="w-full h-full"
                 preserveAspectRatio="xMidYMid meet"
               >
-                {/* PNW coastline approximation */}
+                {/* PNW regional outline - California to BC, west to east */}
                 <path
-                  d="M 100 50 L 120 100 L 110 150 L 100 200 L 90 250 L 100 300 L 150 320 L 200 310 L 250 300 L 300 290 L 350 280 L 400 270 L 450 260 L 500 250 L 520 200 L 510 150 L 500 100 L 480 70 L 450 50 L 400 40 L 350 45 L 300 50 L 250 50 L 200 48 L 150 47 L 100 50 Z"
+                  d="M 80 320 
+                     L 75 280 L 70 240 L 68 200 L 65 160 L 62 120 
+                     L 60 80 L 58 60 L 55 45 
+                     L 70 42 L 85 45 L 95 55 
+                     L 100 70 L 102 50 L 110 45 
+                     L 125 60 L 128 80 L 130 100 
+                     L 145 110 L 160 105 L 165 85 
+                     L 180 75 L 200 80 L 220 95 
+                     L 240 100 L 270 95 L 300 100 
+                     L 330 110 L 360 125 L 390 135 
+                     L 420 140 L 450 145 L 480 155 
+                     L 510 165 L 535 175 
+                     L 540 195 L 538 220 L 535 245 
+                     L 530 270 L 525 295 L 520 320 
+                     L 500 325 L 480 323 L 460 325 
+                     L 440 330 L 420 328 L 400 325 
+                     L 380 328 L 360 332 L 340 330 
+                     L 320 328 L 300 330 L 280 335 
+                     L 260 332 L 240 330 L 220 333 
+                     L 200 335 L 180 333 L 160 330 
+                     L 140 332 L 120 335 L 100 332 
+                     Z"
                   fill="#7ba5a4"
                   fillOpacity="0.6"
                   stroke="#e8dcc8"
                   strokeWidth="2"
                 />
                 
-                {/* Location dots */}
+                {/* Location dots distributed across the region */}
                 {locations?.slice(0, 12).map((loc, index) => {
-                  const x = 150 + (index % 5) * 80;
-                  const y = 80 + Math.floor(index / 5) * 80;
+                  const x = 120 + (index % 5) * 75 + (Math.floor(index / 5) * 15);
+                  const y = 120 + Math.floor(index / 5) * 70;
                   return (
                     <g key={loc.id}>
                       <circle
