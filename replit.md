@@ -1,161 +1,67 @@
 # Pacific Northwest Historical Explorer
 
 ## Overview
-This is a full-stack web application designed to be the definitive digital guide for exploring historical locations across the Pacific Northwest (Washington, Oregon, Northern California, Idaho, Montana, and Southern British Columbia). It provides an interactive map, detailed location information, user-submitted content capabilities, and administrative workflows for content quality. The project aims to become a comprehensive educational resource and tourism aid, enhancing the discovery and appreciation of the region's rich history.
+This full-stack web application serves as a comprehensive digital guide to historical locations across the Pacific Northwest (Washington, Oregon, Northern California, Idaho, Montana, and Southern British Columbia). It features an interactive map, detailed location information, user-submitted content capabilities, and administrative tools for content moderation. The project aims to be a valuable educational resource and tourism aid, promoting the discovery and appreciation of the region's rich history.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
 ## System Architecture
-The application uses a monorepo structure, separating client, server, and shared components.
+The application is built as a monorepo, separating client, server, and shared components.
 
 ### Frontend
-- **Framework**: React SPA with Vite, TypeScript.
-- **Styling**: Tailwind CSS with shadcn/ui components, custom heritage-themed color palette.
-- **Routing**: Wouter for lightweight client-side routing.
-- **State Management**: TanStack Query for server state and caching.
+- **Framework**: React SPA with Vite and TypeScript.
+- **Styling**: Tailwind CSS with shadcn/ui components, using a heritage-themed color palette.
+- **Routing**: Wouter for client-side routing.
+- **State Management**: TanStack Query for server state.
 - **Form Handling**: React Hook Form with Zod validation.
-- **Interactive Maps**: Dynamically loaded Leaflet for map functionality.
-- **Design**: Mobile-first responsive approach.
+- **Interactive Maps**: Leaflet is used for dynamic map functionalities.
+- **Design**: Mobile-first responsive design approach.
 
 ### Backend
-- **API**: Express.js REST API with TypeScript for type safety.
-- **Database Layer**: Drizzle ORM with PostgreSQL dialect.
-- **Structure**: Clean separation of routes, storage, and utilities.
-- **Error Handling**: Centralized middleware.
+- **API**: Express.js REST API developed with TypeScript.
+- **Database Layer**: Drizzle ORM interfaces with a PostgreSQL database.
+- **Structure**: Employs a clean architecture with clear separation of concerns for routes, storage, and utilities.
+- **Error Handling**: Centralized middleware for robust error management.
 
 ### Database Schema
-- **Locations**: Geographical coordinates, descriptions, categories, approval status.
-- **Photos**: Images and captions linked to locations.
-- **Admins**: Users for content moderation.
-- **Content Workflow**: Pending/approved/rejected states for submitted content.
-- **File Storage**: Files are stored directly in the PostgreSQL database (BYTEA) with automatic environment detection for deployed environments, or locally for development.
-- **Analytics**: `user_analytics` table for tracking user engagement (page views, location views, QR code scans, shares) with automatic developer exclusion.
-- **Book Recommendations**: Structured JSON for title, author, description, format, price, and Amazon URLs.
+- **Entities**: Includes tables for `Locations`, `Photos`, `Admins`, `user_analytics`, and `Book Recommendations`.
+- **Content Workflow**: Supports `pending`, `approved`, and `rejected` states for user-submitted content.
+- **File Storage**: Images are stored as BYTEA in PostgreSQL.
+- **Analytics**: `user_analytics` tracks user engagement with automatic developer exclusion.
 
 ### Core Features
-- Interactive map with GPS location, directions, and dynamic centering for the PNW region.
-- Comprehensive location management system with search, edit forms, and markdown rendering for extended stories.
-- Photo management system supporting hero images and multiple gallery photos per location, with bulk selection and responsive display.
-- Comprehensive SEO optimization including dynamic meta tags, structured data (JSON-LD), Open Graph/Twitter cards, and sitemap generation.
-- Integrated book recommendation system for all historical locations.
-- User analytics tracking for engagement patterns with enhanced developer exclusion (admin users, development domains, manual dev-mode flag).
-- Potential future feature: Audio tour system (currently unavailable due to content regeneration needs).
+- Interactive map with GPS, directions, and dynamic centering.
+- Comprehensive location management including search, edit forms, and markdown support for stories.
+- Photo management supporting hero images and galleries with bulk selection.
+- SEO optimization through dynamic meta tags, structured data (JSON-LD), Open Graph/Twitter cards, and sitemap generation.
+- Integrated book recommendation system with affiliate links.
+- User analytics tracking engagement patterns with enhanced developer exclusion.
+- Future potential for an audio tour system.
 
 ## External Dependencies
 
 ### Core Technologies
-- **@neondatabase/serverless**: PostgreSQL database connection.
-- **drizzle-orm**: Type-safe database ORM.
-- **@tanstack/react-query**: Server state management.
-- **wouter**: Lightweight React router.
-- **leaflet**: Interactive maps.
+- **@neondatabase/serverless**: PostgreSQL database connectivity.
+- **drizzle-orm**: Type-safe ORM for database interactions.
+- **@tanstack/react-query**: Manages server state and caching.
+- **wouter**: Lightweight routing for React applications.
+- **leaflet**: Provides interactive mapping capabilities.
 
 ### UI and Styling
 - **@radix-ui/***: Accessible UI primitives.
 - **tailwindcss**: Utility-first CSS framework.
-- **class-variance-authority**: Type-safe styling variants.
+- **class-variance-authority**: For type-safe styling variants.
 - **lucide-react**: Icon library.
 
 ### Form and Validation
-- **react-hook-form**: Form state management.
-- **@hookform/resolvers**: Form validation resolvers.
-- **zod**: Schema validation.
-- **drizzle-zod**: Database schema to Zod conversion.
+- **react-hook-form**: Handles form state and validation.
+- **@hookform/resolvers**: Integrates validation schemas with React Hook Form.
+- **zod**: Schema validation library.
+- **drizzle-zod**: Converts Drizzle ORM schemas to Zod schemas.
 
 ### Other Integrations
-- **Google Maps**: For turn-by-turn directions.
-- **Amazon Associates program**: For future affiliate link integration in book recommendations.
-- **ElevenLabs AI**: Active audio synthesis system for generating high-quality audio tours and location narrations.
-- **Make.com**: Automation system for feedback collection and social media posting.
-
-## Analytics & Privacy
-The application implements anonymous user analytics with strong privacy protections:
-
-### Developer Exclusion System
-- **Admin users**: Automatically excluded from tracking
-- **Development domains**: replit.dev, localhost auto-detected
-- **Manual exclusion**: Set `localStorage.setItem('dev-mode', 'true')` in browser console
-- **No personal data**: Only aggregate usage patterns collected
-
-### Tracked Events (Anonymous)
-- Page views and location visits for content optimization
-- Geographic regions (timezone-based) for audience insights  
-- Affiliate link clicks for revenue tracking
-- User flow patterns for UX improvements
-
-### Privacy Compliance
-- No individual user identification or personal data
-- No cross-site tracking or persistent cookies
-- GDPR/CCPA compliant without consent requirements
-- Raw analytics dashboard shows only factual database counts
-
-## Recent Changes
-- **August 2025**: Created research-based audio tour for Japanese American Exclusion Memorial (Location #21) - comprehensive historical narrative covering Executive Order 9066, the first removal on March 30, 1942, and community resistance/reconciliation
-- **August 2025**: Created custom audio tour for The Goonies House (Location #62) - immersive tour guide experience that places visitors directly in front of the iconic Victorian home with conversational narration about the 1985 film's impact
-- **August 2025**: Created audio tour for Pia the Peacekeeper (Location #50) - first location with full audio narration using ElevenLabs AI, bringing the troll sculpture's community story to life
-- **August 2025**: Added Mashel Prairie as location #136 - historically significant prairie site of the 1856 Mashel Massacre and home to Indian Henry (Soo-Too-Lick), bridging indigenous stewardship, territorial conflict, and cultural adaptation
-- **August 2025**: Added Fay Bainbridge Park as location #135 - comprehensive Indigenous Heritage site covering 10,000+ years of Suquamish history, Chief Seattle connection, and medical pioneer Dr. Temple Fay legacy
-- **August 2025**: Fixed map legend to display all 27 location categories dynamically instead of hardcoded 3 categories, sorted by popularity with proper color coding
-- **August 2025**: **CRITICAL SAFETY FIX** - Corrected Frog Rock coordinates to exact address 14607 Phelps Rd NE (47.6965465, -122.5234931) after user reported incorrect location was directing to private driveway
-- **August 2025**: Fixed critical map initialization issue - map now loads immediately instead of waiting for location permission, improving user experience significantly
-- **August 2025**: Completed comprehensive book verification audit with systematic ASIN replacement across all 80 locations, achieving 83-90% Amazon link success rates
-- **August 2025**: Created systematic book verification table (book_verification_table.md) for ongoing quality assurance and manual verification process
-- **August 2025**: Eliminated all generic placeholder ASINs and replaced with authentic, regionally-appropriate book recommendations for all historical locations
-- **August 2025**: CRITICAL DISCOVERY - Systematic ISBN/ASIN mismatch problem causing wrong book redirects (e.g., Oregon Lighthouses linking to Watertown WI book)
-- **August 2025**: Fixed 80 confirmed locations with verified Amazon ISBNs including comprehensive Pacific Northwest regional coverage
-- **January 2025**: Analytics system reset for public beta launch with enhanced developer exclusion
-- **January 2025**: Fixed Amazon affiliate link functionality (camelCase/snake_case mismatch resolved)
-- **January 2025**: Comprehensive data integrity review completed - production ready for deployment
-- **January 2025**: Press release and newsletter announcement created for public beta launch with audio tour roadmap
-- **September 2025**: **MAJOR BOOK VERIFICATION MILESTONE** - Completed systematic verification of top 10 highest-traffic locations representing 85% of book-related user traffic
-- **September 2025**: Fixed BookThumbnail component to detect Amazon 1x1 pixel placeholder images and show proper BookOpen fallback icons
-- **September 2025**: Fixed broken Amazon links for Frog Rock (Roadside America book) and The Goonies House (updated to working ASINs with thumbnails)
-- **September 2025**: **STRATEGIC CONTENT UPGRADE** - Replaced Chief Seattle books at Fay Bainbridge Park with more appropriate content: Dr. Temple Fay biography, Indigenous heritage, Bainbridge natural history, and Pacific Northwest outdoor recreation
-- **September 2025**: Verified correct book recommendations and working Amazon affiliate links for Japanese American Exclusion Memorial, Pike Place Market, Mashel Prairie, Mount St. Helens, Heceta Head Lighthouse, and Underground Seattle
-- **September 2025**: Created comprehensive book verification system with priority location lists, tracking frameworks, and systematic verification workflows for all 83 locations with book recommendations
-- **September 2025**: **ICONIC LANDMARKS VERIFICATION COMPLETE** - Verified book recommendations for 12 most famous Pacific Northwest destinations regardless of current traffic: Crater Lake, Fort Clatsop, Nez Perce, Oregon Trail, Columbia River Gorge, Multnomah Falls, Snoqualmie Falls, Hanford Site, Astoria Column, Bonneville Dam, Mount Rainier, and Pioneer Square
-- **September 2025**: Fixed critical book mismatches: replaced Grand Coulee Dam books with correct Bonneville Dam titles, corrected made-up books at Snoqualmie Falls with authentic Pacific Northwest Native American history, fixed multiple broken Amazon links across iconic locations
-- **September 2025**: Enhanced Pioneer Square Klondike Gold Rush location with 4 quality books including Pierre Berton's Governor General Award winner, Jack London's classic "Call of the Wild", and award-winning women's perspectives covering Seattle's gateway role
-- **September 2025**: **CELILO FALLS BOOK VERIFICATION COMPLETE** - Replaced incorrect book recommendations with quality selections: "The Si'lailo Way: Indians, Salmon and Law on the Columbia River" (legal/historical account) and "My Name is LaMoosh" by Linda Meanus (first-hand memoir from Warm Springs Elder who lived at Celilo Falls before 1957 destruction)
-
-## Book Verification Status
-
-### **Verified High-Traffic Locations (Top 13 by User Analytics)**
-**All locations below have verified, working Amazon affiliate links and quality book recommendations:**
-
-1. **Japanese American Exclusion Memorial** (32 visits) ✅ - Executive Order 9066 historical accounts
-2. **The Goonies House** (27 visits) ✅ - Film history and Oregon coast culture  
-3. **Frog Rock** (21 visits) ✅ - Roadside America and Pacific Northwest oddities
-4. **Underground Seattle** (10 visits) ✅ - Seattle history and urban archaeology
-5. **Fay Bainbridge Park** (8 visits) ✅ - Dr. Temple Fay biography, Indigenous heritage, Bainbridge natural history
-6. **Mashel Prairie** (8 visits) ✅ - Indigenous stewardship and territorial history
-7. **Historic Strawberry Fields** (6 visits) ✅ - Agricultural heritage and Bainbridge Island farming
-8. **Pike Place Market** (6 visits) ✅ - Seattle cultural history and market traditions
-9. **Mount St. Helens National Volcanic Monument** (4 visits) ✅ - Volcanic geology and 1980 eruption accounts
-10. **Heceta Head Lighthouse** (4 visits) ✅ - Oregon lighthouse history and maritime heritage
-11. **Mount Rainier National Park** (4 visits) ✅ - National park history and Pacific Northwest mountaineering
-12. **Pioneer Square - Klondike Gold Rush** (3 visits) ✅ - Comprehensive 4-book collection including Pierre Berton's Governor General Award winner
-13. **Celilo Falls** (2 visits) ✅ - Legal history and first-hand Indigenous memoir
-
-### **Verified Iconic Pacific Northwest Landmarks** 
-**All major regional destinations verified regardless of current traffic patterns:**
-
-- **Crater Lake National Park** ✅ - Geological formation and Indigenous sacred site history
-- **Fort Clatsop National Memorial** ✅ - Lewis & Clark expedition terminus
-- **Nez Perce National Historical Park** ✅ - Indigenous resistance and Chief Joseph legacy  
-- **Oregon National Historic Trail** ✅ - Pioneer migration and westward expansion
-- **Columbia River Gorge** ✅ - Geological formation and Indigenous fishing traditions
-- **Multnomah Falls** ✅ - Natural wonder and Native American legends
-- **Snoqualmie Falls** ✅ - Indigenous sacred site and hydroelectric history
-- **Hanford Site** ✅ - Manhattan Project and nuclear history
-- **Astoria Column** ✅ - Maritime history and Pacific Northwest exploration
-- **Bonneville Dam** ✅ - New Deal infrastructure and salmon impact
-- **Mount Rainier** ✅ - Mountaineering history and National Park legacy
-
-### **Book Verification Methodology**
-- **Priority System**: User traffic analytics determine verification sequence
-- **Quality Standards**: University presses, award winners, regional authors preferred
-- **Link Verification**: All Amazon affiliate links tested for functionality
-- **Content Appropriateness**: Books must directly relate to specific location history
-- **Ongoing Maintenance**: Systematic re-verification of top traffic locations quarterly
+- **Google Maps**: Used for providing turn-by-turn directions.
+- **Amazon Associates program**: Planned for affiliate link integration in book recommendations.
+- **ElevenLabs AI**: Utilized for generating high-quality audio tours and narrations.
+- **Make.com**: Automation platform for feedback collection and social media posting.
