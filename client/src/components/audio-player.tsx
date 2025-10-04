@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Volume2, VolumeX, Download } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Download, Headphones } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -201,14 +201,14 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
   return (
     <div className="w-full bg-gradient-to-r from-heritage-50 to-heritage-100 dark:from-heritage-900 dark:to-heritage-800 border border-heritage-200 dark:border-heritage-700 rounded-lg p-4 my-4">
       <div className="flex items-center space-x-3 mb-4">
-        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-heritage-600 text-white text-lg">
-          🎧
+        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm">
+          <Headphones className="h-5 w-5 text-white" />
         </div>
         <div>
-          <h4 className="font-semibold text-heritage-900 dark:text-heritage-100">
+          <h4 className="font-semibold text-white">
             Audio Tour
           </h4>
-          <p className="text-sm text-heritage-600 dark:text-heritage-300">
+          <p className="text-sm text-white/80">
             Listen to the story of {locationName}
           </p>
         </div>
@@ -263,7 +263,7 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
               background: `linear-gradient(to right, #8b5a3c 0%, #8b5a3c ${(currentTime / (duration || 1)) * 100}%, #d1d5db ${(currentTime / (duration || 1)) * 100}%, #d1d5db 100%)`
             }}
           />
-          <div className="flex justify-between text-xs text-heritage-500 mt-1">
+          <div className="flex justify-between text-xs text-white/90 mt-1">
             <span>{formatTime(currentTime)}</span>
             <span>{formatTime(duration)}</span>
           </div>
@@ -275,8 +275,7 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
         <div className="flex items-center space-x-2">
           <button
             onClick={toggleMute}
-            className="p-2 text-heritage-600 hover:text-heritage-700 transition-colors rounded-full hover:bg-heritage-100"
-            style={{ color: '#8b5a3c' }}
+            className="p-2 text-white/90 hover:text-white transition-colors rounded-full hover:bg-white/10"
           >
             {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
           </button>
@@ -305,7 +304,7 @@ export default function AudioPlayer({ locationId, locationName, className }: Aud
               document.body.removeChild(link);
             }
           }}
-          className="flex items-center space-x-1 text-heritage-600 hover:text-heritage-700 transition-colors text-sm"
+          className="flex items-center space-x-1 text-white/90 hover:text-white transition-colors text-sm"
         >
           <Download className="h-4 w-4" />
           <span className="hidden sm:inline">Download</span>
