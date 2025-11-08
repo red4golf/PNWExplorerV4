@@ -68,10 +68,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createLocation(insertLocation: InsertLocation): Promise<Location> {
+    // Generate slug from name
+    const slug = insertLocation.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+    
     const [location] = await db
       .insert(locations)
       .values({
         ...insertLocation,
+        slug,
         status: "pending",
       })
       .returning();
