@@ -14,6 +14,9 @@ const getSessionId = () => {
 
 // Check if we're in developer mode
 const isDeveloperMode = () => {
+  // Check if we're on a .replit.dev domain (development environment)
+  const isDevDomain = window.location.hostname.endsWith('.replit.dev');
+  
   // Check for explicit developer mode flag
   const hasDevFlag = localStorage.getItem('dev-mode') === 'true';
   
@@ -23,8 +26,8 @@ const isDeveloperMode = () => {
   // Check if we're on admin pages
   const isOnAdminPage = window.location.pathname.startsWith('/admin');
   
-  // Only return true if explicitly set - allow normal tracking on public pages
-  return hasDevFlag || hasAdminAccess || isOnAdminPage;
+  // Exclude dev domains, admin users, and admin pages
+  return isDevDomain || hasDevFlag || hasAdminAccess || isOnAdminPage;
 };
 
 // Get user's approximate location (using browser geolocation API)
