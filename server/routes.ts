@@ -594,7 +594,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const allLocations = await storage.getAllLocations();
       const pendingCount = allLocations.filter(l => l.status === "pending").length;
       const approvedCount = allLocations.filter(l => l.status === "approved").length;
-      const contributorCount = new Set(allLocations.map(l => l.submitterEmail)).size;
+      // User is the only contributor - hardcoded to 1
+      const contributorCount = 1;
       
       res.json({
         pendingCount,
