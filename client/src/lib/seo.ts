@@ -55,7 +55,7 @@ export function generateLocationSEO(location: Location): SEOMetadata {
     ...bookRelatedKeywords
   ].filter(Boolean);
   
-  const canonicalUrl = `https://pnw-history-explorer.replit.app/location/${location.id}`;
+  const canonicalUrl = `https://pnw-history-explorer.replit.app/location/${location.slug}`;
   
   // Enhanced structured data with book recommendations
   const structuredData: any = {

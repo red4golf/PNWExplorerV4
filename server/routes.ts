@@ -455,11 +455,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get location by ID
-  app.get("/api/locations/:id", async (req, res) => {
+  // Get location by ID or slug
+  app.get("/api/locations/:idOrSlug", async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
-      const location = await storage.getLocation(id);
+      const param = req.params.idOrSlug;
+      let location;
+      
+      // Only treat as ID if the parameter is entirely numeric
+      if (/^\d+$/.test(param)) {
+        location = await storage.getLocation(parseInt(param));
+      } else {
+        // Otherwise treat as slug
+        location = await storage.getLocationBySlug(param);
+      }
+      
       if (!location) {
         return res.status(404).json({ message: "Location not found" });
       }
@@ -483,12 +492,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get photos for a location
-  app.get("/api/locations/:id/photos", async (req, res) => {
+  // Get photos for a location (by ID or slug)
+  app.get("/api/locations/:idOrSlug/photos", async (req, res) => {
     try {
-      const locationId = parseInt(req.params.id);
-      console.log('📸 DIAGNOSTIC: Fetching photos for location:', locationId);
-      const photos = await storage.getPhotosByLocationId(locationId);
+      const param = req.params.idOrSlug;
+      let location;
+      
+      // Only treat as ID if the parameter is entirely numeric
+      if (/^\d+$/.test(param)) {
+        location = await storage.getLocation(parseInt(param));
+      } else {
+        location = await storage.getLocationBySlug(param);
+      }
+      
+      if (!location) {
+        return res.status(404).json({ message: "Location not found" });
+      }
+      
+      console.log('📸 DIAGNOSTIC: Fetching photos for location:', location.id);
+      const photos = await storage.getPhotosByLocationId(location.id);
       console.log('📸 DIAGNOSTIC: Found photos:', photos.length);
       if (photos.length > 0) {
         console.log('📸 DIAGNOSTIC: Photo details:', photos.map(p => ({ id: p.id, filename: p.filename })));
@@ -1321,14 +1343,27 @@ function getBrowserName(userAgent: string): string {
     }
   });
 
-  // Get audio narration for a location
-  app.get("/api/locations/:id/audio", async (req, res) => {
+  // Get audio narration for a location (by ID or slug)
+  app.get("/api/locations/:idOrSlug/audio", async (req, res) => {
     try {
-      const locationId = parseInt(req.params.id);
-      const audioBuffer = await storage.getLocationAudio(locationId);
+      const param = req.params.idOrSlug;
+      let location;
+      
+      // Only treat as ID if the parameter is entirely numeric
+      if (/^\d+$/.test(param)) {
+        location = await storage.getLocation(parseInt(param));
+      } else {
+        location = await storage.getLocationBySlug(param);
+      }
+      
+      if (!location) {
+        return res.status(404).json({ message: "Location not found" });
+      }
+      
+      const audioBuffer = await storage.getLocationAudio(location.id);
       
       if (!audioBuffer) {
-        console.log(`🎵 No audio found for location ${locationId}`);
+        console.log(`🎵 No audio found for location ${location.id}`);
         return res.status(404).json({ message: "Audio narration temporarily unavailable" });
       }
 
@@ -1340,7 +1375,7 @@ function getBrowserName(userAgent: string): string {
                         headerString.startsWith('SUQ'); // ID3v2 with extended header
       
       if (!isValidMP3) {
-        console.log(`🔧 Invalid audio format for location ${locationId}`);
+        console.log(`🔧 Invalid audio format for location ${location.id}`);
         console.log(`🔍 Header bytes: ${Array.from(headerBytes).map(b => b.toString(16).padStart(2, '0')).join(' ')}`);
         return res.status(404).json({ message: "Audio narration temporarily unavailable" });
       }

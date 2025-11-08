@@ -59,7 +59,7 @@ export default function LocationCard({ location }: LocationCardProps) {
                 <Navigation className="w-4 h-4" />
               </Button>
             )}
-            <Link href={`/location/${location.id}`}>
+            <Link href={`/location/${location.slug}`}>
               <Button variant="ghost" size="sm" className="text-heritage-brown hover:text-heritage-gold">
                 <ArrowRight className="w-4 h-4" />
               </Button>

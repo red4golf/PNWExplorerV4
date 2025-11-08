@@ -6,6 +6,7 @@ import { z } from "zod";
 export const locations = pgTable("locations", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
+  slug: text("slug").notNull().unique(), // SEO-friendly URL slug
   description: text("description").notNull(),
   address: text("address"),
   latitude: real("latitude"),
@@ -90,6 +91,7 @@ export const userAnalytics = pgTable("user_analytics", {
 
 export const insertLocationSchema = createInsertSchema(locations).omit({
   id: true,
+  slug: true, // Auto-generated from name
   createdAt: true,
   status: true,
 });

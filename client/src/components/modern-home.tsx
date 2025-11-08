@@ -85,7 +85,7 @@ export default function ModernHome({ locations, isLoading, onStartExploring }: M
               <Card
                 key={location.id}
                 className="group overflow-hidden bg-white hover:shadow-xl transition-all duration-300 cursor-pointer rounded-2xl"
-                onClick={() => window.location.href = `/location/${location.id}`}
+                onClick={() => window.location.href = `/location/${location.slug}`}
                 data-testid={`card-featured-${location.id}`}
               >
                 <div className="relative h-48 md:h-56 overflow-hidden">

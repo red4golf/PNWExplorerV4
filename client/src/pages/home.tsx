@@ -37,7 +37,7 @@ export default function Home() {
 
   const handleLocationSelect = (location: Location) => {
     // Navigate to location detail page
-    window.location.href = `/location/${location.id}`;
+    window.location.href = `/location/${location.slug}`;
   };
 
   const handleStartExploring = () => {

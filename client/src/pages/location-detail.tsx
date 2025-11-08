@@ -10,14 +10,14 @@ import ModernLocationDetail from "@/components/modern-location-detail";
 
 export default function LocationDetail() {
   const [, params] = useRoute("/location/:id");
-  const locationId = params?.id ? parseInt(params.id) : 0;
+  const idOrSlug = params?.id || "";
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const { trackLocationView } = useAnalytics();
   const { designMode } = useDesignMode();
 
   const { data: location, isLoading, error } = useQuery<Location>({
-    queryKey: [`/api/locations/${locationId}`],
-    enabled: !!locationId,
+    queryKey: [`/api/locations/${idOrSlug}`],
+    enabled: !!idOrSlug,
   });
 
   // Get user location for directions

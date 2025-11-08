@@ -5,6 +5,7 @@ import { eq, desc, and, sql } from "drizzle-orm";
 export interface IStorage {
   // Location methods
   getLocation(id: number): Promise<Location | undefined>;
+  getLocationBySlug(slug: string): Promise<Location | undefined>;
   getAllLocations(): Promise<Location[]>;
   getApprovedLocations(): Promise<Location[]>;
   getPendingLocations(): Promise<Location[]>;
@@ -46,6 +47,11 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   async getLocation(id: number): Promise<Location | undefined> {
     const [location] = await db.select().from(locations).where(eq(locations.id, id));
+    return location || undefined;
+  }
+
+  async getLocationBySlug(slug: string): Promise<Location | undefined> {
+    const [location] = await db.select().from(locations).where(eq(locations.slug, slug));
     return location || undefined;
   }
 

@@ -34,11 +34,25 @@ The application is built as a monorepo, separating client, server, and shared co
 - Interactive map with GPS, directions, and dynamic centering.
 - Comprehensive location management including search, edit forms, and markdown support for stories.
 - Photo management supporting hero images and galleries with bulk selection.
-- SEO optimization through dynamic meta tags, structured data (JSON-LD), Open Graph/Twitter cards, and sitemap generation.
+- SEO optimization through dynamic meta tags, structured data (JSON-LD), Open Graph/Twitter cards, sitemap generation, and SEO-friendly URLs.
 - Integrated book recommendation system with affiliate links.
 - User analytics tracking engagement patterns with enhanced developer exclusion and design mode preference tracking.
 - Dual design system with toggle between modern and classic interfaces.
 - Future potential for an audio tour system.
+
+### SEO-Friendly URLs
+The application uses human-readable slugs in location URLs for improved SEO and user experience.
+
+#### URL Format
+- **Current Format**: `/location/{slug}` (e.g., `/location/ye-olde-curiosity-shop`)
+- **Legacy Format**: `/location/{id}` (e.g., `/location/149`) - Supported for backward compatibility
+
+#### Implementation
+- **Slug Generation**: Auto-generated from location names using `LOWER(REGEXP_REPLACE(name, '[^a-zA-Z0-9]+', '-', 'g'))`
+- **Database**: `slug` field in locations table with unique constraint
+- **Backend**: Route handlers support both slugs and numeric IDs using `/^\d+$/` regex detection
+- **Frontend**: All navigation updated to use slugs (location cards, detail pages, SEO canonical URLs)
+- **Insert Schema**: Slug field excluded from insertLocationSchema for automatic generation
 
 ### Design System
 The application features a user-selectable design system offering both modern and classic interfaces, allowing visitors to choose their preferred aesthetic while maintaining full functionality in both modes.
