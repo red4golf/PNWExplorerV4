@@ -8,7 +8,7 @@ interface SitemapUrl {
 }
 
 export async function generateSitemap(): Promise<string> {
-  const baseUrl = "https://pnw-history-explorer.replit.app";
+  const baseUrl = "https://historical-bainbridge-charles194.replit.app";
   const now = new Date().toISOString().split('T')[0];
   
   const urls: SitemapUrl[] = [
@@ -60,7 +60,7 @@ ${urls.map(url => `  <url>
 }
 
 export async function generateRobotsTxt(): Promise<string> {
-  const baseUrl = "https://pnw-history-explorer.replit.app";
+  const baseUrl = "https://historical-bainbridge-charles194.replit.app";
   
   return `User-agent: *
 Allow: /

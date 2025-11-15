@@ -55,7 +55,7 @@ export function generateLocationSEO(location: Location): SEOMetadata {
     ...bookRelatedKeywords
   ].filter(Boolean);
   
-  const canonicalUrl = `https://pnw-history-explorer.replit.app/location/${location.slug}`;
+  const canonicalUrl = `https://historical-bainbridge-charles194.replit.app/location/${location.slug}`;
   
   // Enhanced structured data with book recommendations
   const structuredData: any = {
@@ -70,7 +70,7 @@ export function generateLocationSEO(location: Location): SEOMetadata {
       "longitude": location.longitude
     },
     "url": canonicalUrl,
-    "image": location.heroImage ? `https://pnw-history-explorer.replit.app${location.heroImage}` : undefined,
+    "image": location.heroImage ? `https://historical-bainbridge-charles194.replit.app${location.heroImage}` : undefined,
     "category": location.category,
     "historicalSignificance": location.period,
     "author": {

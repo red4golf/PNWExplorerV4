@@ -12,7 +12,7 @@ export default function NotFoundSEO() {
       title: "Page Not Found - Pacific Northwest Historical Explorer",
       description: "The page you're looking for doesn't exist. Explore our interactive map of 60+ historical locations across the Pacific Northwest instead.",
       keywords: ["404", "not found", "Pacific Northwest history", "historical sites", "error page"],
-      canonicalUrl: "https://pnw-history-explorer.replit.app/404"
+      canonicalUrl: "https://historical-bainbridge-charles194.replit.app/404"
     });
   }, []);
 
