@@ -24,6 +24,11 @@ export function EnhancedTrackingGuide() {
   
   const exampleUrls = [
     {
+      label: "Bainbridge Concierge",
+      url: `${baseUrl}?utm_source=bainbridge_concierge&utm_medium=chatbot&utm_campaign=visitor_recommendations&utm_content=historical_sites`,
+      description: "Track visitors from Bainbridge Concierge virtual assistant"
+    },
+    {
       label: "Newsletter Campaign",
       url: `${baseUrl}?utm_source=newsletter&utm_medium=email&utm_campaign=beta_launch&utm_content=header_link`,
       description: "Track newsletter reader engagement"
