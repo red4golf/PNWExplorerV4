@@ -142,8 +142,10 @@ export class DatabaseStorage implements IStorage {
       } : 'No audio found');
       
       if (audioFile?.fileData) {
-        console.log(`✅ STORAGE: Returning audio buffer (${audioFile.fileData.length} bytes) from file: ${audioFile.filename}`);
-        return Buffer.from(audioFile.fileData);
+        // Decode from base64 - the data is stored as base64 text in the database
+        const audioBuffer = Buffer.from(audioFile.fileData, 'base64');
+        console.log(`✅ STORAGE: Returning audio buffer (${audioBuffer.length} bytes) from file: ${audioFile.filename}`);
+        return audioBuffer;
       }
       return null;
     } catch (error) {
