@@ -142,8 +142,12 @@ export class DatabaseStorage implements IStorage {
       } : 'No audio found');
       
       if (audioFile?.fileData) {
-        // Decode from base64 - the data is stored as base64 text in the database
-        const audioBuffer = Buffer.from(audioFile.fileData, 'base64');
+        // The data is stored as base64 text, but PostgreSQL/Drizzle returns it as a Buffer
+        // Convert to string first, then decode from base64
+        const base64String = Buffer.isBuffer(audioFile.fileData) 
+          ? audioFile.fileData.toString('utf-8') 
+          : audioFile.fileData;
+        const audioBuffer = Buffer.from(base64String, 'base64');
         console.log(`✅ STORAGE: Returning audio buffer (${audioBuffer.length} bytes) from file: ${audioFile.filename}`);
         return audioBuffer;
       }
