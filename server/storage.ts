@@ -144,12 +144,41 @@ export class DatabaseStorage implements IStorage {
       } : 'No audio found');
       
       if (audioFile?.fileData) {
-        // The data is stored as base64 text, but PostgreSQL/Drizzle returns it as a Buffer
-        // Convert to string first, then decode from base64
-        const base64String = Buffer.isBuffer(audioFile.fileData) 
-          ? audioFile.fileData.toString('utf-8') 
-          : audioFile.fileData;
-        const audioBuffer = Buffer.from(base64String, 'base64');
+        // Audio data can be stored in two formats:
+        // 1. Raw binary (starts with ID3 header: bytes 0x49, 0x44, 0x33 or 0xFF, 0xFB for MP3 frame)
+        // 2. Base64 encoded (starts with "SUQz" which is base64 for "ID3")
+        
+        let audioBuffer: Buffer;
+        
+        // PostgreSQL bytea columns return as Buffer in Node.js
+        // Cast to any first to handle the type mismatch between schema (text) and actual db (bytea)
+        const rawData = audioFile.fileData as unknown;
+        
+        if (Buffer.isBuffer(rawData)) {
+          // Check if it's raw MP3 data (ID3 tag or MP3 frame sync)
+          const firstBytes = rawData.slice(0, 3);
+          const isRawMP3 = (firstBytes[0] === 0x49 && firstBytes[1] === 0x44 && firstBytes[2] === 0x33) || // ID3
+                          (firstBytes[0] === 0xFF && (firstBytes[1] & 0xE0) === 0xE0); // MP3 frame sync
+          
+          if (isRawMP3) {
+            // Already raw binary, use directly
+            audioBuffer = rawData;
+            console.log(`🎵 STORAGE: Detected raw MP3 binary data`);
+          } else {
+            // Assume base64 encoded, decode it
+            const base64String = rawData.toString('utf-8');
+            audioBuffer = Buffer.from(base64String, 'base64');
+            console.log(`🎵 STORAGE: Decoded base64 audio data`);
+          }
+        } else if (typeof rawData === 'string') {
+          // String data, assume base64
+          audioBuffer = Buffer.from(rawData, 'base64');
+          console.log(`🎵 STORAGE: Decoded base64 string audio data`);
+        } else {
+          console.error('🔴 STORAGE: Unknown audio data type:', typeof rawData);
+          return null;
+        }
+        
         console.log(`✅ STORAGE: Returning audio buffer (${audioBuffer.length} bytes) from file: ${audioFile.filename}`);
         return audioBuffer;
       }
