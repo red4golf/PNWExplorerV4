@@ -1,6 +1,7 @@
 import { locations, photos, admins, feedback, affiliateClicks, userAnalytics, fileStorage, type Location, type InsertLocation, type Photo, type InsertPhoto, type Admin, type InsertAdmin, type Feedback, type InsertFeedback, type AffiliateClick, type InsertAffiliateClick, type UserAnalytics, type InsertUserAnalytics } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql } from "drizzle-orm";
+import bcrypt from "bcrypt";
 
 export interface IStorage {
   // Location methods
@@ -24,6 +25,7 @@ export interface IStorage {
   // Admin methods
   getAdminByEmail(email: string): Promise<Admin | undefined>;
   createAdmin(admin: InsertAdmin): Promise<Admin>;
+  updateAdminPassword(adminId: number, hashedPassword: string): Promise<void>;
   
   // Feedback methods
   createFeedback(feedback: InsertFeedback): Promise<Feedback>;
@@ -208,10 +210,16 @@ export class DatabaseStorage implements IStorage {
     return admin || undefined;
   }
 
+  async updateAdminPassword(adminId: number, hashedPassword: string): Promise<void> {
+    await db.update(admins).set({ password: hashedPassword }).where(eq(admins.id, adminId));
+  }
+
   async createAdmin(insertAdmin: InsertAdmin): Promise<Admin> {
+    // Always hash password before storing
+    const hashedPassword = await bcrypt.hash(insertAdmin.password, 12);
     const [admin] = await db
       .insert(admins)
-      .values(insertAdmin)
+      .values({ ...insertAdmin, password: hashedPassword })
       .returning();
     return admin;
   }

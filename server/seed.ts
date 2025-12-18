@@ -1,5 +1,6 @@
 import { db } from "./db";
 import { locations, admins, photos } from "@shared/schema";
+import bcrypt from "bcrypt";
 
 async function seedPhotos() {
   console.log("🖼️ Initializing photo system...");
@@ -24,10 +25,11 @@ async function seed() {
   try {
     console.log("Seeding database...");
 
-    // Create default admin for beta release
+    // Create default admin for beta release with hashed password
+    const hashedPassword = await bcrypt.hash("PNWHistoryBeta2025!", 12);
     await db.insert(admins).values({
       email: "admin@pnwhistory.org",
-      password: "PNWHistoryBeta2025!", // Secure password for beta release
+      password: hashedPassword,
     }).onConflictDoNothing();
 
     // Insert sample historical locations

@@ -9,10 +9,13 @@ import { eq, and, isNotNull, sql } from "drizzle-orm";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import bcrypt from "bcrypt";
 import { uploadPersistenceFix } from "./upload-persistence-fix";
 import { storageManager, DatabaseStorageProvider } from "./cloud-storage";
 import { generateSitemap, generateRobotsTxt } from "./sitemap";
 import { audioService } from "./audio-service";
+import { requireAdmin } from "./auth";
+import { detectBot } from "./bot-detection";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure multer for file uploads with location-specific folders
@@ -184,7 +187,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Upload multiple photos for location
-  app.post("/api/admin/locations/:id/upload-photos", (req, res) => {
+  app.post("/api/admin/locations/:id/upload-photos", requireAdmin, (req, res) => {
     console.log('📸 Photo upload request received for location:', req.params.id);
     console.log('📸 Files in request:', req.files ? 'present' : 'none');
     console.log('📸 CRITICAL: Request method:', req.method);
@@ -338,7 +341,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Upload hero image for location
-  app.post("/api/admin/locations/:id/upload-hero", (req, res) => {
+  app.post("/api/admin/locations/:id/upload-hero", requireAdmin, (req, res) => {
     console.log('📸 Hero image upload request received for location:', req.params.id);
     upload.single('heroImage')(req, res, async (err) => {
       if (err) {
@@ -523,7 +526,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Delete photo (admin only)
-  app.delete("/api/admin/photos/:id", async (req, res) => {
+  app.delete("/api/admin/photos/:id", requireAdmin, async (req, res) => {
     try {
       const photoId = parseInt(req.params.id);
       console.log('Deleting photo with ID:', photoId);
@@ -541,24 +544,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin login
+  const loginSchema = z.object({
+    email: z.string().email("Invalid email format"),
+    password: z.string().min(1, "Password is required")
+  });
+  
+  const loginAttempts = new Map<string, { count: number; lastAttempt: number }>();
+  const MAX_LOGIN_ATTEMPTS = 5;
+  const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutes
+  
   app.post("/api/admin/login", async (req, res) => {
     try {
-      const { email, password } = req.body;
+      const clientIp = req.ip || req.socket.remoteAddress || 'unknown';
+      const now = Date.now();
+      
+      // Rate limiting check
+      const attempts = loginAttempts.get(clientIp);
+      if (attempts && attempts.count >= MAX_LOGIN_ATTEMPTS) {
+        const timeSinceLast = now - attempts.lastAttempt;
+        if (timeSinceLast < LOCKOUT_DURATION) {
+          const remainingMinutes = Math.ceil((LOCKOUT_DURATION - timeSinceLast) / 60000);
+          return res.status(429).json({ message: `Too many login attempts. Try again in ${remainingMinutes} minutes.` });
+        } else {
+          loginAttempts.delete(clientIp);
+        }
+      }
+      
+      const { email, password } = loginSchema.parse(req.body);
       const admin = await storage.getAdminByEmail(email);
       
-      if (!admin || admin.password !== password) {
+      // Use bcrypt for password comparison if stored password is hashed
+      // Falls back to plaintext comparison for legacy passwords with auto-migration
+      let passwordValid = false;
+      let needsMigration = false;
+      
+      if (admin) {
+        if (admin.password.startsWith('$2')) {
+          // bcrypt hashed password
+          passwordValid = await bcrypt.compare(password, admin.password);
+        } else {
+          // Legacy plaintext password - verify and mark for migration
+          passwordValid = admin.password === password;
+          needsMigration = passwordValid; // Only migrate if password is correct
+        }
+      }
+      
+      if (!admin || !passwordValid) {
+        // Track failed attempt
+        const current = loginAttempts.get(clientIp) || { count: 0, lastAttempt: 0 };
+        loginAttempts.set(clientIp, { count: current.count + 1, lastAttempt: now });
         return res.status(401).json({ message: "Invalid credentials" });
       }
       
-      // In production, you'd set up proper session management
+      // Auto-migrate plaintext password to bcrypt hash on successful login
+      if (needsMigration) {
+        try {
+          const hashedPassword = await bcrypt.hash(password, 12);
+          await storage.updateAdminPassword(admin.id, hashedPassword);
+          console.log(`🔐 Migrated admin ${admin.email} password to bcrypt hash`);
+        } catch (hashError) {
+          console.error('Failed to migrate password to bcrypt:', hashError);
+          // Continue login even if migration fails - security improvement is gradual
+        }
+      }
+      
+      // Reset failed attempts on successful login
+      loginAttempts.delete(clientIp);
+      
+      // Set session for authenticated admin
+      req.session.adminId = admin.id;
+      req.session.adminEmail = admin.email;
+      
       res.json({ message: "Login successful", admin: { id: admin.id, email: admin.email } });
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input", errors: error.errors });
+      }
       res.status(500).json({ message: "Login failed" });
     }
   });
 
+  // Admin logout
+  app.post("/api/admin/logout", (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Logout failed" });
+      }
+      res.json({ message: "Logged out successfully" });
+    });
+  });
+
+  // Check admin auth status
+  app.get("/api/admin/me", (req, res) => {
+    if (req.session?.adminId) {
+      res.json({ authenticated: true, email: req.session.adminEmail });
+    } else {
+      res.json({ authenticated: false });
+    }
+  });
+
   // Get pending locations (admin only)
-  app.get("/api/admin/locations/pending", async (req, res) => {
+  app.get("/api/admin/locations/pending", requireAdmin, async (req, res) => {
     try {
       const locations = await storage.getPendingLocations();
       res.json(locations);
@@ -568,14 +654,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update location status (admin only)
-  app.patch("/api/admin/locations/:id/status", async (req, res) => {
+  const statusUpdateSchema = z.object({
+    status: z.enum(["approved", "rejected"], { 
+      errorMap: () => ({ message: "Status must be 'approved' or 'rejected'" })
+    })
+  });
+  
+  app.patch("/api/admin/locations/:id/status", requireAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const { status } = req.body;
-      
-      if (!["approved", "rejected"].includes(status)) {
-        return res.status(400).json({ message: "Invalid status" });
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid location ID" });
       }
+      
+      const { status } = statusUpdateSchema.parse(req.body);
       
       const location = await storage.updateLocationStatus(id, status);
       if (!location) {
@@ -584,12 +676,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(location);
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input", errors: error.errors });
+      }
       res.status(500).json({ message: "Failed to update location status" });
     }
   });
 
   // Get admin dashboard stats
-  app.get("/api/admin/stats", async (req, res) => {
+  app.get("/api/admin/stats", requireAdmin, async (req, res) => {
     try {
       const allLocations = await storage.getAllLocations();
       const pendingCount = allLocations.filter(l => l.status === "pending").length;
@@ -608,7 +703,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Import locations from files
-  app.post("/api/admin/import", async (req, res) => {
+  app.post("/api/admin/import", requireAdmin, async (req, res) => {
     try {
       const { importAllFiles } = await import("./import");
       await importAllFiles();
@@ -625,10 +720,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update location details (admin only)
-  app.patch("/api/admin/locations/:id", async (req, res) => {
+  const locationUpdateSchema = z.object({
+    name: z.string().min(1).max(255).optional(),
+    description: z.string().optional(),
+    address: z.string().optional(),
+    latitude: z.number().min(-90).max(90).optional(),
+    longitude: z.number().min(-180).max(180).optional(),
+    category: z.string().optional(),
+    period: z.string().optional(),
+    content: z.string().optional(),
+    heroImage: z.string().optional(),
+    recommendedBooks: z.string().optional(),
+  }).strict();
+  
+  app.patch("/api/admin/locations/:id", requireAdmin, async (req, res) => {
     try {
       const locationId = parseInt(req.params.id);
-      const updates = req.body;
+      if (isNaN(locationId)) {
+        return res.status(400).json({ message: "Invalid location ID" });
+      }
+      
+      const updates = locationUpdateSchema.parse(req.body);
       
       const [updatedLocation] = await db
         .update(locations)
@@ -638,13 +750,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(updatedLocation);
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input", errors: error.errors });
+      }
       console.error("Error updating location:", error);
       res.status(500).json({ message: "Failed to update location" });
     }
   });
 
   // Delete location (admin only)
-  app.delete("/api/admin/locations/:id", async (req, res) => {
+  app.delete("/api/admin/locations/:id", requireAdmin, async (req, res) => {
     try {
       const locationId = parseInt(req.params.id);
       
@@ -665,7 +780,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get all locations for admin (includes pending/rejected)
-  app.get("/api/admin/locations", async (req, res) => {
+  app.get("/api/admin/locations", requireAdmin, async (req, res) => {
     try {
       const allLocations = await storage.getAllLocations();
       res.json(allLocations);
@@ -695,7 +810,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get all feedback (admin only)
-  app.get("/api/admin/feedback", async (req, res) => {
+  app.get("/api/admin/feedback", requireAdmin, async (req, res) => {
     try {
       const allFeedback = await storage.getAllFeedback();
       res.json(allFeedback);
@@ -706,11 +821,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update feedback status (admin only)
-  app.patch("/api/admin/feedback/:id", async (req, res) => {
+  const feedbackStatusSchema = z.object({
+    status: z.enum(["new", "in-progress", "resolved"], {
+      errorMap: () => ({ message: "Status must be 'new', 'in-progress', or 'resolved'" })
+    })
+  });
+  
+  app.patch("/api/admin/feedback/:id", requireAdmin, async (req, res) => {
     try {
       const feedbackId = parseInt(req.params.id);
-      const { status } = req.body;
+      if (isNaN(feedbackId)) {
+        return res.status(400).json({ message: "Invalid feedback ID" });
+      }
       
+      const { status } = feedbackStatusSchema.parse(req.body);
       const updatedFeedback = await storage.updateFeedbackStatus(feedbackId, status);
       
       if (!updatedFeedback) {
@@ -745,7 +869,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get affiliate clicks stats (admin only)
-  app.get("/api/admin/affiliate-clicks/stats", async (req, res) => {
+  app.get("/api/admin/affiliate-clicks/stats", requireAdmin, async (req, res) => {
     try {
       const stats = await storage.getAffiliateClicksStats();
       res.json(stats);
@@ -756,7 +880,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get all affiliate clicks (admin only)
-  app.get("/api/admin/affiliate-clicks", async (req, res) => {
+  app.get("/api/admin/affiliate-clicks", requireAdmin, async (req, res) => {
     try {
       const clicks = await storage.getAllAffiliateClicks();
       res.json(clicks);
@@ -867,7 +991,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Add upload persistence status endpoint
-  app.get("/api/admin/upload-status", async (req, res) => {
+  app.get("/api/admin/upload-status", requireAdmin, async (req, res) => {
     try {
       const status = await uploadPersistenceFix.getUploadStatus();
       res.json(status);
@@ -878,7 +1002,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Add emergency backup endpoint
-  app.post("/api/admin/emergency-backup", async (req, res) => {
+  app.post("/api/admin/emergency-backup", requireAdmin, async (req, res) => {
     try {
       await uploadPersistenceFix.emergencyBackupAll();
       res.json({ message: "Emergency backup completed" });
@@ -888,14 +1012,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Enhanced analytics tracking endpoint with improved developer detection
+  // Enhanced analytics tracking endpoint with improved developer and bot detection
   app.post("/api/analytics", async (req, res) => {
     try {
       const userAgent = req.get('User-Agent') || '';
       const clientIP = req.ip || req.connection.remoteAddress || "unknown";
       
-      // Improved developer detection logic
-      const isDevIP = clientIP?.startsWith('172.31.') || clientIP === '127.0.0.1';
+      // Bot detection - check user agent, IP, and behavioral signals
+      const botDetection = detectBot(userAgent, clientIP, req.body.metadata || req.body);
+      
+      // If high-confidence bot, silently accept but don't store
+      if (botDetection.isBot && botDetection.confidence === 'high') {
+        console.log(`🤖 Bot detected (${botDetection.reasons.join(', ')}), skipping analytics`);
+        return res.json({ id: 0, skipped: true, reason: 'bot' });
+      }
       
       // Check if client explicitly set developer mode (from localStorage dev-mode or admin-token)
       const clientDeveloperFlag = req.body.isDeveloper === true;
@@ -903,11 +1033,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if this is admin user activity (from admin panel)
       const isFromAdmin = req.get('Referer')?.includes('/admin') || false;
       
-      // Final developer determination: 
-      // - Respect client's explicit developer flag
-      // - OR mark as developer if coming from admin panel
-      // - BUT allow real visitor tracking on public URLs even from dev IPs
-      const isDeveloper = clientDeveloperFlag || isFromAdmin;
+      // Mark medium-confidence bots as developer traffic (stored but filtered from reports)
+      const isMediumBot = botDetection.isBot && botDetection.confidence === 'medium';
+      
+      // Final developer determination
+      const isDeveloper = clientDeveloperFlag || isFromAdmin || isMediumBot;
       
       // Extract device and browser info from user agent
       const deviceType = getDeviceType(userAgent);
@@ -923,14 +1053,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isDeveloper: isDeveloper
       });
       
-      // Enhanced logging for both developer and real user events
-      const logPrefix = isDeveloper ? "🔧 Developer" : "📊 Real User";
+      // Enhanced logging
+      let logPrefix = "📊 Real User";
+      if (isDeveloper) logPrefix = "🔧 Developer";
+      if (isMediumBot) logPrefix = "🤖 Suspected Bot";
+      
       console.log(`${logPrefix} Analytics:`, {
         event: analyticsData.eventType,
         device: deviceType,
         location: analyticsData.locationId,
-        ip: clientIP.replace(/^172\.31\.\d+/, '172.31.xxx'), // Anonymize IP in logs
-        developer: isDeveloper
+        ip: clientIP.substring(0, clientIP.lastIndexOf('.')).replace(/\d+$/, 'xxx'),
+        developer: isDeveloper,
+        botReasons: botDetection.reasons.length > 0 ? botDetection.reasons : undefined
       });
       
       const analytics = await storage.createAnalyticsEvent(analyticsData);
@@ -965,7 +1099,7 @@ function getBrowserName(userAgent: string): string {
 }
 
   // Get analytics stats (admin only)
-  app.get("/api/admin/analytics/stats", async (req, res) => {
+  app.get("/api/admin/analytics/stats", requireAdmin, async (req, res) => {
     try {
       const stats = await storage.getAnalyticsStats();
       res.json(stats);
@@ -976,7 +1110,7 @@ function getBrowserName(userAgent: string): string {
   });
 
   // Geographic analytics endpoint for user context insights
-  app.get("/api/admin/analytics/geographic-stats", async (req, res) => {
+  app.get("/api/admin/analytics/geographic-stats", requireAdmin, async (req, res) => {
     try {
       // Get current analytics stats
       const basicStats = await storage.getAnalyticsStats();
@@ -1035,7 +1169,7 @@ function getBrowserName(userAgent: string): string {
   });
 
   // Enhanced real analytics endpoint
-  app.get("/api/admin/analytics/comprehensive-stats", async (req, res) => {
+  app.get("/api/admin/analytics/comprehensive-stats", requireAdmin, async (req, res) => {
     try {
       const { getRealAnalyticsData } = await import("./real-analytics-endpoint");
       const realData = await getRealAnalyticsData();
@@ -1047,7 +1181,7 @@ function getBrowserName(userAgent: string): string {
   });
 
   // Enhanced analytics endpoint with advanced breakdowns
-  app.get("/api/admin/analytics/enhanced-stats", async (req, res) => {
+  app.get("/api/admin/analytics/enhanced-stats", requireAdmin, async (req, res) => {
     try {
       // Get basic stats
       const basicStats = await storage.getAnalyticsStats();
@@ -1134,7 +1268,7 @@ function getBrowserName(userAgent: string): string {
   });
 
   // Get analytics by event type (admin only)
-  app.get("/api/admin/analytics/events/:eventType", async (req, res) => {
+  app.get("/api/admin/analytics/events/:eventType", requireAdmin, async (req, res) => {
     try {
       const { eventType } = req.params;
       const events = await storage.getAnalyticsByEventType(eventType);
@@ -1171,7 +1305,7 @@ function getBrowserName(userAgent: string): string {
   });
 
   // Get analytics by location (admin only)
-  app.get("/api/admin/analytics/locations/:locationId", async (req, res) => {
+  app.get("/api/admin/analytics/locations/:locationId", requireAdmin, async (req, res) => {
     try {
       const locationId = parseInt(req.params.locationId);
       const events = await storage.getAnalyticsByLocation(locationId);
@@ -1185,7 +1319,7 @@ function getBrowserName(userAgent: string): string {
   // AUDIO NARRATION ENDPOINTS
   
   // Generate audio narration for a location with custom script
-  app.post("/api/admin/audio/generate", async (req, res) => {
+  app.post("/api/admin/audio/generate", requireAdmin, async (req, res) => {
     try {
       const { locationId, script } = req.body;
       
@@ -1244,7 +1378,7 @@ function getBrowserName(userAgent: string): string {
   });
   
   // Generate audio narration for a location
-  app.post("/api/admin/locations/:id/generate-audio", async (req, res) => {
+  app.post("/api/admin/locations/:id/generate-audio", requireAdmin, async (req, res) => {
     try {
       const locationId = parseInt(req.params.id);
       const location = await storage.getLocation(locationId);
@@ -1296,7 +1430,7 @@ function getBrowserName(userAgent: string): string {
   });
 
   // Generate audio narration with sound effects for a location
-  app.post("/api/admin/audio/generate-with-effects", async (req, res) => {
+  app.post("/api/admin/audio/generate-with-effects", requireAdmin, async (req, res) => {
     try {
       const { locationId, segments } = req.body;
       
@@ -1397,7 +1531,7 @@ function getBrowserName(userAgent: string): string {
           'Accept-Ranges': 'bytes',
           'Content-Length': chunksize,
           'Content-Type': 'audio/mpeg',
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Cache-Control': 'public, max-age=86400, stale-while-revalidate=604800',
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
           'Access-Control-Allow-Headers': 'Range, Content-Type'
@@ -1409,7 +1543,7 @@ function getBrowserName(userAgent: string): string {
           'Content-Type': 'audio/mpeg',
           'Content-Length': audioBuffer.length.toString(),
           'Accept-Ranges': 'bytes',
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Cache-Control': 'public, max-age=86400, stale-while-revalidate=604800',
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
           'Access-Control-Allow-Headers': 'Range, Content-Type'

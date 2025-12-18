@@ -6,6 +6,7 @@ import { preservePhotos, restorePhotos } from "./migrations/preserve-photos";
 // Enhanced static file serving for photo persistence
 import { photoPersistenceManager } from "./photo-persistence";
 import { photoBackupScheduler } from "./photo-backup-scheduler";
+import { sessionMiddleware } from "./auth";
 import path from "path";
 
 const app = express();
@@ -29,6 +30,9 @@ app.use((req, res, next) => {
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
+
+// Session middleware for admin authentication
+app.use(sessionMiddleware);
 
 // Note: /uploads static file serving is handled in routes.ts for proper database/filesystem routing
 // Photo system completely disabled to prevent interference
