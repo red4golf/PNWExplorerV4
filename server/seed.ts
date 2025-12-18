@@ -2,6 +2,10 @@ import { db } from "./db";
 import { locations, admins, photos } from "@shared/schema";
 import bcrypt from "bcrypt";
 
+function generateSlug(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
 async function seedPhotos() {
   console.log("🖼️ Initializing photo system...");
   const existingPhotos = await db.select().from(photos).limit(1);
@@ -32,8 +36,8 @@ async function seed() {
       password: hashedPassword,
     }).onConflictDoNothing();
 
-    // Insert sample historical locations
-    await db.insert(locations).values([
+    // Insert sample historical locations with auto-generated slugs
+    const locationData = [
       {
         name: "Winslow Ferry Terminal",
         description: "The historic gateway to Bainbridge Island, serving as the primary connection to Seattle since 1951. This terminal has witnessed countless arrivals and departures, connecting island residents to the mainland for over 70 years.",
@@ -314,7 +318,15 @@ async function seed() {
         submitterEmail: "info@tulipfestival.org",
         status: "approved",
       },
-    ]).onConflictDoNothing();
+    ];
+    
+    // Add slugs to all location data
+    const locationsWithSlugs = locationData.map(loc => ({
+      ...loc,
+      slug: generateSlug(loc.name)
+    }));
+    
+    await db.insert(locations).values(locationsWithSlugs).onConflictDoNothing();
 
     // Add sample photos to prevent them from disappearing
     await seedPhotos();
