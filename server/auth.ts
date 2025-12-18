@@ -25,7 +25,7 @@ export const sessionMiddleware = session({
   store: new PgSession({
     pool: pool as any,
     tableName: "admin_sessions",
-    createTableIfMissing: true,
+    createTableIfMissing: false,
   }),
   secret: getSessionSecret(),
   resave: false,
