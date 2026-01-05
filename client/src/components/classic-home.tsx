@@ -120,7 +120,7 @@ export default function ClassicHome({ locations, isLoading, onStartExploring }: 
                   </Button>
                 }
               />
-              <QRShare />
+              <QRShare variant="dark" />
             </div>
           </div>
         </div>

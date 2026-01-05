@@ -8,11 +8,16 @@ import { apiRequest } from "../lib/queryClient";
 interface QRShareProps {
   url?: string;
   title?: string;
+  variant?: "light" | "dark";
 }
 
-export default function QRShare({ url = window.location.href, title = "Pacific Northwest Historical Explorer" }: QRShareProps) {
+export default function QRShare({ url = window.location.href, title = "Pacific Northwest Historical Explorer", variant = "light" }: QRShareProps) {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
+  
+  const buttonClassName = variant === "dark" 
+    ? "text-white/80 hover:text-white hover:bg-white/10 border border-white/20 text-xs md:text-sm"
+    : "text-gray-700 hover:text-[var(--modern-sage)] hover:border-[var(--modern-sage)] border-gray-300 rounded-full text-sm";
 
   // Generate QR code URL using QR Server API (free service)
   // Use a local QR code generation or disable external QR service to prevent CORS
@@ -78,10 +83,11 @@ export default function QRShare({ url = window.location.href, title = "Pacific N
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button 
-          variant="ghost" 
+          variant={variant === "dark" ? "ghost" : "outline"}
           size="sm"
-          className="text-white/80 hover:text-white hover:bg-white/10 border border-white/20"
+          className={buttonClassName}
           onClick={() => trackAnalytics("share_link", { method: "dialog_open" })}
+          data-testid="button-share-app"
         >
           <Share2 className="w-4 h-4 mr-2" />
           Share App
