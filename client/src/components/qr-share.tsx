@@ -20,8 +20,8 @@ export default function QRShare({ url = window.location.href, title = "Pacific N
     : "text-gray-700 hover:text-[var(--modern-sage)] hover:border-[var(--modern-sage)] border-gray-300 rounded-full text-sm";
 
   // Generate QR code URL using QR Server API (free service)
-  // Use a local QR code generation or disable external QR service to prevent CORS
-  const qrCodeUrl = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="white"/><text x="100" y="100" text-anchor="middle" font-size="14" fill="black">QR Code</text></svg>`;
+  const siteUrl = "https://historical-bainbridge-charles194.replit.app";
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(siteUrl)}`;
 
   // Track analytics events
   const trackAnalytics = async (eventType: string, metadata?: any) => {
