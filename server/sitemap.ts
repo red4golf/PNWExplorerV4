@@ -9,7 +9,7 @@ interface SitemapUrl {
 
 export async function generateSitemap(): Promise<string> {
   const baseUrl = "https://historical-bainbridge-charles194.replit.app";
-  const now = new Date().toISOString().split('T')[0];
+  const now = "2025-01-05";
   
   const urls: SitemapUrl[] = [
     {
@@ -35,10 +35,10 @@ export async function generateSitemap(): Promise<string> {
   // Get all approved locations
   const locations = await storage.getApprovedLocations();
   
-  // Add location pages
+  // Add location pages using SEO-friendly slugs
   locations.forEach(location => {
     urls.push({
-      loc: `${baseUrl}/location/${location.id}`,
+      loc: `${baseUrl}/location/${location.slug}`,
       lastmod: now,
       changefreq: "monthly",
       priority: "0.9"
