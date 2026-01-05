@@ -1325,10 +1325,9 @@ function getBrowserName(userAgent: string): string {
   });
 
   // Google Search Console verification file
-  app.get("/google:code.html", (req, res) => {
-    const code = req.params.code;
+  app.get("/google0ed6571f7b8937f1.html", (req, res) => {
     res.set('Content-Type', 'text/html');
-    res.send(`google-site-verification: google${code}.html`);
+    res.send('google-site-verification: google0ed6571f7b8937f1.html');
   });
 
   // Get analytics by location (admin only)
