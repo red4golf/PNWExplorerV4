@@ -4,7 +4,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MapPin, Search, Sparkles, Box } from "lucide-react";
+import { MapPin, Search, Sparkles, Box, MessageCircle } from "lucide-react";
+import FeedbackForm from "@/components/feedback-form";
+import QRShare from "@/components/qr-share";
 import type { Location } from "@shared/schema";
 
 function shuffleArray<T>(array: T[]): T[] {
@@ -66,6 +68,24 @@ export default function ModernHome({ locations, isLoading, onStartExploring }: M
             >
               Explore
             </Button>
+            
+            {/* Feedback & Share Buttons */}
+            <div className="flex justify-center gap-3 pt-6">
+              <FeedbackForm 
+                trigger={
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="text-[var(--modern-warm-gray)] hover:text-[var(--modern-sage)] hover:border-[var(--modern-sage)] border-gray-300 rounded-full text-sm"
+                    data-testid="button-feedback-modern"
+                  >
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Feedback
+                  </Button>
+                }
+              />
+              <QRShare />
+            </div>
           </div>
         </div>
       </section>
