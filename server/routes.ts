@@ -16,6 +16,7 @@ import { generateSitemap, generateRobotsTxt } from "./sitemap";
 import { audioService } from "./audio-service";
 import { requireAdmin } from "./auth";
 import { detectBot } from "./bot-detection";
+import { lookupGeoLocation } from "./geo-lookup";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure multer for file uploads with location-specific folders
@@ -1052,6 +1053,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         browserName,
         isDeveloper: isDeveloper
       });
+      
+      // Lookup geo data asynchronously (don't block response)
+      lookupGeoLocation(clientIP).then(async (geoData) => {
+        if (geoData.city || geoData.country) {
+          try {
+            await db.execute(sql`
+              UPDATE user_analytics 
+              SET city = ${geoData.city}, 
+                  region = ${geoData.region}, 
+                  country = ${geoData.country}, 
+                  country_code = ${geoData.countryCode}
+              WHERE ip_address = ${clientIP} 
+                AND (city IS NULL OR city = '')
+            `);
+          } catch (err) {
+            console.log('Geo update error:', err);
+          }
+        }
+      }).catch(err => console.log('Geo lookup error:', err));
       
       // Enhanced logging
       let logPrefix = "📊 Real User";

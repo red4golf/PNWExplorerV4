@@ -87,6 +87,10 @@ export const userAnalytics = pgTable("user_analytics", {
   deviceType: varchar("device_type", { length: 20 }), // mobile, tablet, desktop
   browserName: varchar("browser_name", { length: 50 }),
   timeSpent: integer("time_spent"), // seconds spent on page/location
+  city: varchar("city", { length: 100 }),
+  region: varchar("region", { length: 100 }),
+  country: varchar("country", { length: 100 }),
+  countryCode: varchar("country_code", { length: 10 }),
 });
 
 export const insertLocationSchema = createInsertSchema(locations).omit({
