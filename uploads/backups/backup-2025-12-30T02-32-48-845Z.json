@@ -1,0 +1,20 @@
+{
+  "timestamp": "2025-12-30T02:32:49.477Z",
+  "photoCount": 2,
+  "photos": [
+    {
+      "id": 766,
+      "locationId": 136,
+      "filename": "/uploads/location-136/IMG_0308.jpeg",
+      "caption": "IMG_0308.jpeg",
+      "uploadedAt": "2025-08-20T06:07:58.584Z"
+    },
+    {
+      "id": 767,
+      "locationId": 136,
+      "filename": "/uploads/location-136/IMG_0309.jpeg",
+      "caption": "IMG_0309.jpeg",
+      "uploadedAt": "2025-08-20T06:11:28.001Z"
+    }
+  ]
+}
