@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,6 +10,19 @@ import QRShare from "@/components/qr-share";
 import { MapPin, BookOpen, Plus, Users, Mountain, TreePine, MessageCircle } from "lucide-react";
 import type { Location } from "@shared/schema";
 
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+function hasRealPhoto(location: Location): boolean {
+  return !!(location.heroImage && location.heroImage.startsWith('/api/files/'));
+}
+
 interface ClassicHomeProps {
   locations?: Location[];
   isLoading: boolean;
@@ -16,6 +30,12 @@ interface ClassicHomeProps {
 }
 
 export default function ClassicHome({ locations, isLoading, onStartExploring }: ClassicHomeProps) {
+  const featuredLocations = useMemo(() => {
+    if (!locations) return [];
+    const locationsWithPhotos = locations.filter(hasRealPhoto);
+    const shuffled = shuffleArray(locationsWithPhotos);
+    return shuffled.slice(0, 6);
+  }, [locations]);
   return (
     <div className="bg-heritage-cream min-h-screen">
       {/* Beta Ribbon */}
@@ -184,7 +204,7 @@ export default function ClassicHome({ locations, isLoading, onStartExploring }: 
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {locations?.slice(0, 6).map((location) => (
+              {featuredLocations.map((location) => (
                 <LocationCard key={location.id} location={location} />
               ))}
             </div>

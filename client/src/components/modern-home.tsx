@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +6,19 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MapPin, Search, Sparkles, Box } from "lucide-react";
 import type { Location } from "@shared/schema";
+
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+function hasRealPhoto(location: Location): boolean {
+  return !!(location.heroImage && location.heroImage.startsWith('/api/files/'));
+}
 
 interface ModernHomeProps {
   locations?: Location[];
@@ -19,7 +32,13 @@ export default function ModernHome({ locations, isLoading, onStartExploring }: M
   const [searchTerm, setSearchTerm] = useState("");
 
   const categories = ["all", "landmarks", "parks", "museums", "cultural", "natural", "historical"];
-  const featuredLocations = locations?.slice(0, 3) || [];
+  
+  const featuredLocations = useMemo(() => {
+    if (!locations) return [];
+    const locationsWithPhotos = locations.filter(hasRealPhoto);
+    const shuffled = shuffleArray(locationsWithPhotos);
+    return shuffled.slice(0, 3);
+  }, [locations]);
 
   return (
     <div className="bg-[var(--modern-cream)] min-h-screen">
