@@ -1334,7 +1334,7 @@ function getBrowserName(userAgent: string): string {
   const SOCIAL_CRAWLER_AGENTS = [
     'twitterbot', 'facebookexternalhit', 'facebot', 'linkedinbot', 
     'slackbot', 'whatsapp', 'telegrambot', 'discordbot', 'pinterest',
-    'applebot', 'meta-externalagent'
+    'applebot', 'meta-externalagent', 'bitlybot', 'bitly'
   ];
 
   app.get("/location/:slugOrId", async (req, res, next) => {
