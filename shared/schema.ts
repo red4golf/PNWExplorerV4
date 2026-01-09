@@ -73,6 +73,13 @@ export const fileStorage = pgTable("file_storage", {
   uniqueFilename: unique().on(table.filename, table.locationId),
 }));
 
+export const siteSettings = pgTable("site_settings", {
+  id: serial("id").primaryKey(),
+  key: varchar("key", { length: 100 }).notNull().unique(),
+  value: text("value"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const userAnalytics = pgTable("user_analytics", {
   id: serial("id").primaryKey(),
   eventType: varchar("event_type", { length: 50 }).notNull(), // 'qr_scan', 'share_link', 'page_view', 'location_view', 'search', 'filter_use', 'directions_click', 'photo_view', 'book_click', 'audio_play', 'feedback_submit'
@@ -165,3 +172,4 @@ export type InsertAffiliateClick = z.infer<typeof insertAffiliateClickSchema>;
 export type AffiliateClick = typeof affiliateClicks.$inferSelect;
 export type InsertUserAnalytics = z.infer<typeof insertUserAnalyticsSchema>;
 export type UserAnalytics = typeof userAnalytics.$inferSelect;
+export type SiteSetting = typeof siteSettings.$inferSelect;
