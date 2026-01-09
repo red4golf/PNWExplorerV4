@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,7 +26,7 @@ import { HonestAnalyticsData } from "@/components/honest-analytics-data";
 import { RawAnalyticsFacts } from "@/components/raw-analytics-facts";
 import { EnhancedTrackingGuide } from "@/components/enhanced-tracking-guide";
 
-import { Lock, Clock, MapPin, Users, CheckCircle, XCircle, LogIn, Upload, FileText, Database, Edit3, Search, Save, Filter, Eye, Trash2, Image, Calendar, BarChart3, Settings, RefreshCw, Download, ChevronDown, AlertCircle, X, MessageSquare, Bug, Lightbulb, BookOpen, TestTube, Volume2 } from "lucide-react";
+import { Lock, Clock, MapPin, Users, CheckCircle, XCircle, LogIn, Upload, FileText, Database, Edit3, Search, Save, Filter, Eye, Trash2, Image, Calendar, BarChart3, Settings, RefreshCw, Download, ChevronDown, AlertCircle, X, MessageSquare, Bug, Lightbulb, BookOpen, TestTube, Volume2, ExternalLink } from "lucide-react";
 
 import { formatDate, getCategoryColor } from "@/lib/utils";
 import type { Location, Feedback } from "@shared/schema";
@@ -71,6 +71,89 @@ function DeveloperModeToggle() {
         <TestTube className="w-4 h-4 mr-2" />
         {isEnabled ? "Enabled" : "Disabled"}
       </Button>
+    </div>
+  );
+}
+
+// Affiliate Code Settings Component
+function AffiliateCodeSettings() {
+  const { toast } = useToast();
+  const [affiliateCode, setAffiliateCode] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+
+  const { data: currentCode, refetch } = useQuery({
+    queryKey: ['/api/admin/settings/affiliate-code'],
+    queryFn: async () => {
+      const response = await fetch('/api/admin/settings/affiliate-code', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch affiliate code');
+      return response.json();
+    },
+  });
+
+  useEffect(() => {
+    if (currentCode?.code) {
+      setAffiliateCode(currentCode.code);
+    }
+  }, [currentCode]);
+
+  const saveAffiliateCode = async () => {
+    setIsSaving(true);
+    try {
+      const response = await fetch('/api/admin/settings/affiliate-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ code: affiliateCode }),
+      });
+      
+      if (!response.ok) throw new Error('Failed to save affiliate code');
+      
+      toast({
+        title: "Affiliate Code Saved",
+        description: `Amazon affiliate tag "${affiliateCode}" will be appended to all book links.`,
+      });
+      refetch();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save affiliate code. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <h4 className="font-semibold">Amazon Affiliate Tag</h4>
+        <p className="text-sm text-gray-600">
+          Set your Amazon Associates tag to automatically append to all book links
+        </p>
+      </div>
+      <div className="flex gap-2">
+        <Input
+          value={affiliateCode}
+          onChange={(e) => setAffiliateCode(e.target.value)}
+          placeholder="your-tag-20"
+          className="flex-1"
+        />
+        <Button 
+          onClick={saveAffiliateCode}
+          disabled={isSaving}
+          size="sm"
+        >
+          {isSaving ? "Saving..." : "Save"}
+        </Button>
+      </div>
+      {currentCode?.code && (
+        <p className="text-xs text-green-600">
+          Current tag: {currentCode.code}
+        </p>
+      )}
     </div>
   );
 }
@@ -1978,6 +2061,19 @@ export default function Admin() {
                       View Stats
                     </Button>
                   </div>
+                </CardContent>
+              </Card>
+
+              {/* Amazon Affiliate Settings */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-heritage-brown flex items-center">
+                    <ExternalLink className="w-5 h-5 mr-2" />
+                    Affiliate Marketing
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <AffiliateCodeSettings />
                 </CardContent>
               </Card>
 
