@@ -891,6 +891,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get Amazon affiliate code (admin only)
+  app.get("/api/admin/settings/affiliate-code", requireAdmin, async (req, res) => {
+    try {
+      const code = await storage.getSetting("amazon_affiliate_code");
+      res.json({ code: code || "" });
+    } catch (error) {
+      console.error("Error getting affiliate code:", error);
+      res.status(500).json({ message: "Failed to get affiliate code" });
+    }
+  });
+
+  // Set Amazon affiliate code (admin only)
+  app.post("/api/admin/settings/affiliate-code", requireAdmin, async (req, res) => {
+    try {
+      const { code } = req.body;
+      if (typeof code !== "string") {
+        return res.status(400).json({ message: "Invalid affiliate code" });
+      }
+      await storage.setSetting("amazon_affiliate_code", code.trim());
+      res.json({ success: true, code: code.trim() });
+    } catch (error) {
+      console.error("Error setting affiliate code:", error);
+      res.status(500).json({ message: "Failed to set affiliate code" });
+    }
+  });
+
+  // Public endpoint to get affiliate code for book links
+  app.get("/api/settings/affiliate-code", async (req, res) => {
+    try {
+      const code = await storage.getSetting("amazon_affiliate_code");
+      res.json({ code: code || "" });
+    } catch (error) {
+      console.error("Error getting affiliate code:", error);
+      res.status(500).json({ message: "Failed to get affiliate code" });
+    }
+  });
+
   // Book verification endpoint
   app.post("/api/verify-books", async (req, res) => {
     try {
