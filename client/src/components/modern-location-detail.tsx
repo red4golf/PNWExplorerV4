@@ -13,6 +13,17 @@ import AudioPlayer from "@/components/audio-player";
 import { BookThumbnail } from "@/components/book-thumbnail";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
+function appendAffiliateTag(url: string, tag: string): string {
+  if (!url || !tag) return url;
+  try {
+    const urlObj = new URL(url);
+    urlObj.searchParams.set('tag', tag);
+    return urlObj.toString();
+  } catch {
+    return url;
+  }
+}
+
 interface ModernLocationDetailProps {
   location: Location | undefined;
   isLoading: boolean;
@@ -26,6 +37,18 @@ export default function ModernLocationDetail({
   error, 
   userLocation 
 }: ModernLocationDetailProps) {
+  const { data: affiliateData } = useQuery({
+    queryKey: ['/api/settings/affiliate-code'],
+    queryFn: async () => {
+      const response = await fetch('/api/settings/affiliate-code');
+      if (!response.ok) return { code: '' };
+      return response.json();
+    },
+    staleTime: 0,
+  });
+
+  const affiliateCode = affiliateData?.code || '';
+
   const { data: photos = [] } = useQuery({
     queryKey: ["/api/locations", location?.id, "photos"],
     queryFn: async () => {
@@ -433,7 +456,7 @@ export default function ModernLocationDetail({
                           {book.description}
                         </p>
                         <a
-                          href={book.amazonUrl || book.amazon_url}
+                          href={appendAffiliateTag(book.amazonUrl || book.amazon_url, affiliateCode)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center px-4 py-2 text-sm bg-[var(--modern-terra-cotta)] text-white rounded-lg hover:bg-[var(--modern-terra-cotta)]/90 transition-colors font-medium"

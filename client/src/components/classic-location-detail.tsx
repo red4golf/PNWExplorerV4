@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,17 @@ import LocationPhotoGallery from "@/components/location-photo-gallery";
 import AudioPlayer from "@/components/audio-player";
 import { BookThumbnail } from "@/components/book-thumbnail";
 
+function appendAffiliateTag(url: string, tag: string): string {
+  if (!url || !tag) return url;
+  try {
+    const urlObj = new URL(url);
+    urlObj.searchParams.set('tag', tag);
+    return urlObj.toString();
+  } catch {
+    return url;
+  }
+}
+
 interface ClassicLocationDetailProps {
   location: Location | undefined;
   isLoading: boolean;
@@ -25,6 +37,18 @@ export default function ClassicLocationDetail({
   error, 
   userLocation 
 }: ClassicLocationDetailProps) {
+  const { data: affiliateData } = useQuery({
+    queryKey: ['/api/settings/affiliate-code'],
+    queryFn: async () => {
+      const response = await fetch('/api/settings/affiliate-code');
+      if (!response.ok) return { code: '' };
+      return response.json();
+    },
+    staleTime: 0,
+  });
+
+  const affiliateCode = affiliateData?.code || '';
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-heritage-cream py-8">
@@ -323,7 +347,7 @@ export default function ClassicLocationDetail({
                           <p className="text-sm text-gray-600 mb-2" data-testid={`text-book-author-${index}`}>by {book.author}</p>
                           <p className="text-sm text-gray-700 mb-3" data-testid={`text-book-description-${index}`}>{book.description}</p>
                           <a
-                            href={book.amazonUrl || book.amazon_url}
+                            href={appendAffiliateTag(book.amazonUrl || book.amazon_url, affiliateCode)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center px-3 py-2 text-sm bg-heritage-brown text-white rounded hover:bg-heritage-brown/90 transition-colors"
