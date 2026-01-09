@@ -1401,9 +1401,6 @@ function getBrowserName(userAgent: string): string {
   <meta name="twitter:image" content="${ogImage}" />
   
   <link rel="canonical" href="${locationUrl}" />
-  
-  <!-- Redirect browsers to the actual page -->
-  <meta http-equiv="refresh" content="0;url=${locationUrl}" />
 </head>
 <body>
   <h1>${location.name}</h1>
