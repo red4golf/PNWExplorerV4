@@ -1330,6 +1330,97 @@ function getBrowserName(userAgent: string): string {
     res.send('google-site-verification: google0ed6571f7b8937f1.html');
   });
 
+  // Social media crawler handler for location pages (returns proper OG meta tags)
+  const SOCIAL_CRAWLER_AGENTS = [
+    'twitterbot', 'facebookexternalhit', 'facebot', 'linkedinbot', 
+    'slackbot', 'whatsapp', 'telegrambot', 'discordbot', 'pinterest',
+    'applebot', 'meta-externalagent'
+  ];
+
+  app.get("/location/:slugOrId", async (req, res, next) => {
+    const userAgent = (req.headers['user-agent'] || '').toLowerCase();
+    const isSocialCrawler = SOCIAL_CRAWLER_AGENTS.some(bot => userAgent.includes(bot));
+    
+    if (!isSocialCrawler) {
+      return next();
+    }
+
+    try {
+      const param = req.params.slugOrId;
+      let location;
+      
+      if (/^\d+$/.test(param)) {
+        location = await storage.getLocation(parseInt(param));
+      } else {
+        location = await storage.getLocationBySlug(param);
+      }
+
+      if (!location) {
+        return next();
+      }
+
+      console.log(`🤖 Social crawler detected for: ${location.name} (${userAgent.substring(0, 50)})`);
+
+      const baseUrl = 'https://historical-bainbridge-charles194.replit.app';
+      const locationUrl = `${baseUrl}/location/${location.slug}`;
+      const title = `${location.name} - ${location.category} | Pacific Northwest Historical Explorer`;
+      const description = location.description.length > 200 
+        ? location.description.substring(0, 197) + '...' 
+        : location.description;
+      
+      let ogImage = `${baseUrl}/og-image.jpg`;
+      if (location.heroImage) {
+        if (location.heroImage.startsWith('/api/files/')) {
+          ogImage = `${baseUrl}${location.heroImage}`;
+        } else if (location.heroImage.startsWith('http')) {
+          ogImage = location.heroImage;
+        }
+      }
+
+      const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${title}</title>
+  <meta name="description" content="${description}" />
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="${locationUrl}" />
+  <meta property="og:title" content="${title}" />
+  <meta property="og:description" content="${description}" />
+  <meta property="og:image" content="${ogImage}" />
+  <meta property="og:site_name" content="Pacific Northwest Historical Explorer" />
+  
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="${locationUrl}" />
+  <meta name="twitter:title" content="${title}" />
+  <meta name="twitter:description" content="${description}" />
+  <meta name="twitter:image" content="${ogImage}" />
+  
+  <link rel="canonical" href="${locationUrl}" />
+  
+  <!-- Redirect browsers to the actual page -->
+  <meta http-equiv="refresh" content="0;url=${locationUrl}" />
+</head>
+<body>
+  <h1>${location.name}</h1>
+  <p>${description}</p>
+  <p><a href="${locationUrl}">Visit ${location.name}</a></p>
+</body>
+</html>`;
+
+      res.set('Content-Type', 'text/html');
+      res.set('Cache-Control', 'public, max-age=3600');
+      res.send(html);
+    } catch (error) {
+      console.error('Error serving social crawler page:', error);
+      next();
+    }
+  });
+
   // Get analytics by location (admin only)
   app.get("/api/admin/analytics/locations/:locationId", requireAdmin, async (req, res) => {
     try {
