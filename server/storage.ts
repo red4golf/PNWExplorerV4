@@ -1,4 +1,4 @@
-import { locations, photos, admins, feedback, affiliateClicks, userAnalytics, fileStorage, type Location, type InsertLocation, type Photo, type InsertPhoto, type Admin, type InsertAdmin, type Feedback, type InsertFeedback, type AffiliateClick, type InsertAffiliateClick, type UserAnalytics, type InsertUserAnalytics } from "@shared/schema";
+import { locations, photos, admins, feedback, affiliateClicks, userAnalytics, fileStorage, siteSettings, type Location, type InsertLocation, type Photo, type InsertPhoto, type Admin, type InsertAdmin, type Feedback, type InsertFeedback, type AffiliateClick, type InsertAffiliateClick, type UserAnalytics, type InsertUserAnalytics, type SiteSetting } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql } from "drizzle-orm";
 import bcrypt from "bcrypt";
@@ -44,6 +44,10 @@ export interface IStorage {
   getAnalyticsStats(): Promise<{ totalEvents: number; qrScans: number; shareLinks: number; pageViews: number; locationViews: number; }>;
   getAnalyticsByEventType(eventType: string): Promise<UserAnalytics[]>;
   getAnalyticsByLocation(locationId: number): Promise<UserAnalytics[]>;
+  
+  // Site settings methods
+  getSetting(key: string): Promise<string | null>;
+  setSetting(key: string, value: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -384,6 +388,24 @@ export class DatabaseStorage implements IStorage {
              !ip.startsWith('127.0.0.1') && 
              !ip.startsWith('::1');
     });
+  }
+
+  async getSetting(key: string): Promise<string | null> {
+    const [setting] = await db
+      .select()
+      .from(siteSettings)
+      .where(eq(siteSettings.key, key));
+    return setting?.value ?? null;
+  }
+
+  async setSetting(key: string, value: string): Promise<void> {
+    await db
+      .insert(siteSettings)
+      .values({ key, value, updatedAt: new Date() })
+      .onConflictDoUpdate({
+        target: siteSettings.key,
+        set: { value, updatedAt: new Date() }
+      });
   }
 }
 
