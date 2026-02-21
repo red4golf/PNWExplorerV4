@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, MapPin, Calendar, User, Navigation, ExternalLink, FileText, BookOpen } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, User, Navigation, ExternalLink, FileText, BookOpen, Camera } from "lucide-react";
 import { Link } from "wouter";
 import { getCategoryIcon, getCategoryColor, formatDate, getDirectionsUrl, calculateDistance } from "@/lib/utils";
 import type { Location } from "@shared/schema";
@@ -98,6 +98,7 @@ export default function ClassicLocationDetail({
 
   const placeholderImage = `https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&w=800&h=600&fit=crop`;
   const imageUrl = location.heroImage || placeholderImage;
+  const isPlaceholderImage = !location.heroImage || location.heroImage.includes('placeholder');
 
   return (
     <div className="min-h-screen bg-heritage-cream py-4 sm:py-8">
@@ -114,13 +115,24 @@ export default function ClassicLocationDetail({
 
         <div className="space-y-6">
           {/* Hero Image */}
-          <div>
+          <div className="relative">
             <img
               src={imageUrl}
               alt={location.name}
               className="w-full h-48 sm:h-64 md:h-80 lg:h-96 object-cover rounded-lg shadow-lg"
               data-testid="img-hero"
             />
+            {isPlaceholderImage && (
+              <div className="absolute top-3 right-3 flex flex-col items-end gap-2">
+                <div className="bg-black/70 backdrop-blur-sm text-white/90 text-xs px-3 py-1.5 rounded-full font-medium tracking-wide">
+                  Stock Photo — Not Actual Location
+                </div>
+                <div className="bg-amber-700/90 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full font-medium flex items-center gap-1.5">
+                  <Camera className="w-3 h-3" />
+                  Have a photo? Submit yours below!
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Title and Category */}

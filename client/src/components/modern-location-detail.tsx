@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, MapPin, Calendar, User, Navigation, ExternalLink, FileText, BookOpen, Landmark, Compass, Mountain, Ship, Users, Clock, type LucideIcon } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, User, Navigation, ExternalLink, FileText, BookOpen, Landmark, Compass, Mountain, Ship, Users, Clock, Camera, type LucideIcon } from "lucide-react";
 import { Link } from "wouter";
 import { getCategoryIcon, getCategoryColor, formatDate, getDirectionsUrl, calculateDistance } from "@/lib/utils";
 import type { Location, Photo } from "@shared/schema";
@@ -109,6 +109,7 @@ export default function ModernLocationDetail({
 
   const placeholderImage = `https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&w=1200&h=600&fit=crop`;
   const imageUrl = location.heroImage || placeholderImage;
+  const isPlaceholderImage = !location.heroImage || location.heroImage.includes('placeholder');
 
   // Parse story content into timeline sections
   const parseStoryTimeline = (content: string) => {
@@ -147,6 +148,18 @@ export default function ModernLocationDetail({
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
         
+        {isPlaceholderImage && (
+          <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-2">
+            <div className="bg-black/70 backdrop-blur-sm text-white/90 text-xs px-3 py-1.5 rounded-full font-medium tracking-wide">
+              Stock Photo — Not Actual Location
+            </div>
+            <div className="bg-[var(--modern-terra)]/90 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full font-medium flex items-center gap-1.5">
+              <Camera className="w-3 h-3" />
+              Have a photo? Submit yours below!
+            </div>
+          </div>
+        )}
+
         {/* Content Overlay */}
         <div className="relative h-full container mx-auto px-4 flex flex-col justify-between py-8">
           {/* Back Button */}
