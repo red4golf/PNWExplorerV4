@@ -12,9 +12,10 @@ import {
   Activity
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import type { BasicAnalyticsStats } from "@/types/analytics";
 
 export function HonestAnalyticsData() {
-  const { data: basicStats } = useQuery({
+  const { data: basicStats } = useQuery<BasicAnalyticsStats>({
     queryKey: ["/api/admin/analytics/stats"],
   });
 

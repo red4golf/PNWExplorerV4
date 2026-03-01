@@ -33,8 +33,9 @@ const isDeveloperMode = () => {
 // Get user's approximate location (using browser geolocation API)
 const getUserLocation = (): Promise<any> => {
   return new Promise((resolve) => {
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
+    const browserNavigator: Navigator = window.navigator;
+    if ('geolocation' in browserNavigator) {
+      browserNavigator.geolocation?.getCurrentPosition(
         (position) => {
           resolve({
             latitude: position.coords.latitude,
@@ -46,7 +47,7 @@ const getUserLocation = (): Promise<any> => {
           // If geolocation fails, try to get timezone
           resolve({
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            language: navigator.language
+            language: Intl.DateTimeFormat().resolvedOptions().locale || "en-US"
           } as any);
         },
         { timeout: 5000, enableHighAccuracy: false }
@@ -54,7 +55,7 @@ const getUserLocation = (): Promise<any> => {
     } else {
       resolve({
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        language: navigator.language
+        language: Intl.DateTimeFormat().resolvedOptions().locale || "en-US"
       });
     }
   });

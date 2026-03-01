@@ -7,9 +7,10 @@ import {
   XCircle
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import type { BasicAnalyticsStats } from "@/types/analytics";
 
 export function RawAnalyticsFacts() {
-  const { data: basicStats } = useQuery({
+  const { data: basicStats } = useQuery<BasicAnalyticsStats>({
     queryKey: ["/api/admin/analytics/stats"],
   });
 
