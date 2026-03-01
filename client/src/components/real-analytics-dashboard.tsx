@@ -10,9 +10,10 @@ import {
   Clock
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import type { BasicAnalyticsStats } from "@/types/analytics";
 
 export function RealAnalyticsDashboard() {
-  const { data: basicStats } = useQuery({
+  const { data: basicStats } = useQuery<BasicAnalyticsStats>({
     queryKey: ["/api/admin/analytics/stats"],
   });
 

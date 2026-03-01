@@ -138,7 +138,7 @@ export default function SubmitLocation() {
                         <FormLabel className="text-heritage-brown font-semibold">
                           Historical Period
                         </FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value ?? ""}>
                           <FormControl>
                             <SelectTrigger className="focus:ring-heritage-gold focus:border-heritage-gold">
                               <SelectValue placeholder="Select period" />
@@ -172,6 +172,7 @@ export default function SubmitLocation() {
                             placeholder="Street address or general area"
                             className="focus:ring-heritage-gold focus:border-heritage-gold"
                             {...field}
+                            value={field.value ?? ""}
                           />
                         </FormControl>
                         <FormMessage />
@@ -187,7 +188,7 @@ export default function SubmitLocation() {
                         <FormLabel className="text-heritage-brown font-semibold">
                           Category *
                         </FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value ?? ""}>
                           <FormControl>
                             <SelectTrigger className="focus:ring-heritage-gold focus:border-heritage-gold">
                               <SelectValue placeholder="Select category" />
@@ -244,6 +245,7 @@ export default function SubmitLocation() {
                           placeholder="Share a detailed story about this location... Paint a picture with words that brings the history to life. Include sensory details, historical context, and what visitors should know."
                           className="focus:ring-heritage-gold focus:border-heritage-gold"
                           {...field}
+                          value={field.value ?? ""}
                         />
                       </FormControl>
                       <p className="text-sm text-gray-600">
@@ -288,6 +290,7 @@ export default function SubmitLocation() {
                             placeholder="Your full name"
                             className="focus:ring-heritage-gold focus:border-heritage-gold"
                             {...field}
+                            value={field.value ?? ""}
                           />
                         </FormControl>
                         <FormMessage />
@@ -309,6 +312,7 @@ export default function SubmitLocation() {
                             placeholder="your@email.com"
                             className="focus:ring-heritage-gold focus:border-heritage-gold"
                             {...field}
+                            value={field.value ?? ""}
                           />
                         </FormControl>
                         <FormMessage />

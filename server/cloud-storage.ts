@@ -129,12 +129,13 @@ export class DatabaseStorageProvider implements CloudStorageProvider {
       
       return `/api/files/location-${locationId}/${filename}`;
     } catch (error) {
+      const typedError = error as { message?: string; stack?: string; code?: string; name?: string };
       console.error('❌ DATABASE STORAGE: Upload failed:', error);
       console.error('❌ DATABASE STORAGE: Error details:', {
-        message: error.message,
-        stack: error.stack,
-        code: error.code,
-        name: error.name
+        message: typedError.message,
+        stack: typedError.stack,
+        code: typedError.code,
+        name: typedError.name
       });
       
       // Fallback to local storage if database fails

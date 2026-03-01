@@ -104,18 +104,33 @@ export async function getRealAnalyticsData() {
       LIMIT 15
     `);
 
-    const stats = basicStats.rows[0];
+    const stats = basicStats.rows[0] as Record<string, string | number | undefined> | undefined;
+    const getNumber = (value: string | number | undefined): number => Number(value ?? 0);
+
+    if (!stats) {
+      return {
+        overview: {
+          totalEvents: 0, uniqueUsers: 0, pageViews: 0, locationViews: 0, shares: 0, qrScans: 0, engagementRate: 0, locationDiscoveryRate: 0
+        },
+        userContext: {},
+        geographic: { timezones: [] },
+        temporal: { timePatterns: {}, dayPatterns: {} },
+        devices: {},
+        topLocations: [],
+        dataQuality: { hasContextData: false, hasTimezoneData: false, hasDeviceData: false }
+      };
+    }
     
     return {
       overview: {
-        totalEvents: parseInt(stats.total_events || '0'),
-        uniqueUsers: parseInt(stats.unique_users || '0'),
-        pageViews: parseInt(stats.page_views || '0'),
-        locationViews: parseInt(stats.location_views || '0'),
-        shares: parseInt(stats.shares || '0'),
-        qrScans: parseInt(stats.qr_scans || '0'),
-        engagementRate: stats.unique_users > 0 ? parseFloat((parseInt(stats.total_events) / parseInt(stats.unique_users)).toFixed(2)) : 0,
-        locationDiscoveryRate: stats.page_views > 0 ? parseFloat(((parseInt(stats.location_views) / parseInt(stats.page_views)) * 100).toFixed(1)) : 0
+        totalEvents: getNumber(stats.total_events),
+        uniqueUsers: getNumber(stats.unique_users),
+        pageViews: getNumber(stats.page_views),
+        locationViews: getNumber(stats.location_views),
+        shares: getNumber(stats.shares),
+        qrScans: getNumber(stats.qr_scans),
+        engagementRate: getNumber(stats.unique_users) > 0 ? parseFloat((getNumber(stats.total_events) / getNumber(stats.unique_users)).toFixed(2)) : 0,
+        locationDiscoveryRate: getNumber(stats.page_views) > 0 ? parseFloat(((getNumber(stats.location_views) / getNumber(stats.page_views)) * 100).toFixed(1)) : 0
       },
       userContext: contextData.rows.reduce((acc: any, row: any) => {
         acc[row.context] = parseInt(row.count);

@@ -11,7 +11,8 @@ export interface SEOMetadata {
 
 export function generateLocationSEO(location: Location): SEOMetadata {
   // Enhanced title with book keywords for better search visibility
-  const hasBooks = location.recommendedBooks && location.recommendedBooks !== '[]';
+  const recommendedBooks = location.recommendedBooks ?? "[]";
+  const hasBooks = recommendedBooks !== "[]";
   const bookKeywords = hasBooks ? " - Historical Books & Reading Guide" : "";
   const title = `${location.name} - ${location.category} Site${bookKeywords} | Pacific Northwest Historical Explorer`;
   
@@ -19,8 +20,9 @@ export function generateLocationSEO(location: Location): SEOMetadata {
   let description = `Discover ${location.name}, a ${location.category.toLowerCase()} site in the Pacific Northwest. ${location.description.substring(0, 100)}`;
   if (hasBooks) {
     try {
-      const books = JSON.parse(location.recommendedBooks);
-      const bookCategories = [...new Set(books.map((book: any) => book.category).filter(Boolean))];
+      const books = JSON.parse(recommendedBooks) as Array<{ category?: string }>;
+      const uniqueCategories = new Set<string>(books.map((book) => book.category).filter((category): category is string => Boolean(category)));
+      const bookCategories = Array.from(uniqueCategories);
       if (bookCategories.length > 0) {
         description += ` Includes ${bookCategories.join(', ')} book recommendations.`;
       } else {
@@ -82,7 +84,7 @@ export function generateLocationSEO(location: Location): SEOMetadata {
   // Add book recommendations as structured data
   if (hasBooks) {
     try {
-      const books = JSON.parse(location.recommendedBooks);
+      const books = JSON.parse(recommendedBooks) as Array<Record<string, any>>;
       structuredData.recommendedBooks = books.map((book: any) => ({
         "@type": "Book",
         "name": book.title,
