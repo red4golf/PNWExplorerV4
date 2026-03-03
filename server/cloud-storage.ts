@@ -129,12 +129,13 @@ export class DatabaseStorageProvider implements CloudStorageProvider {
       
       return `/api/files/location-${locationId}/${filename}`;
     } catch (error) {
+      const typedError = error as { message?: string; stack?: string; code?: string; name?: string };
       console.error('❌ DATABASE STORAGE: Upload failed:', error);
       console.error('❌ DATABASE STORAGE: Error details:', {
-        message: error.message,
-        stack: error.stack,
-        code: error.code,
-        name: error.name
+        message: typedError.message,
+        stack: typedError.stack,
+        code: typedError.code,
+        name: typedError.name
       });
       
       // Fallback to local storage if database fails
@@ -226,11 +227,15 @@ export class StorageManager {
 
   private constructor() {
     // Detect environment and choose appropriate provider
-    const isDeployed = process.env.NODE_ENV === 'production' || 
-                      process.env.REPLIT_DEPLOYMENT === 'true' ||
-                      process.env.REPLIT_ENVIRONMENT === 'production' ||
-                      !process.env.REPLIT_DEV_DOMAIN ||
-                      process.env.FORCE_DATABASE_STORAGE === 'true';
+    const hasReplitProductionFlag =
+      process.env.REPLIT_DEPLOYMENT === 'true' ||
+      process.env.REPLIT_ENVIRONMENT === 'production';
+
+    const forceDatabaseStorage = process.env.FORCE_DATABASE_STORAGE === 'true';
+
+    // Default to local storage outside explicit production/deployment contexts.
+    // This keeps GitHub/local runs working even when REPLIT_* vars are absent.
+    const isDeployed = process.env.NODE_ENV === 'production' || hasReplitProductionFlag || forceDatabaseStorage;
     
     console.log('🔍 Environment detection:', {
       NODE_ENV: process.env.NODE_ENV,

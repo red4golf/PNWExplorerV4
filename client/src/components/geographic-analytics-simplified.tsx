@@ -12,9 +12,10 @@ import {
   TrendingUp
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import type { GeographicAnalyticsStats } from "@/types/analytics";
 
 export function GeographicAnalyticsSimplified() {
-  const { data: geoStats, isLoading: geoLoading } = useQuery({
+  const { data: geoStats, isLoading: geoLoading } = useQuery<GeographicAnalyticsStats>({
     queryKey: ["/api/admin/analytics/geographic-stats"],
   });
 
@@ -51,8 +52,8 @@ export function GeographicAnalyticsSimplified() {
   }
 
   const stats = geoStats;
-  const totalContexts = Object.values(stats.userContextBreakdown || {}).reduce((a: any, b: any) => Number(a) + Number(b), 0);
-  const totalSources = Object.values(stats.referrerSourceBreakdown || {}).reduce((a: any, b: any) => Number(a) + Number(b), 0);
+  const totalContexts = Object.values(stats.userContextBreakdown || {}).reduce((a, b) => Number(a) + Number(b), 0);
+  const totalSources = Object.values(stats.referrerSourceBreakdown || {}).reduce((a, b) => Number(a) + Number(b), 0);
 
   return (
     <div className="space-y-6">

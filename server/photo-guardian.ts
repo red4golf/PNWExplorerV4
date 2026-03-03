@@ -61,7 +61,7 @@ export class PhotoGuardian {
           const fileData = fs.readFileSync(fullPath);
           
           // Store in vault
-          await db.execute(`
+          await (db as any).execute(`
             INSERT INTO photo_vault (original_photo_id, location_id, filename, caption, file_data)
             VALUES ($1, $2, $3, $4, $5)
             ON CONFLICT (original_photo_id) DO UPDATE SET
@@ -87,7 +87,7 @@ export class PhotoGuardian {
     try {
       const vaultPhotos = await db.execute('SELECT * FROM photo_vault');
       
-      for (const vaultPhoto of vaultPhotos.rows) {
+      for (const vaultPhoto of vaultPhotos.rows as Array<{ filename: string; file_data: Buffer }>) {
         const fullPath = path.join(process.cwd(), vaultPhoto.filename.replace(/^\//, ''));
         
         if (!fs.existsSync(fullPath)) {

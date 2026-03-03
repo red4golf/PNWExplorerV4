@@ -76,6 +76,14 @@ async function importFromCSV(filePath: string) {
   }
 }
 
+
+function generateSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 // Import a single location
 async function importSingleLocation(data: ImportLocation) {
   try {
@@ -89,7 +97,8 @@ async function importSingleLocation(data: ImportLocation) {
       period: data.period,
       submitterName: data.submitterName || 'Content Import',
       submitterEmail: data.submitterEmail || 'import@pnwhistory.org',
-      status: data.status || 'pending'
+      status: data.status || 'pending',
+      slug: generateSlug(data.name)
     };
 
     const [newLocation] = await db.insert(locations).values(locationData).returning();
